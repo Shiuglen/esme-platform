@@ -12,17 +12,32 @@ minisign. La tienda distribuye: MCP del mundo, plugins, skills, modelos locales
 ## Flujo (safe-by-default)
 
 ```
-build → scan → firma (minisign) → PR a tienda/index.json → instalación verificada
+build → medir (bench) → empaquetar (tgz reproducible) → firmar (Ed25519)
+     → índice firmado → panel → instalar → verificar → extension host
 ```
 
 1. **Validador** (`modulos/nucleo/manifest-validator.ts`): Zod + verificación de
    firma. Rechaza si `category` está fuera del enum, si se pide un permiso no
    declarado, o si `entry` no existe tras el build.
-2. **Scan de seguridad:** syft + grype sobre el artifact (CI); semgrep en el source.
-3. **Firma:** el autor firma su artifact con su clave minisign; el índice se firma
-   con la clave de release. Los binarios del core llevan `pubkey.minisign` fijo.
-4. **Revisión:** PR con 2 approvals (1 bot + 1 humano), o 1 maintainer para
-   actualizaciones de un módulo ya publicado.
+2. **Bench de la Prueba 0** (`core/bench/`, `tienda/bench.ts`): cada módulo responde
+   por lo que promete — los `memory` por el examen de recall (determinista,
+   ≥ +0,01 o −10% tokens), los `tool` por el **ciclo de extremo a extremo**
+   (`BenchCiclo`: ≥ 3 escenarios, tope 500 tokens/ciclo). `npm run bench`
+   mide, registra, firma y publica el panel en un solo comando.
+3. **Empaque reproducible** (`tienda/empaque.ts`): tarball determinista —
+   misma carpeta → mismos bytes → mismo sha256. La firma vive FUERA del
+   paquete (`tienda/firmas/<id>.artefacto.json`), si no el paquete cambia en
+   cada firma y el sha nunca se estabiliza.
+4. **Firma:** Ed25519 vía `node:crypto` (cero dependencias). El manifiesto
+   declara la huella de la clave que firmó; el libro de `tienda/firmas/`
+   guarda la firma de los bytes. El índice completo se re-firma cada ciclo.
+5. **Verificación del consumidor** (`scripts/verificar.ts`, `tienda/receptor.ts`):
+   quien descarga no confía — verifica la firma del índice, el hash del
+   índice contra el libro, los bytes del tar contra lo firmado, y solo
+   entonces desempaqueta (`npm run verificar`, `npm run instalar <id>`).
+6. **Activación** (`scripts/instalar.ts`): el módulo corre en SU worker del
+   extension host con los permisos exactos del manifiesto; la mente nunca
+   sale del core (`core/extension-host/host.ts`).
 
 ## Instalación
 

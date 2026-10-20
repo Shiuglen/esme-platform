@@ -1,4 +1,5 @@
 node_modules/
 dist/
-.keys/
 *.tsbuildinfo
+.keys/index-dev.pem
+instalaciones/
