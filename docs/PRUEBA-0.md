@@ -48,4 +48,24 @@ en su categoría, medido con el test del módulo contra la Prueba 0. Si no, no s
 3. El módulo sube un `bench.json` a su `module.yaml` (`benchmarks:` campo opcional);
    el coche de la tienda comprobará y firmará su veredicto.
 
+## El banco real (en el kit, con los datos de este equipo)
+
+El examen de muestra (el hallazgo del 12-oct) está en `core/bench/examen-real.ts`.
+El banco de verdad se construye con lo que dice esta misma constitution:
+
+```bash
+npm run banco -- --construir   # sus preguntas (las transcripciones) + sus documentos (su Vault)
+npm run banco -- --validar     # el humano elige el oro de cada caso: ESO es la validación humana
+npm run banco -- --medir       # mide los dos mundos: el documento entero y el troceado por filas
+```
+
+- El **constructor no decide**: propone cinco candidatos por pregunta y la
+  persona elige uno (o ninguno). El oro sin elegir no cuenta.
+- El **oro se identifica por texto**, no por id de trozo: por eso el mismo caso
+  vale para los dos mundos y la comparación es honesta.
+- El banco es **privado**: vive en `~/.esme/prueba0-banco.json`, fuera del repo.
+  Las preguntas del usuario y su Vault no van a un repositorio.
+- La puerta (`tests/prueba0.test.ts`) mide contra el benchmark **commiteado**:
+  si el número empeora, el cambio no entra.
+
 Fuentes completas de la Prueba 0 y Fase 1: `docs/superpowers/plans/` del repo vivo.

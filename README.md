@@ -58,6 +58,17 @@ npm run panel            # el panel de la tienda, en markdown
 npm run skills:juzgar    # el juez de las skills: el veredicto medible de cada una
 ```
 
+**La Prueba 0 de verdad** (el banco real, con los datos locales del usuario):
+
+```bash
+npm run banco -- --construir   # propone los casos: sus preguntas y sus documentos
+npm run banco -- --validar     # el humano elige el oro (eso es la constitution)
+npm run banco -- --medir       # mide: el módulo no puede empeorar el número
+```
+
+El banco vive FUERA del repo (`~/.esme/prueba0-banco.json`): las preguntas del
+usuario y su Vault no van a un repositorio.
+
 **Mover la mente** (formato portable, con sus garantías):
 
 ```bash
