@@ -50,6 +50,7 @@
     "skills:publicar": "tsx scripts/publicar-veredictos.ts",
     "tienda:publicar": "tsx scripts/publicar-catalogo.ts",
     "tienda": "npm run bench && npm run verificar",
+    "casa": "tsx scripts/casa.ts",
     "test:offline": "vitest run tests/offline.test.ts tests/tienda-firma.test.ts tests/redaction.test.ts tests/mind-format.test.ts",
     "lint": "tsc --noEmit",
     "prepublishOnly": "npm run lint && npm test && npm run spec:lint"
