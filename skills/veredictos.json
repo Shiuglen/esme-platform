@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "emitido": 1792474644259,
+  "emitido": 1792518915530,
   "firmante": "adaaf79999a7296f",
   "catalogoSha256": "040f08b5b9694450594f6a3ffd0929f41f6cc8d050ccabaafcc30cef8f7b78db",
   "skills": [
@@ -887,9 +887,9 @@
   ],
   "firma": {
     "algorithm": "ed25519-sha512",
-    "signature": "fCE47TlVjsg+1qgBbwSlFPFzaldIfvBjvXzY5ZYBQYPI5+eB867X5BuG0xfzSygX9THHKXBpu9cby5m89ENTBA==",
-    "signed_at": "2026-10-20T05:37:24.263Z",
+    "signature": "nFAxqPCD+9T6dwLiRrDehmCtpOqVxAqztUmNRVnDpinFjiZMKUMtWclR2XmgT1GWA2icfwfqk4NNct5GKCm4DQ==",
+    "signed_at": "2026-10-20T17:55:15.531Z",
     "signed_by": "adaaf79999a7296f",
-    "hash": "FHff4G8YOOEye/Jq8RZgdF2pu9HHAlVxy+vTqh01+mk="
+    "hash": "jOnoXHOjKJriISLKNpGNtnhJmA4Z339xaUl/9dzFuDE="
   }
 }

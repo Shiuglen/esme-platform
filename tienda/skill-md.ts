@@ -75,20 +75,20 @@ export type LecturaSkill =
 export function leerSkillMd(texto: string, carpeta: string): LecturaSkill {
   const m = /^\uFEFF?---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/.exec(texto);
   if (!m)
-    return { ok: false, error: "el SKILL.md no empieza con su cabecera (--- … ---)" };
+    return { ok: false, error: "El SKILL.md no empieza con su cabecera (--- … ---)." };
   const campos = cabeceraDe(m[1].replace(/\r/g, ""));
-  if (!campos.name) return { ok: false, error: "falta el campo obligatorio «name»" };
+  if (!campos.name) return { ok: false, error: "Falta el campo obligatorio «name»." };
   if (!campos.description)
-    return { ok: false, error: "falta el campo obligatorio «description»" };
+    return { ok: false, error: "Falta el campo obligatorio «description»." };
   const avisos: string[] = [];
   if (carpeta && campos.name !== carpeta)
-    avisos.push(`su nombre («${campos.name}») no coincide con su carpeta («${carpeta}»)`);
+    avisos.push(`El nombre «${campos.name}» no coincide con la carpeta «${carpeta}».`);
   if (campos.name.length > 64)
-    avisos.push("su nombre pasa de 64 caracteres (el estándar no lo permite)");
+    avisos.push("El nombre pasa de 64 caracteres (el estándar no lo permite).");
   if (campos.description.length > 1024)
-    avisos.push("su descripción pasa de 1024 caracteres (el estándar no lo permite)");
+    avisos.push("La descripción pasa de 1024 caracteres (el estándar no lo permite).");
   const cuerpo = m[2].replace(/\s+$/, "");
-  if (!cuerpo.trim()) avisos.push("su cuerpo está vacío: no hay instrucciones que leer");
+  if (!cuerpo.trim()) avisos.push("El cuerpo está vacío: no hay instrucciones que leer.");
   return {
     ok: true,
     avisos,
