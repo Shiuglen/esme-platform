@@ -11,7 +11,7 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { createPublicKey } from "node:crypto";
-import { declaraClave, firmarIndex, generarPar, verificarIndex } from "../tienda/firma.ts";
+import { declaraClave, firmaIndice, firmarIndex, generarPar, verificarIndex } from "../tienda/firma.ts";
 import { puedePublicar } from "../tienda/claves.ts";
 import { huellaDePub } from "../tienda/rotacion.ts";
 
@@ -45,14 +45,8 @@ if (!derecho.ok) {
   process.exit(1);
 }
 
-const firmado = firmarIndex(
-  // el firmante se DECLARA en el cuerpo firmado: sin esto el consumidor no
-  // puede caminar la estirpe hasta él
-  declaraClave(indice, pub, huellaDePub(pub)),
-  privPem,
-  deQuien
-);
+const firmado = firmaIndice(indice, privPem);
 const r = verificarIndex(firmado, pub);
 writeFileSync(ruta, JSON.stringify(firmado, null, 2) + "\n");
-console.log(`✓ índice firmado (${deQuien}), verificación local: ${r.ok ? "ok" : r.razon}`);
+console.log(`✓ índice firmado (${deQuien} · ${huellaDePub(pub)}), verificación local: ${r.ok ? "ok" : r.razon}`);
 if (!r.ok) process.exit(1);

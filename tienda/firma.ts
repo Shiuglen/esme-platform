@@ -120,6 +120,24 @@ export type Veredicto =
   | { ok: true; hash: string }
   | { ok: false; razon: string };
 
+/**
+ * Firma el índice PARA PUBLICARLO: el firmante se declara dentro del cuerpo
+ * firmado y se identifica por su HUELLA (no por una etiqueta).
+ *
+ * La huella es lo que permite al consumidor caminar la estirpe: busca la
+ * clave en `claves` con esa huella y, si la raíz la avala, acepta el índice.
+ * Con una etiqueta ("clave del mantenedor") el índice firmado no lo
+ * reconocería nadie, y la tienda quedaría sin confianza para todo el mundo.
+ */
+export function firmaIndice(
+  indice: Record<string, unknown>,
+  privPem: string
+): Record<string, unknown> {
+  const pub = createPublicKey(privPem).export({ type: "spki", format: "pem" }).toString();
+  const huella = createHash("sha256").update(pub).digest("hex").slice(0, 16);
+  return firmarIndex(declaraClave(indice, pub, huella), privPem, huella);
+}
+
 export function verificarIndex(
   indice: Record<string, unknown>,
   pubPem: string

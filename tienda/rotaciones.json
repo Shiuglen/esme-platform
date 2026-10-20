@@ -27,6 +27,20 @@
       "fecha": "2026-10-20T04:32:52.031Z",
       "firmaVieja": "nWFji87RIXtCh+LnMl32mzoHadEQCpaKjigZ6V6fcBS0nc+UCXc2vkW8ipkEu7Xp+jVYOiFCjitBO+VUxeQAAw==",
       "firmaNueva": "BerdIZzunikXUQF6VY6pLfqBzcpCHXkLYvgWcNPaIgRhcHQLj9rv7OF+SJZOOiREL5R0TyfjWNzo8y+FT9ebBQ=="
+    },
+    {
+      "vieja": {
+        "huella": "adaaf79999a7296f",
+        "pub": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAkePUK6fQTkQ5Il5Wwq5W0Dtf99h8j1P8eY2z7X3p1rk=\n-----END PUBLIC KEY-----\n"
+      },
+      "nueva": {
+        "huella": "76b0d2152bf7c3d9",
+        "pub": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAgX6/fcCxS3XNflR01isjqUqU09kUlHjkcSqK3t6Qwy0=\n-----END PUBLIC KEY-----\n"
+      },
+      "motivo": "la llave con la que la CI firma las releases",
+      "fecha": "2026-10-20T21:43:48.892Z",
+      "firmaVieja": "z+xvFZCgrlTHftPVvecRGKzX1moZo1LAbrdYhwkkOlKbPknnEfyvFUxWIqZ1LweiH0dGGAmKZ68LaNOzhWEkAQ==",
+      "firmaNueva": "SGxZVmOcTxR/BK9d+XVcmfhCJqulOL3LC2ALMRT9v28usl8J7GJLG+6pjIWqyJTS70sGnGPjFFKtb3bgPGjPCQ=="
     }
   ]
 }
