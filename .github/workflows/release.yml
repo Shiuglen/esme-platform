@@ -46,4 +46,6 @@ jobs:
       - name: anuncio al canal
         env:
           CANAL_URL: ${{ secrets.ESME_CANAL_WEBHOOK }}
-        run: echo "canal: $CANAL_URL"; # el webhook cliente del Taller lo dispara (W3)
+        # las comillas importan: sin ellas, el ": " de dentro del texto hace
+        # que esto deje de ser YAML válido (y el workflow entero no corre)
+        run: 'echo "canal: $CANAL_URL"  # el webhook cliente del Taller lo dispara (W3)'
