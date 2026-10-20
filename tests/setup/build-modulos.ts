@@ -4,25 +4,13 @@
  * Sin esto, los tests que abren un host dependen de un `dist/` que no está en
  * el repo (`dist/` está en .gitignore) y en un clon recién hecho nadie ha
  * construido todavía: el test se cae por un fichero que nadie ha pedido.
+ *
+ * Los flags salen de scripts/construir-modulos.ts (un solo sitio): los tests,
+ * el CI y la publicación tienen que producir los mismos bytes.
  * Referencia: tests/extension-host.test.ts, tests/mind-ops.test.ts.
  */
-import { build } from "esbuild";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
-
-const raiz = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-
-const MODULOS = ["modulos/ejemplo-hola-mundo", "modulos/ejemplo-troceo-pro"];
+import { construyeTodos } from "../../scripts/construir-modulos.ts";
 
 export default async function construyeModulos(): Promise<void> {
-  for (const modulo of MODULOS) {
-    await build({
-      entryPoints: [resolve(raiz, modulo, "src/index.ts")],
-      bundle: true,
-      format: "esm",
-      platform: "node",
-      outfile: resolve(raiz, modulo, "dist/index.js"),
-      logLevel: "silent",
-    });
-  }
+  await construyeTodos();
 }

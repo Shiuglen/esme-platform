@@ -4,6 +4,20 @@
 
 schema_version: 1
 format: "application/esme.mind+zip"   # o directorio `.mind/` sin comprimir
+contenedor:
+  # El ZIP es el CONTENEDOR, no el formato: dentro está la misma mente, con las
+  # mismas garantías (exclusión mínima, redacción, cognición firmada).
+  zip: >-
+    Orden canónico, fecha fija (1980-01-01), sin atributos de plataforma: la
+    misma mente da el mismo fichero. Implementación propia en bytes
+    (`core/mind/zip.ts`), sin depender de la versión del `zip` del sistema.
+  directorios_vacios: >-
+    Un ZIP guarda ficheros, no carpetas vacías: al descomprimir se crean los
+    directorios que el formato exige (`embeddings/`, `crs-delta/`). Son parte
+    del formato, no del contenido.
+  identidad: >-
+    La identidad de una mente es SEMÁNTICA (`cognition.sig`), no el hash del
+    fichero: el `created_at` de `metadata.json` cambia en cada exportación.
 structure:
   embeddings/          # pesos del codificador (ONNX) + vectores binarios
   metadata.json        # schema_version, created_at, motor, counts, redacción aplicada

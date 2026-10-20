@@ -30,7 +30,7 @@ export function assertCoreOnly(feature: string): void { /* throw si feature ∉ 
 
 ```ts
 // lo que ve el módulo (core/ipc/sdk.ts)
-import { mente } from "esme-platform/sdk";
+import { mente } from "esme-platform/sdk";   // en el kit: core/ipc/sdk.ts
 const r = await mente().rumbo();     // para qué trabaja esta mente
 ```
 
@@ -186,6 +186,8 @@ export async function selectMemoriesForPack(query: string, candidates: Memory[],
 - `estandar/mind-format.spec.yaml` (spec completa)
 - `core/mind/portable-format.ts` (serialización/deserialización)
 - `core/mind/mind-file.ts` (export/import con verificación de cognición)
+- `core/mind/mind-zip.ts` (la misma mente en un solo fichero)
+- `core/mind/zip.ts` (el contenedor, en bytes y sin dependencias)
 - `core/mind/rumbo.ts` (el rumbo: espejo exacto de `daimon/rumbo.py`)
 - `core/mind/crs-delta.ts` (delta encoding)
 - `core/mind/redaction.ts` (motor de redacción)

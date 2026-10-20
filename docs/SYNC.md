@@ -31,6 +31,18 @@ exclusion-list.json    # paths que NUNCA se exportan:
 rumbo.json           # OPCIONAL: para qué trabaja la mente (pilares y objetivos)
 ```
 
+**En un solo fichero:** la misma mente, empaquetada en un ZIP
+(`application/esme.mind+zip`). El ZIP es el contenedor; dentro están las mismas
+garantías. Mismo orden, fecha fija: la misma mente da el mismo fichero.
+
+```bash
+npm run mind -- zip records.json mi-mente.mind.zip
+npm run mind -- unzip mi-mente.mind.zip recuerdos.json
+```
+
+La identidad de una mente es **semántica** (`cognition.sig`), no el hash del
+fichero: el `created_at` de `metadata.json` cambia en cada exportación.
+
 Importadores: `core/mind/importers/{obsidian,notion,markdown,json}.ts`.
 La spec completa se redactará tras ejecutar el extractor con la Prueba 0
 (solventar: comprobación de exclusión de empresa, datos de terceros, calidad de redacción).

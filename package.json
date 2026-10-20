@@ -10,7 +10,7 @@
   "scripts": {
     "test": "vitest run",
     "spec:lint": "tsx scripts/spec-lint.ts",
-    "build:ejemplo": "esbuild modulos/ejemplo-hola-mundo/src/index.ts --bundle --format=esm --outfile=modulos/ejemplo-hola-mundo/dist/index.js",
+    "build:ejemplo": "tsx scripts/construir-modulos.ts",
     "firma:index": "tsx scripts/firmar-index.ts",
     "mind": "tsx scripts/mind-cli.ts",
     "panel": "tsx scripts/panel.ts",

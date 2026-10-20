@@ -13,9 +13,12 @@ export interface Dictamen {
   errores: string[];
 }
 
+/** Los directorios que una mente portable SIEMPRE tiene (aunque estén vacíos). */
+export const DIRECTORIOS_MENTE = ["embeddings", "crs-delta"] as const;
+
 export function validaMindDir(ruta: string): Dictamen {
   const errores: string[] = [];
-  const requiereDir = ["embeddings", "crs-delta"];
+  const requiereDir = [...DIRECTORIOS_MENTE];
   const requiereFile = ["metadata.json", "cognition.sig", "exclusion-list.json"];
 
   for (const d of requiereDir)

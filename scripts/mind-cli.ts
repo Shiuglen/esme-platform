@@ -4,10 +4,13 @@
 //   importar  <mind> <out.json>          : .mind verificado → recuerdos
 //   info <mind>                          : metadatos + exclusión, sin tocar nada
 //   rumbo <mind>                         : el para qué de la mente (rumbo.json)
+//   zip   <records.json> <destino.zip>   : la mente en un solo fichero
+//   unzip <mind.zip> <out.json>          : el fichero verificado → recuerdos
 // Ejecución: npx tsx scripts/mind-cli.ts <verbo> ...
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { importaVault } from "../core/mind/importers/obsidian.ts";
 import { escribeMind, leeMind, type MenteAExportar, type RecuerdoPortatil } from "../core/mind/mind-file.ts";
+import { escribeMindZip, leeMindZip } from "../core/mind/mind-zip.ts";
 import { rumboAPng } from "../core/mind/rumbo.ts";
 
 export interface Salida {
@@ -69,8 +72,27 @@ export function cli(argv: string[]): Salida {
       if (!rumbo) return ok("esta mente no tiene rumbo (puede ser una mente vieja)");
       return ok(rumboAPng(rumbo).trimEnd());
     }
+    case "zip": {
+      const [origen, destino] = args;
+      if (!origen || !destino) return fail("uso: zip <records.json> <destino.mind.zip>");
+      const raw = JSON.parse(readFileSync(origen, "utf8")) as MenteAExportar;
+      const sinVector = raw.recuerdos.filter((r) => !Array.isArray(r.vector));
+      if (sinVector.length)
+        return fail(`recuerdos sin vector: ${sinVector.length} (corre la Lente antes de exportar)`);
+      const z = escribeMindZip(destino, raw);
+      return ok(`mente en un fichero: ${z.ruta} (${z.bytes} bytes, sha256 ${z.sha256.slice(0, 12)}…, ${z.entradas.length} entradas)`);
+    }
+    case "unzip": {
+      const [origen, destino] = args;
+      if (!origen || !destino) return fail("uso: unzip <mind.zip> <out.json>");
+      if (!existsSync(origen)) return fail(`no existe ${origen}`);
+      const { recuerdos, rumbo } = leeMindZip(origen);
+      writeFileSync(destino, JSON.stringify(recuerdos, null, 2) + "\n");
+      const conRumbo = rumbo ? ` (rumbo: ${rumbo.pilares.length} pilares, ${rumbo.objetivos.length} objetivos)` : "";
+      return ok(`importados ${recuerdos.length} recuerdos → ${destino}${conRumbo}`);
+    }
     default:
-      return fail("uso: mind-cli <absorber|exportar|importar|info|rumbo> ...");
+      return fail("uso: mind-cli <absorber|exportar|importar|info|rumbo|zip|unzip> ...");
   }
 }
 

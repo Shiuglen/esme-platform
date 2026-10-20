@@ -23,7 +23,7 @@ jobs:
         run: npm run test:offline
 
   build:
-    name: módulo ejemplo — build + lint de manifiesto
+    name: módulos — build + lint de manifiesto
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -35,7 +35,7 @@ jobs:
       - run: npm run spec:lint
 
   firma:
-    name: tienda — el índice firmado se verifica
+    name: tienda — la tienda publicada se verifica (sin llaves)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -43,5 +43,7 @@ jobs:
         with:
           node-version: 22
       - run: npm ci
+      - name: la raíz congelada verifica el índice y los artefactos
+        run: npm run verificar
       - name: verificar índice (test de firma)
-        run: npx vitest run tests/tienda-firma.test.ts
+        run: npx vitest run tests/tienda-firma.test.ts tests/tienda-publicar.test.ts
