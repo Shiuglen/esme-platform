@@ -32,12 +32,55 @@ export function huellaDe(pubPem: string): string {
  * La llave de firma de esta copia: la de release si el entorno la apunta, si no la dev
  * key local (que nace aquí mismo si no existe). Misma cuenta de huella que firma.ts.
  */
-export function claveDeFirma(): ClaveFirma {
+/**
+ * La llave que el entorno apunta: `ESME_PRIV_KEY` puede ser una RUTA a un
+ * PEM o el PEM EN SÍ MISMO.
+ *
+ * Las dos cosas hacen falta: en local se apunta a un fichero, y en la CI lo
+ * que llega es el CONTENIDO del secreto (un secreto de GitHub es un texto, no
+ * una ruta). Si el entorno apunta a algo que no es una llave, se dice —y no se
+ * cae de lado a la dev key: firmaría con una llave que nadie avala, y la
+ * tienda quedaría sin confianza.
+ */
+export function llaveDelEntorno(): {
+  priv: string;
+  pub: string;
+  huella: string;
+  origen: string;
+} | null {
   const env = process.env.ESME_PRIV_KEY;
-  if (env && existsSync(env)) {
-    const priv = readFileSync(env, "utf8");
-    const pub = pubDe(priv);
-    return { priv, pub, huella: huellaDe(pub), ruta: env };
+  if (!env) return null;
+  if (env.includes("-----BEGIN")) {
+    try {
+      const pub = pubDe(env);
+      return { priv: env, pub, huella: huellaDe(pub), origen: "el PEM del entorno" };
+    } catch {
+      console.error("✗ el PEM del entorno no es una llave válida");
+      return null;
+    }
+  }
+  if (!existsSync(env)) {
+    console.error(`✗ ESME_PRIV_KEY apunta a ${env} y ese fichero no existe`);
+    return null;
+  }
+  const priv = readFileSync(env, "utf8");
+  const pub = pubDe(priv);
+  return { priv, pub, huella: huellaDe(pub), origen: env };
+}
+
+/**
+ * La llave de firma de esta copia: la de release si el entorno la apunta, si no la dev
+ * key local (que nace aquí mismo si no existe). Misma cuenta de huella que firma.ts.
+ */
+export function claveDeFirma(): ClaveFirma {
+  const delEntorno = llaveDelEntorno();
+  if (delEntorno) {
+    return {
+      priv: delEntorno.priv,
+      pub: delEntorno.pub,
+      huella: delEntorno.huella,
+      ruta: delEntorno.origen,
+    };
   }
   const ruta = join(raiz, ".keys", "index-dev.pem");
   if (existsSync(ruta)) {

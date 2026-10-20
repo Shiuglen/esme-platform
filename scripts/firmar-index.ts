@@ -11,8 +11,8 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { createPublicKey } from "node:crypto";
-import { declaraClave, firmaIndice, firmarIndex, generarPar, verificarIndex } from "../tienda/firma.ts";
-import { puedePublicar } from "../tienda/claves.ts";
+import { firmaIndice, generarPar, verificarIndex } from "../tienda/firma.ts";
+import { llaveDelEntorno, puedePublicar } from "../tienda/claves.ts";
 import { huellaDePub } from "../tienda/rotacion.ts";
 
 const raiz = resolve(import.meta.dirname, "..");
@@ -22,9 +22,16 @@ const indice = JSON.parse(readFileSync(ruta, "utf8")) as Record<string, unknown>
 
 let privPem: string;
 let deQuien: string;
-const env = process.env.ESME_PRIV_KEY;
-if (env && existsSync(env)) {
-  privPem = readFileSync(env, "utf8");
+// Si el entorno apunta a una llave, ESA es la que firma. Si apunta a algo
+// que no es una llave, se para aquí: caer de lado a la dev key firmaría con
+// una llave que nadie avala (y la tienda quedaría sin confianza).
+if (process.env.ESME_PRIV_KEY) {
+  const llave = llaveDelEntorno();
+  if (!llave) {
+    console.error("✗ el entorno apunta a una llave que no sirve — no firmo nada");
+    process.exit(1);
+  }
+  privPem = llave.priv;
   deQuien = "clave del mantenedor";
 } else {
   mkdirSync(join(raiz, ".keys"), { recursive: true });
