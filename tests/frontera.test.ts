@@ -45,33 +45,44 @@ const rutasDeLaSpec = (): string[] => {
   return [...new Set(rutas)].sort();
 };
 
+/** La copia de aquí del cerebro (la última conocida): la CI la usa. */
+const COPIA_CEREBRO = `
+@mcp.custom_route("/health", methods=["GET"])
+@mcp.custom_route("/recall", methods=["POST"])
+@mcp.custom_route("/remember", methods=["POST"])
+@mcp.custom_route("/feedback", methods=["POST"])
+@mcp.custom_route("/memories", methods=["GET"])
+@mcp.custom_route("/memory/{id}", methods=["GET"])
+@mcp.custom_route("/forget", methods=["POST"])
+@mcp.custom_route("/ingest", methods=["POST"])
+@mcp.custom_route("/ingest-x", methods=["POST"])
+@mcp.custom_route("/rumbo", methods=["GET"])
+@mcp.custom_route("/sueño", methods=["POST"])
+@mcp.custom_route("/repeticiones", methods=["GET"])
+@mcp.custom_route("/necesidad", methods=["GET"])
+@mcp.custom_route("/equipo", methods=["POST"])
+@mcp.custom_route("/orquesta", methods=["GET"])
+@mcp.custom_route("/atlas", methods=["GET"])
+@mcp.custom_route("/voz/oir", methods=["POST"])
+@mcp.custom_route("/voz/decir", methods=["POST"])
+@mcp.custom_route("/events", methods=["GET"])
+@mcp.custom_route("/.well-known/agent-card.json", methods=["GET"])
+@mcp.custom_route("/.well-known/agent.json", methods=["GET"])
+`;
+
+/** La copia de aquí de la puerta de la app (la última conocida): la CI la usa. */
+const COPIA_APP = `
+salud: '/health', recuerdos: '/memories', recordar: '/recall', escribir: '/remember',
+feedback: '/feedback', olvido: '/forget', ingesta: '/ingest', sueno: '/sueño',
+orquestacion: '/orquesta', atlas: '/atlas', mcp: '/mcp', rumbo: '/rumbo',
+memoria: '/memory/{id}', vozOir: '/voz/oir', vozDecir: '/voz/decir', eventos: '/events',
+ingestX: '/ingest-x', equipo: '/equipo', repeticiones: '/repeticiones', necesidad: '/necesidad',
+`;
+
 /** Las rutas del cerebro Python (las que declara el servidor). */
 const rutasDelCerebro = (): string[] => {
   const ruta = join(appRepo, "daimon", "server.py");
-  const texto = existe(ruta)
-    ? readFileSync(ruta, "utf8")
-    : // la copia de aquí (la última conocida)
-      `
-      @mcp.custom_route("/health", methods=["GET"])
-      @mcp.custom_route("/recall", methods=["POST"])
-      @mcp.custom_route("/remember", methods=["POST"])
-      @mcp.custom_route("/feedback", methods=["POST"])
-      @mcp.custom_route("/memories", methods=["GET"])
-      @mcp.custom_route("/memory/{id}", methods=["GET"])
-      @mcp.custom_route("/forget", methods=["POST"])
-      @mcp.custom_route("/ingest", methods=["POST"])
-      @mcp.custom_route("/ingest-x", methods=["POST"])
-      @mcp.custom_route("/rumbo", methods=["GET"])
-      @mcp.custom_route("/sueño", methods=["POST"])
-      @mcp.custom_route("/equipo", methods=["POST"])
-      @mcp.custom_route("/orquesta", methods=["GET"])
-      @mcp.custom_route("/atlas", methods=["GET"])
-      @mcp.custom_route("/voz/oir", methods=["POST"])
-      @mcp.custom_route("/voz/decir", methods=["POST"])
-      @mcp.custom_route("/events", methods=["GET"])
-      @mcp.custom_route("/.well-known/agent-card.json", methods=["GET"])
-      @mcp.custom_route("/.well-known/agent.json", methods=["GET"])
-      `;
+  const texto = existe(ruta) ? readFileSync(ruta, "utf8") : COPIA_CEREBRO;
   const rutas = [...texto.matchAll(/custom_route\("([^"]+)"/g)].map((m) => m[1]);
   // /mcp lo sirve el framework del MCP (no es un custom_route): está ahí, pero
   // no se declara como tal
@@ -81,18 +92,15 @@ const rutasDelCerebro = (): string[] => {
 
 /** Las rutas de la puerta de la app (el RUTAS declarado). */
 const rutasDeLaApp = (): string[] => {
-  const ruta = join(appRepo, "app", "src", "main", "mente", "cliente.ts");
-  const texto = existe(ruta)
-    ? readFileSync(ruta, "utf8")
-    : // la copia de aquí (la última conocida)
-      `
-      salud: '/health', recuerdos: '/memories', recordar: '/recall', escribir: '/remember',
-      feedback: '/feedback', olvido: '/forget', ingesta: '/ingest', sueno: '/sueño',
-      orquestacion: '/orquesta', atlas: '/atlas', mcp: '/mcp', rumbo: '/rumbo',
-      memoria: '/memory/{id}', vozOir: '/voz/oir', vozDecir: '/voz/decir', eventos: '/events',
-      `;
+  const texto = textoDeLaApp();
   const rutas = [...texto.matchAll(/'(\/[^']*)'/g)].map((m) => m[1]);
   return [...new Set(rutas)].sort();
+};
+
+/** El RUTAS de la app de verdad, o la copia de aquí si el repo no está. */
+const textoDeLaApp = (): string => {
+  const ruta = join(appRepo, "app", "src", "main", "mente", "cliente.ts");
+  return existe(ruta) ? readFileSync(ruta, "utf8") : COPIA_APP;
 };
 
 const existe = (r: string): boolean => {
@@ -146,6 +154,26 @@ describe("la frontera: la spec, el cerebro y la app dicen lo mismo", () => {
     expect(rutasDeLaSpec()).toContain("/memory/{id}");
     expect(rutasDelCerebro()).toContain("/memory/{id}");
     expect(rutasDeLaApp()).toContain("/memory/{id}");
+  });
+
+  it("la copia de aquí está al día (si no, la CI juzga una app que ya no existe)", () => {
+    // la CI del kit no tiene el repo de la app: usa las copias de aquí. Si
+    // esas copias se quedan viejas, la CI pasa por alto una ruta que la app
+    // tiene de verdad. Este test las ata a la app real.
+    const ruta = join(appRepo, "app", "src", "main", "mente", "cliente.ts");
+    if (!existe(ruta)) return; // sin app a la vista, la copia es lo que hay
+    const copia = [...COPIA_APP.matchAll(/'(\/[^']*)'/g)].map((m) => m[1]);
+    const reales = [...textoDeLaApp().matchAll(/'(\/[^']*)'/g)].map((m) => m[1]);
+    const faltan = [...new Set(reales)].filter((r) => !copia.includes(r));
+    const sobra = [...new Set(copia)].filter((r) => !reales.includes(r));
+    expect(
+      faltan,
+      `la copia de la puerta está vieja: le faltan ${faltan.join(", ")}`
+    ).toEqual([]);
+    expect(
+      sobra,
+      `la copia de la puerta tiene rutas que la app ya no tiene: ${sobra.join(", ")}`
+    ).toEqual([]);
   });
 
   it("la puerta manda los campos que la spec dice (y el nombre no cambia por el camino)", () => {
