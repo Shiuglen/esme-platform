@@ -15,10 +15,12 @@ import { claveDeFirma } from "../tienda/claves.ts";
 import { medirSkill, type MedidaSkill } from "../tienda/medir.ts";
 import {
   catalogoSha256,
+  conservaEvidencia,
   firmaVeredictos,
   juzgaCatalogo,
   renderPanelSkills,
   VEREDICTO_VERSION,
+  type VeredictosSkills,
 } from "../tienda/skills.ts";
 
 const raiz = resolve(import.meta.dirname, "..");
@@ -51,6 +53,19 @@ if (!rutaCatalogo) {
 const salida = arg("--salida") ?? join(raiz, "skills", "veredictos.json");
 const panel = arg("--panel") ?? join(raiz, "skills", "panel.md");
 
+/** El veredicto anterior en disco (si lo hay y se puede leer). */
+const leerVeredictos = (ruta: string): VeredictosSkills | null => {
+  if (!existsSync(ruta)) return null;
+  try {
+    const doc = JSON.parse(readFileSync(ruta, "utf8")) as VeredictosSkills;
+    if (!doc || !Array.isArray(doc.skills) || typeof doc.catalogoSha256 !== "string")
+      return null;
+    return doc;
+  } catch {
+    return null;
+  }
+};
+
 // ——— juzgar ———
 const catalogo = JSON.parse(readFileSync(rutaCatalogo, "utf8")) as unknown;
 
@@ -76,11 +91,23 @@ if (medir) {
   console.log(`medidas   : ${mediciones.size} ficheros leídos`);
 }
 
-const { veredictos, dentro, avisos, fuera } = juzgaCatalogo(catalogo, mediciones);
-if (!veredictos.length) {
+const { veredictos: judged, dentro, avisos, fuera } = juzgaCatalogo(catalogo, mediciones);
+if (!judged.length) {
   console.error(`el catálogo ${rutaCatalogo} no trae skills`);
   process.exit(1);
 }
+
+// La evidencia NO se pierde: si esta vuelta no midió (sin red, sin --medir) y
+// el veredicto anterior era del MISMO catálogo, el veredicto anterior manda:
+// medido es medido. Solo si el catálogo cambió la evidencia vieja queda
+// fuera (era de otro catálogo).
+const previo = leerVeredictos(salida);
+const { veredictos, conservados } = conservaEvidencia(
+  judged,
+  previo,
+  catalogoSha256(catalogo)
+);
+if (conservados) console.log(`evidencia  : ${conservados} veredictos medidos conservados (mismo catálogo)`);
 
 // ——— firmar ———
 const clave = claveDeFirma();

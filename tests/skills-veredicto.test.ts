@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { generarPar } from "../tienda/firma.ts";
 import {
   catalogoSha256,
+  conservaEvidencia,
   cuerpoVeredictos,
   firmaVeredictos,
   juzgaCatalogo,
@@ -199,5 +200,67 @@ describe("el panel del veredicto", () => {
     expect(panel).toContain("| a/ok | ✓ ok |");
     expect(panel).toContain("| b/aviso | ⚠ aviso |");
     expect(panel).toContain("| c/fuera | ✗ fuera |");
+  });
+});
+
+describe("la evidencia no se pierde", () => {
+  const catalogo = [skill({ id: "a/ok" }), skill({ id: "b/ok" })];
+  const sha = catalogoSha256(catalogo);
+
+  it("si esta vuelta no midió, el veredicto anterior (mismo catálogo) manda", () => {
+    const { veredictos } = juzgaCatalogo(catalogo);
+    const previo = {
+      version: 1,
+      emitido: 1,
+      firmante: "abc",
+      catalogoSha256: sha,
+      skills: veredictos.map((v) => ({
+        ...v,
+        causa: "medido antes",
+        medidas: { ...v.medidas, tokens: 1234, skillMdSha256: "abc" },
+      })),
+    };
+    const r = conservaEvidencia(veredictos, previo, sha);
+    expect(r.conservados).toBe(2);
+    expect(r.veredictos.every((v) => v.medidas.tokens === 1234)).toBe(true);
+    expect(r.veredictos[0].causa).toBe("medido antes");
+  });
+
+  it("si el catálogo cambió, la evidencia vieja NO vale (era de otro catálogo)", () => {
+    const { veredictos } = juzgaCatalogo(catalogo);
+    const previo = {
+      version: 1,
+      emitido: 1,
+      firmante: "abc",
+      catalogoSha256: "0".repeat(64),
+      skills: veredictos.map((v) => ({
+        ...v,
+        medidas: { ...v.medidas, tokens: 1234, skillMdSha256: "abc" },
+      })),
+    };
+    const r = conservaEvidencia(veredictos, previo, sha);
+    expect(r.conservados).toBe(0);
+    expect(r.veredictos.every((v) => v.medidas.tokens === null)).toBe(true);
+  });
+
+  it("lo medido ahora manda sobre lo que había antes", () => {
+    const { veredictos } = juzgaCatalogo(catalogo);
+    const conMedida = veredictos.map((v) => ({
+      ...v,
+      medidas: { ...v.medidas, tokens: 999, skillMdSha256: "nuevo" },
+    }));
+    const previo = {
+      version: 1,
+      emitido: 1,
+      firmante: "abc",
+      catalogoSha256: sha,
+      skills: veredictos.map((v) => ({
+        ...v,
+        medidas: { ...v.medidas, tokens: 1234, skillMdSha256: "abc" },
+      })),
+    };
+    const r = conservaEvidencia(conMedida, previo, sha);
+    expect(r.conservados).toBe(0);
+    expect(r.veredictos.every((v) => v.medidas.tokens === 999)).toBe(true);
   });
 });

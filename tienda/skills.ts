@@ -286,6 +286,34 @@ const esVeredicto = (v: unknown): v is VeredictoSkill => {
 };
 
 /**
+ * La evidencia no se pierde. Si esta vuelta NO midió (sin red, sin `--medir`)
+ * y el veredicto anterior era del MISMO catálogo, el veredicto anterior manda:
+ * medido es medido, y un veredicto firmado no puede perder lo que sabía.
+ *
+ * Si el catálogo cambió, la evidencia vieja es de otro catálogo y no vale:
+ * entonces cada skill se juzga con lo que hay (sin medir) y se dice.
+ */
+export function conservaEvidencia(
+  veredictos: VeredictoSkill[],
+  previo: VeredictosSkills | null,
+  catalogoSha: string
+): { veredictos: VeredictoSkill[]; conservados: number } {
+  if (!previo || previo.catalogoSha256 !== catalogoSha) return { veredictos, conservados: 0 };
+  const porId = new Map(previo.skills.map((s) => [s.id, s]));
+  let conservados = 0;
+  const salida = veredictos.map((v) => {
+    if (v.medidas.tokens !== null) return v; // medido ahora: este manda
+    const p = porId.get(v.id);
+    if (p && p.medidas.tokens !== null) {
+      conservados++;
+      return p;
+    }
+    return v;
+  });
+  return { veredictos: salida, conservados };
+}
+
+/**
  * Comprueba el veredicto firmado contra una clave pública. Tres preguntas:
  * ¿el cuerpo es el que se firmó? (hash) ¿la firma es de esa clave? (Ed25519)
  * ¿la firma es de quien dice firmar? (huella).
