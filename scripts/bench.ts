@@ -17,7 +17,7 @@ import {
 import { corre, armaBench, veredicto } from "../core/bench/runner.ts";
 import { validaCiclo, type BenchCiclo } from "../tienda/bench.ts";
 import { empaquetar } from "../tienda/empaque.ts";
-import { firmarIndex, firmarBytes } from "../tienda/firma.ts";
+import { firmarIndex, firmarBytes, generarPar } from "../tienda/firma.ts";
 import { panelDe, render } from "../tienda/panel.ts";
 
 const raiz = resolve(import.meta.dirname, "..");
@@ -27,9 +27,13 @@ const escribir = (ruta: string, dato: unknown) =>
 const clavesPem = (): string | null => {
   if (process.env.ESME_PRIV_KEY && existsSync(process.env.ESME_PRIV_KEY))
     return readFileSync(process.env.ESME_PRIV_KEY, "utf8");
-  if (existsSync(join(raiz, ".keys", "index-dev.pem")))
-    return readFileSync(join(raiz, ".keys", "index-dev.pem"), "utf8");
-  return null;
+  const ruta = join(raiz, ".keys", "index-dev.pem");
+  if (existsSync(ruta)) return readFileSync(ruta, "utf8");
+  // clon fresco: la dev key nace aquí (la release nunca vive en el repo)
+  const par = generarPar();
+  mkdirSync(join(raiz, ".keys"), { recursive: true });
+  writeFileSync(ruta, par.priv);
+  return par.priv;
 };
 
 // ——— 1. MEDIR: memoria (el examen del 12-oct) y herramienta (el ciclo) ———
