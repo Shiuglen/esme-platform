@@ -1,0 +1,101 @@
+# **Spec abierta v1 — el veredicto de los módulos de la Tienda.**
+# Referencia: `docs/MODULOS.md`, `core/modulos/veredicto.ts`.
+# CI `spec-lint` no la valida (es documental); la implementa el kit
+# (`core/modulos/veredicto.ts`) y la app, cuando llegue.
+#
+# **Cambios:** para cambiar esta spec abre un PR a `estandar/`. Quien produce
+# y quien verifica tienen que sacar los MISMOS bytes: el orden de las claves
+# es parte del contrato.
+
+schema_version: 1
+artefacto: "modulos/veredictos.json"
+descripcion: >-
+  El veredicto del juez de los módulos: por módulo, si entra en la Tienda, con
+  qué nivel y por qué. A diferencia del juez de las skills (que mide hechos
+  del catálogo), este juez MIDE el módulo: lo abre, lo ejercita con su puerta
+  real y mira lo que hace. La firma cubre la huella del árbol que se juzgó,
+  así que la app puede negarse a activar un árbol que no sea exactamente el
+  que el juez miró.
+
+cuerpo_firmado:
+  # JSON con las claves en ESTE orden fijo (no se ordenan: el orden es la spec).
+  # modulos[] viene ordenado por id (comparación de bytes, no de idioma).
+  orden: [version, emitido, firmante, catalogoSha256, modulos]
+  version: 1
+  emitido: "<ms desde la época>"
+  firmante: "<huella de la clave: 16 hex del sha256 del PEM público>"
+  catalogoSha256: "<64 hex>"   # el catálogo EXACTO que se juzgó
+  modulos:
+    - id: "esme.<autor>.<slug>"
+      entra: "<boolean>"
+      nivel: "<ok | aviso | fuera>"
+      causa: "<por qué, en una frase>"
+      medidas:
+        orden: [carga, forma, recallBase, recallCon, delta, tokensBase, tokensCon, tokensCiclo, cicloOk, coste, costePorPunto, declaradas, usadas, casos]
+        carga: "<boolean>"          # ¿arrancó y contestó?
+        forma: "<ciclo | memoria | sin-medida>"
+        recallBase: "<n | null>"     # módulo de memoria: recall sin el módulo
+        recallCon: "<n | null>"      # módulo de memoria: recall con el módulo
+        delta: "<n | null>"          # recallCon - recallBase
+        tokensBase: "<n | null>"
+        tokensCon: "<n | null>"
+        tokensCiclo: "<n | null>"    # módulo de herramienta: tokens por ciclo
+        cicloOk: "<boolean | null>"  # módulo de herramienta: el ciclo funcionó
+        coste: "<n | null>"          # tokensCon / tokensBase
+        costePorPunto: "<n | null>"  # coste por cada punto de recall ganado
+        declaradas: ["<capacidad>"] # lo que el manifiesto declara
+        usadas: ["<capacidad>"]      # lo que la medición le vio usar
+        casos: "<n>"
+
+veredicto:
+  # Las reglas del juez. No se negocian: son el contenido de la spec.
+  reglas:
+    - "Si el módulo no carga, NO entra (nivel 'fuera')."
+    - "Si usa una capacidad que no declaró, NO entra (nivel 'fuera')."
+    - "Si no tiene informe de examen, NO entra: sin número no hay veredicto."
+    - "Si su forma es 'ciclo' (herramienta): entra si el ciclo funcionó, con al
+       menos 3 escenarios y sin pasar de 500 tokens por ciclo."
+    - "Si su forma es 'memoria': entra si (recall_con - recall_base) es al
+       menos el recall_delta que su manifiesto declarar, y si el coste por
+       punto de recall ganado no pasa de 10 tokens."
+    - "Si declara capacidades que la medición no le vio usar, entra con
+       'aviso': no es motivo para echarlo, pero quien lo instala tiene que
+       saberlo."
+
+medicion:
+  # Cómo se mide: no hay simulaciones.
+  metodo:
+    - "Se abre el módulo en su worker, con la puerta real y las capacidades
+       DECLARADAS concedidas (así se ve todo lo que podría tocar)."
+    - "Se llama a las sondas que declara su informe (bench.json.sondas): las
+       funciones que lo ejercitan de verdad."
+    - "El host sabe qué capacidades se han usado: no hay que adivinarlo, y el
+       módulo no puede despistar porque la cápsula no le deja tocar lo que no
+       pidió."
+    - "Las capacidades que el módulo USA (o intenta usar) se comparan con las
+       que DECLARA: lo que excede no entra; lo que sobra, se avisa."
+  sondas:
+    forma: "{ fn: string, args?: unknown[] }"
+    donde: "bench.json (el informe del módulo)"
+    nota: >-
+      Sin sondas, la medición sólo sabe que el módulo carga. Con sondas,
+      sabe qué hace y puede juzgarlo. Un módulo sin sondas se puede instalar,
+      pero su veredicto no puede prometer nada sobre su uso.
+
+catalogo_sha256:
+  # QUÉ catálogo se juzgó: sha256 del catálogo en forma canónica (claves
+  # ordenadas recursivamente, sin espacios).
+  regla: >-
+    La app solo aplica el veredicto si su catálogo tiene esa huella. Si el
+    catálogo cambió (app actualizada, tienda con otro catálogo), el veredicto
+    no aplica: los módulos quedan 'sin medir' y se instalan como antes. El
+    juez pone el listón, nunca lo quita.
+
+garantías:
+  - "NUNCA se estima el número: si el módulo no se puede abrir y ejercitar,
+     el veredicto es 'sin medida', no unestimate."
+  - "Un id repetido en el catálogo no juzga dos veces: la segunda queda fuera."
+  - "Sin veredicto firmado (o de otro catálogo), la app NO bloquea nada:
+     sigue como antes, pero lo dice ('sin medir')."
+  - "El juez no concede permisos: concede veredictos. Los permisos los
+     concede la persona, uno por uno, y se guardan en el libro."

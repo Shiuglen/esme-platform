@@ -1,5 +1,6 @@
 /**
- * La superficie que ve un módulo dentro de su worker: la puerta hacia la mente.
+ * La superficie que ve un módulo dentro de su worker: la puerta hacia la mente
+ * y hacia lo demás que se le conceda.
  *
  * El módulo NO habla con la mente: habla con el HOST, y el host decide
  * (permiso declarado, forma verificada con zod, y la mente nunca sale del
@@ -10,6 +11,11 @@
  *
  *   import { mente } from "esme-platform/sdk";
  *   const r = await mente().rumbo();   // para qué trabaja esta mente
+ *
+ * Y la puerta entera, cuando el módulo tiene más de lo que la mente:
+ *
+ *   import { esme } from "esme-platform/sdk";
+ *   await esme().net.fetch("https://…");   // si net:fetch está concedido
  *
  * Referencia: docs/ARQUITECTURA.md §2 (IPC tipado), core/extension-host/host.ts.
  */
@@ -45,3 +51,13 @@ export function mente(): MenteDelModulo {
   if (!m) throw new Error("este módulo no tiene puerta a la mente (el host no le dio ninguna)");
   return m;
 }
+
+/**
+ * La puerta entera: la mente y todo lo demás que se le conceda (el disco del
+ * proyecto, la red, los eventos, la UI).
+ *
+ * Lo que no está concedido NO está: no hay una función que falle, hay una
+ * puerta que no tiene esa pieza. Un módulo que la usa sin permiso se
+ * estrella en voz alta, que es lo justo.
+ */
+export { esme, type EsmeDelModulo, type EntornoSeguro } from "../extension-host/puerta.ts";

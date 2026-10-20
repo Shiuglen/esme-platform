@@ -1,0 +1,14 @@
+{
+  "modulo": "esme.nucleo.puerta",
+  "version": "0.1.0",
+  "tar": "4535f5cadfdc64ccb7eb5a83b8f3549f7556811eb29a1aa0ca6d1e4a51cd1d2b",
+  "bytes": 2405,
+  "firmado_en": "2026-10-20",
+  "firma": {
+    "algorithm": "ed25519-sha512",
+    "signature": "8mzjy54DOlbYDeN9v4HKtA3hiK3rK1f55p36V3wje7hMKYL+LJaFuSnYCuE9aJjfdfdw274FBWWGLahca1roCA==",
+    "signed_at": "2026-10-20T20:25:33.323Z",
+    "signed_by": "adaaf79999a7296f",
+    "hash": "RTX1yt/cZMy361qDuPNUn3VWgR6ymhqgym0eSlHNHSs="
+  }
+}

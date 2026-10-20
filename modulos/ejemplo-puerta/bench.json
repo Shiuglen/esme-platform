@@ -1,0 +1,17 @@
+{
+  "modulo": "esme.nucleo.puerta",
+  "version": "0.1.0",
+  "fecha": "2026-10-20",
+  "casos": 3,
+  "ciclo_ok": true,
+  "tokens_ciclo": 53,
+  "sondas": [
+    {
+      "fn": "demuestra",
+      "args": [
+        "¿qué se decidió sobre el Taller?",
+        "el módulo de la puerta escribe esto"
+      ]
+    }
+  ]
+}

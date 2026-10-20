@@ -12,7 +12,11 @@ import { build } from "esbuild";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-export const MODULOS = ["modulos/ejemplo-hola-mundo", "modulos/ejemplo-troceo-pro"];
+export const MODULOS = [
+  "modulos/ejemplo-hola-mundo",
+  "modulos/ejemplo-troceo-pro",
+  "modulos/ejemplo-puerta",
+];
 
 export const raizKit = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 

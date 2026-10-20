@@ -37,17 +37,35 @@
       },
       "firma_ok": true,
       "artefacto": {
-        "tar": "8b47f21c31cfae2a6900fd5ba702c18001156eaee6160d4e40ff22476b8e907a",
-        "bytes": 2495
+        "tar": "08a7e1766481e5bf4870d61f033b3b50744fe0daa08a16c835ae19932ef7d0e1",
+        "bytes": 2555
+      }
+    },
+    {
+      "id": "esme.nucleo.puerta",
+      "version": "0.1.0",
+      "category": "tool",
+      "bench_ciclo": {
+        "modulo": "esme.nucleo.puerta",
+        "version": "0.1.0",
+        "fecha": "2026-10-20",
+        "casos": 3,
+        "ciclo_ok": true,
+        "tokens_ciclo": 53
+      },
+      "firma_ok": true,
+      "artefacto": {
+        "tar": "4535f5cadfdc64ccb7eb5a83b8f3549f7556811eb29a1aa0ca6d1e4a51cd1d2b",
+        "bytes": 2405
       }
     }
   ],
   "signature": {
     "algorithm": "ed25519-sha512",
-    "signature": "KdFdI35Q99/Q43JLIP0mVJ97TFwAGVU+pbrVVk+JT7cSU4BfMXMSk6wXN4YHEnlrUFrB8n5u6FQGkok00K1hDQ==",
-    "signed_at": "2026-10-20T17:36:45.269Z",
+    "signature": "yy3asTong2UuBWSuK1UCtZiCsL1HEbgPqA8MZfjW9QjHDKwJPYq6+yNC4GLRAvNPTxdVhn3pumsTng25bIA+BA==",
+    "signed_at": "2026-10-20T20:25:33.324Z",
     "signed_by": "adaaf79999a7296f",
-    "hash": "uQiislhSAFhHlydkNH7dfAVxZjsU/B7D+XUW4XRhbgA="
+    "hash": "cO4LBolreV6NE0Q/QBcaIbkF901+KhLQbC0gv85M26Q="
   },
   "claves": {
     "62304bfd9e441c73": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAWMd+6VJIBCckRb2ZcjZ/oEAv/upjD5OWPxR6Gm97yEE=\n-----END PUBLIC KEY-----\n",

@@ -1,5 +1,5 @@
 # ESPECIFICACIÓN DE ARQUITECTURA ESME/DAIMON
-## 15 decisiones para el runtime de la mente local
+## 16 decisiones para el runtime de la mente local
 
 > **Dónde estás:** este repo es la **mitad MIT** de Esme — los contratos, los
 > formatos, las firmas, la Tienda y el extension host. La ventana
@@ -415,3 +415,60 @@ docs/
 9. **Nunca** un segundo cliente del cerebro. Un contrato, un cliente, un test que lo hace imposible de romper (`app/src/main/frontera.test.ts`).
 10. **Nunca** el token de la mente en el renderer: la ventana es la parte menos de fiar de la casa.
 11. **Nunca** lógica de IA en TypeScript (embeddings, tensores, ONNX): si necesita numpy, va al Python.
+
+---
+
+### 16. El Módulo no es un Programa Suelto — Cápsula, Puerta y Juez
+
+**Decisión:** un módulo de Esme no es un `require()` con buena intención. Es un
+programa ajeno que vive en la casa de la persona, y por eso tiene tres
+cercos: una **cápsula** (lo que no puede ni tocar), una **puerta** (lo que
+puede, sólo si se le concede) y un **juez** (si entra o no).
+
+- **La cápsula** (`core/extension-host/sandbox.ts`): el worker del módulo se
+  sella antes de cargar el código. Un hook de resolución (`module.registerHooks`)
+  rechaza los núcleos de Node que un módulo no debería tocar (`fs`,
+  `child_process`, la red cruda, `os`, `process`, `inspector`…); los globales
+  se ciegan (`fetch`, `WebSocket`, `process.env`). No es una promesa del
+  módulo: es un `throw` del cargador y un `undefined` en su mundo.
+- **La puerta** (`core/extension-host/puerta.ts`): el módulo ve UNA cosa,
+  `globalThis.esme`, con seis piezas (mente, disco del proyecto, red, eventos,
+  UI, entorno). Cada pieza existe si el módulo la **declaró** y la persona la
+  **concedió**. Lo declarado y no concedido no se monta: no hay una función
+  que falle, hay una puerta sin esa pieza.
+- **El libro** (`core/modulos/consentimiento.ts`): lo concedido se guarda en
+  disco, con quién y cuándo. Un permiso que no se guarda no es un permiso.
+- **El juez** (`core/modulos/veredicto.ts`): un módulo entra si lo demuestra.
+  Abre el módulo, lo ejercita con su puerta real y mide: carga, forma
+  (memoria o herramienta), mejora contra el mínimo que él mismo declaró, coste
+  **por punto de acierto** y permisos usados frente a declarados. Sin número,
+  no entra. **Nunca estima.**
+- **El runtime** (`core/modulos/api.ts`): una sola API (`carga`, `instala`,
+  `concede`, `activa`, `llama`) para la app y para la terminal. El núcleo no
+  sabe de YAML ni de red: la Tienda se los inyecta.
+
+**Por qué así y no de otra forma:**
+- **El worker ya era una frontera sólo de nombre**: un worker de Node tiene
+  `fetch`, `process.env` y puede importar `node:fs`. Declarar capacidades sin
+  cumplirla es peor que no declararlas: da la impresión de que hay un control
+  donde no lo hay.
+- **Permisos declarados ≠ permisos concedidos**: el manifiesto es lo que el
+  módulo *quiere*; el libro es lo que la persona *dice*. Confundirlos es
+  una puerta de atrás con forma de contrato.
+- **La entrada confinada**: un manifiesto firmado puede pedir
+  `entry: "../../../etc/passwd"`. La firma no lo vuelve bueno, así que la
+  entrada se queda dentro de la carpeta del módulo (`core/modulos/rutas.ts`).
+- **El coste por punto, no absoluto**: un módulo que sube el recall de 0,25 a
+  1,00 vale cualquier cantidad de tokens; uno que sube 0,01 por el doble,
+  no. El tope absoluto expulsaría al módulo de la casa.
+
+**Anti-Matrix (qué NUNCA se hace):**
+12. **Nunca** módulos que lean `process.env` o importen `node:fs`: no hay
+    atajo al sistema. La puerta es la única vía.
+13. **Nunca** activar un módulo con capacidades declaradas y no concedidas:
+    se monta la intersección, y lo que falta, no existe.
+14. **Nunca** un número de examen escrito a mano: si el módulo no se puede
+    abrir y ejercitar, el veredicto es «sin medida».
+
+**Detalle:** `docs/MODULOS.md`. Specs: `estandar/module-manifest.spec.yaml`
+(el manifiesto) y `estandar/module-veredicto.spec.yaml` (el veredicto).

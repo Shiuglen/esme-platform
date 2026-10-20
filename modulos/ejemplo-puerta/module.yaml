@@ -1,0 +1,30 @@
+schema_version: 1
+id: "esme.nucleo.puerta"
+name: "La Puerta"
+version: "0.1.0"
+category: "tool"
+description: "Demuestra la puerta entera de Esme: la mente, el disco del proyecto, los eventos y la UI, y dice qué tocó de verdad."
+author: "esme@nucleo"
+license: "MIT"
+entry: "dist/index.js"
+runtime: "nodejs"
+permissions:
+  - mind:read
+  - mind:write
+  - ipc:emit
+  - ui:render
+  - fs:project
+decision_criteria:
+  - when: "test_extension_host"
+    weight: 0.9
+    tags: ["prueba", "puerta", "permisos"]
+dependencies:
+  - "esme.core@^1.0"
+sideEffects: false
+benchmarks:
+  recall_delta: 0.01
+  report: "bench.json"
+signatures:
+  ed25519: "62304bfd9e441c73" # huella de la clave que firma (verificar.ts contra el libro)
+  signed_by: "esme@bench"
+  signed_at: "2026-10-20"

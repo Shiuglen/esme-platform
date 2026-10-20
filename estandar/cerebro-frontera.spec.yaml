@@ -103,6 +103,21 @@ contrato:
     metodo: POST
     ruta: "/sueño"
     responde: "{ ... }  (el informe de lo que destiló)"
+  repeticiones:
+    metodo: GET
+    ruta: "/repeticiones"
+    responde: "{ repeticiones: [{ id, titulo, veces, ... }], total: number }"
+    nota: >-
+      Las tareas que el creador repite: candidatas a convertirse en skill. No
+      crea nada: sólo dice qué se repite y cuántas veces, para que la persona
+      decida. Es el medidor del Taller, no su juez.
+  necesidad:
+    metodo: GET
+    ruta: "/necesidad"
+    responde: "{ ... }  (las herramientas que el equipo echa de menos)"
+    nota: >-
+      Lo que falló y se repitió. No fabrica nada: sólo dice qué falta, para que
+      la Forja se lance con el permiso de la persona.
   orquestacion:
     metodo: GET
     ruta: "/orquesta"

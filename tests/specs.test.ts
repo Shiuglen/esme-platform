@@ -11,6 +11,12 @@ import {
 } from "../modulos/nucleo/manifest-schema.ts";
 import { CAPABILITIES } from "../core/extension-host/capability.ts";
 import { cargaMotorCached } from "../motores/laya-adapter.ts";
+import {
+  juzgaModulo,
+  TOPE_COSTE_POR_PUNTO,
+  MIN_CASOS_CICLO,
+  MAX_TOKENS_CICLO,
+} from "../core/modulos/veredicto.ts";
 
 const raiz = resolve(import.meta.dirname, "..");
 const dirSpecs = resolve(raiz, "estandar");
@@ -102,5 +108,55 @@ describe("la spec del manifiesto y el validador", () => {
   it("la spec declara la versión de schema que el código valida", () => {
     const datos = yaml.load(textoSpec()) as Record<string, unknown>;
     expect(datos.schema_version).toBe(1);
+  });
+});
+
+describe("la spec del veredicto de los módulos y el juez dicen lo mismo", () => {
+  const rutaVeredicto = resolve(dirSpecs, "module-veredicto.spec.yaml");
+  const textoVeredicto = (): string => readFileSync(rutaVeredicto, "utf8");
+
+  const manifiesto = {
+    schema_version: 1 as const,
+    id: "esme.prueba.módulo",
+    name: "Prueba",
+    version: "0.1.0",
+    category: "tool" as const,
+    description: "un módulo de mentira para comparar la spec con el juez",
+    author: "esme@bench",
+    license: "MIT" as const,
+    entry: "dist/index.js",
+    runtime: "nodejs" as const,
+    permissions: ["mind:read" as const],
+    decision_criteria: [],
+    dependencies: [],
+    sideEffects: false,
+    benchmarks: { recall_delta: 0.01, report: "bench.json" },
+  };
+
+  it("el orden de las medidas es el que dice la spec (las claves son el contrato)", () => {
+    const spec = yaml.load(textoVeredicto()) as {
+      cuerpo_firmado: { modulos: Array<{ medidas: { orden: string[] } }> };
+    };
+    const veredicto = juzgaModulo(manifiesto, {
+      carga: true,
+      usadas: ["mind:read"],
+      informe: { casos: 5, ciclo_ok: true, tokens_ciclo: 40 },
+    });
+    expect(veredicto.medidas.orden).toEqual(spec.cuerpo_firmado.modulos[0].medidas.orden);
+  });
+
+  it("los topes del juez están escritos en la spec", () => {
+    const texto = textoVeredicto();
+    expect(texto).toContain(String(TOPE_COSTE_POR_PUNTO));
+    expect(texto).toContain(String(MIN_CASOS_CICLO));
+    expect(texto).toContain(String(MAX_TOKENS_CICLO));
+  });
+
+  it("la spec declara las reglas que el juez cumple", () => {
+    const spec = yaml.load(textoVeredicto()) as { veredicto: { reglas: string[] } };
+    const reglas = spec.veredicto.reglas.join(" ");
+    expect(reglas).toContain("no carga");
+    expect(reglas).toContain("no declaró");
+    expect(reglas).toContain("informe de examen");
   });
 });

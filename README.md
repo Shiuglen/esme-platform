@@ -23,19 +23,21 @@ Entre dos lenguas solo sobrevive lo que está escrito.
 
 | Ruta | Qué hay |
 |---|---|
-| `docs/ARQUITECTURA.md` | **Las 14 decisiones** de la plataforma. Léelo primero. |
+| `docs/ARQUITECTURA.md` | **Las 16 decisiones** de la plataforma. Léelo primero. |
 | `docs/COLABORADOR-KIT/` | Tu kit de entrada: colaboradores, ADRs, mapa, runbook. |
 | `docs/LAYA.md` | El motor de decisiones locales del núcleo. |
 | `docs/TIENDA.md` | La tienda: manifiesto → scan → firma → índice → panel. |
 | `docs/PRUEBA-0.md` | El examen que regula todo. |
 | `docs/SYNC.md` | La mente portable (`.mind`), en carpeta o en un solo fichero. |
 | `docs/INCIDENTE.md` | El runbook: si una llave se cae, qué se hace. |
+| `docs/MODULOS.md` | Los módulos: la cápsula, la puerta, el juez y el runtime. |
 | `estandar/` | Las specs abiertas (manifiesto, mente `.mind`, frontera, veredicto…). |
 | `core/mind/` | La mente portable: importadores, troceo, redacción, rumbo, delta, ZIP. |
-| `core/extension-host/` | El worker de los módulos y la puerta (permisos, forma, nada más). |
-| `core/ipc/` | El contrato de mente (`mind-schema.ts`) y el SDK del módulo (`sdk.ts`). |
-| `core/bench/` | La maquinaria de medición: el examen y el ciclo de un módulo. |
-| `modulos/` | Módulos de ejemplo (`ejemplo-hola-mundo`, `ejemplo-troceo-pro`). |
+| `core/extension-host/` | La cápsula y la puerta de los módulos (qué no puede tocar, qué puede, y sólo si se le concede). |
+| `core/ipc/` | Los contratos: la mente (`mind-schema.ts`), el módulo (`module-schema.ts`) y el SDK (`sdk.ts`). |
+| `core/modulos/` | El runtime de los módulos: el libro de permisos, el registro y el juez. |
+| `core/bench/` | La maquinaria de medición: el examen, el ciclo y la medida de los módulos. |
+| `modulos/` | Módulos de ejemplo (`ejemplo-hola-mundo`, `ejemplo-troceo-pro`, `ejemplo-puerta`). |
 | `tienda/` | El índice público firmado, los paquetes, las firmas y la raíz congelada. |
 | `motores/` | El adaptador de Laya (las decisiones locales, sin nube). |
 
@@ -43,7 +45,7 @@ Entre dos lenguas solo sobrevive lo que está escrito.
 
 ```bash
 npm ci
-npm test                 # la batería completa (205 tests)
+npm test                 # la batería completa (319 tests)
 npm run lint             # tsc --noEmit: los tipos no mienten
 npm run spec:lint        # cada module.yaml contra su spec
 npm run test:offline     # la garantía: funciona sin red
@@ -65,6 +67,20 @@ más). Instalar desde fuera, con la raíz congelada:
 ```bash
 npm run instalar -- --url https://raw.githubusercontent.com/Shiuglen/esme-tienda/main
 ```
+
+**Usar los módulos** (la puerta de los módulos: instalar, consentir, activar,
+llamar y juzgar):
+
+```bash
+npm run modulos -- lista
+npm run modulos -- instala esme.nucleo.troceo-pro
+npm run modulos -- concede esme.nucleo.troceo-pro mind:write
+npm run modulos -- activa esme.nucleo.troceo-pro
+npm run modulos -- llama esme.nucleo.troceo-pro filasDe '[[{"tipo":"fila-tabla"}]]'
+npm run modulos -- juzga
+```
+
+Detalle: `docs/MODULOS.md`.
 
 **La Prueba 0 de verdad** (el banco real, con los datos locales del usuario):
 

@@ -73,8 +73,15 @@ describe("el kit se puede consumir", () => {
         ajenos.set(mod, [...(ajenos.get(mod) ?? []), f.replace(raiz + "/", "")]);
       }
     }
+    // La regla: el núcleo no arrastra dependencias en tiempo de ejecución.
+    // zod entra SOLO en los ficheros de contrato (los validadores de forma),
+    // nunca en la lógica. Si aparece zod en otra parte, el kit ya no se
+    // consume sin arrastrarlo.
     expect([...ajenos.keys()]).toEqual(["zod"]);
-    expect(ajenos.get("zod")).toEqual(["core/ipc/mind-schema.ts"]);
+    expect(ajenos.get("zod")).toEqual([
+      "core/ipc/mind-schema.ts",
+      "core/ipc/module-schema.ts",
+    ]);
   });
 
   it("publicar pasa por la puerta: lint + tests + spec-lint", () => {

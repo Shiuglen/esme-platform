@@ -21,6 +21,8 @@ import { claveDeFirma, puedePublicar } from "../tienda/claves.ts";
 import { empaquetar } from "../tienda/empaque.ts";
 import { firmarIndex, firmarBytes, declaraClave } from "../tienda/firma.ts";
 import { panelDe, render } from "../tienda/panel.ts";
+import { construyeTodos } from "./construir-modulos.ts";
+import { abreHost } from "../core/extension-host/host.ts";
 
 const raiz = resolve(import.meta.dirname, "..");
 const escribir = (ruta: string, dato: unknown) =>
@@ -33,6 +35,10 @@ const priv = clave.priv;
 // ¿esta llave tiene derecho a firmar la tienda? (la raíz congelada la avala o
 // no la avala). Si no: se mide y se mide, pero la tienda PUBLICADA no se toca.
 const publicable = puedePublicar(clave, raiz);
+
+// ——— 0. CONSTRUIR: los módulos se compilan antes de medirse ———
+// (sin esto, el bench mide un `dist/` que no existe: el número sale falso)
+await construyeTodos();
 
 // ——— 1. MEDIR: memoria (el examen del 12-oct) y herramienta (el ciclo) ———
 const base = corre(candidatosBase(), casosBase(), { k: 2, budget: 60 });
@@ -81,6 +87,56 @@ const benchHola: BenchCiclo = {
 };
 const veredictoHola = validaCiclo(benchHola);
 
+// el módulo de la puerta no se puede medir en proceso: usa `globalThis.esme`,
+// que sólo existe dentro de su worker. Se le abre su puerta de verdad y se le
+// habla como se le habla a cualquier módulo.
+const PUERTA_ID = "esme.nucleo.puerta";
+const PUERTA_PERMISOS = ["mind:read", "mind:write", "ipc:emit", "ui:render", "fs:project"];
+const registros: string[] = [];
+const menteDePrueba = {
+  recall: async (q: string) => [{ id: "r1", texto: `recuerdo de ${q}` }],
+  remember: async (t: string) => {
+    registros.push(t);
+    return { id: `m${registros.length}` };
+  },
+};
+const hostPuerta = abreHost(join(raiz, "modulos", "ejemplo-puerta", "dist", "index.js"), {
+  permisos: PUERTA_PERMISOS,
+  concedidas: PUERTA_PERMISOS,
+  mente: menteDePrueba,
+  id: PUERTA_ID,
+  version: "0.1.0",
+});
+let cicloPuertaOk = true;
+let tokensPuerta = 0;
+const consultasPuerta = [
+  "¿qué se decidió sobre el Taller?",
+  "¿qué sabe la mente del taller?",
+  "¿qué se dijo de la ventana?",
+];
+for (const consulta of consultasPuerta) {
+  try {
+    const r = (await hostPuerta.call("demuestra", consulta, "el módulo de la puerta escribe esto")) as {
+      recuerdo: string | null;
+    };
+    // el ciclo está completo si la mente devolvió Y se escribió en ella
+    if (!r.recuerdo) cicloPuertaOk = false;
+    tokensPuerta += Math.ceil(JSON.stringify(r).length / 4);
+  } catch {
+    cicloPuertaOk = false;
+  }
+}
+await hostPuerta.cerrar();
+const benchPuerta: BenchCiclo = {
+  modulo: PUERTA_ID,
+  version: "0.1.0",
+  fecha: new Date().toISOString().slice(0, 10),
+  casos: consultasPuerta.length,
+  ciclo_ok: cicloPuertaOk,
+  tokens_ciclo: tokensPuerta / consultasPuerta.length,
+};
+const veredictoPuerta = validaCiclo(benchPuerta);
+
 // ——— 2. EMPAQUETAR: tarball reproducible por módulo ———
 // si esta llave no puede publicar, los paquetes se montan en un directorio de
 // trabajo: la tienda publicada (tarballs firmados) no se toca de lejos.
@@ -91,6 +147,7 @@ mkdirSync(dirPaquetes, { recursive: true });
 const paquetes = [
   empaquetar(join(raiz, "modulos", "ejemplo-hola-mundo"), dirPaquetes),
   empaquetar(join(raiz, "modulos", "ejemplo-troceo-pro"), dirPaquetes),
+  empaquetar(join(raiz, "modulos", "ejemplo-puerta"), dirPaquetes),
 ];
 
 // ——— 3. REGISTRAR Y FIRMAR: bench.json, artefacto.json, índice ———
@@ -101,6 +158,10 @@ if (priv && publicable.ok) {
 
   escribir(join(raiz, "modulos", "ejemplo-hola-mundo", "bench.json"), benchHola);
   escribir(join(raiz, "modulos", "ejemplo-troceo-pro", "bench.json"), benchPro);
+  escribir(join(raiz, "modulos", "ejemplo-puerta", "bench.json"), {
+    ...benchPuerta,
+    sondas: [{ fn: "demuestra", args: ["¿qué se decidió sobre el Taller?", "el módulo de la puerta escribe esto"] }],
+  });
 
   for (const p of paquetes) {
     mkdirSync(join(raiz, "tienda", "firmas"), { recursive: true });
@@ -138,6 +199,14 @@ if (priv && publicable.ok) {
       firma_ok: veredictoPro.entra,
       artefacto: { tar: paquetes[1].sha256, bytes: paquetes[1].bytes },
     },
+    {
+      id: benchPuerta.modulo,
+      version: benchPuerta.version,
+      category: "tool",
+      bench_ciclo: benchPuerta,
+      firma_ok: veredictoPuerta.entra,
+      artefacto: { tar: paquetes[2].sha256, bytes: paquetes[2].bytes },
+    },
   ];
   for (const e of entradas) {
     const i = indice.modulos.findIndex((m) => m.id === e.id);
@@ -166,6 +235,7 @@ writeFileSync(join(raiz, "tienda", "panel.md"), render(panel));
 
 console.log(`memoria    : recall ${base.recall.toFixed(3)} → ${con.recall.toFixed(3)} · ${veredictoPro.entra ? "ENTRA" : "FUERA"} (${veredictoPro.causa})`);
 console.log(`herramienta: ${veredictoHola.entra ? "ENTRA" : "FUERA"} — ${veredictoHola.causa}`);
+console.log(`la puerta  : ${veredictoPuerta.entra ? "ENTRA" : "FUERA"} — ${veredictoPuerta.causa}`);
 console.log(`paquetes   : ${paquetes.map((p) => `${p.sha256.slice(0, 12)}… ${p.bytes}B`).join(" · ")}`);
 console.log(
   `publico    : ${publicable.ok ? "SÍ — " + publicable.razon : "NO — " + publicable.razon}`
