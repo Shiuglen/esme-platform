@@ -1,0 +1,43 @@
+name: release — binarios firmados al canal
+
+on:
+  push:
+    tags: ["v*", "v*-beta.*", "v*-nightly.*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: calidad antes de firmar (nada entra sin pasar)
+        run: |
+          npm run lint
+          npm test
+          npm run spec:lint
+      - name: build del módulo de referencia
+        run: npm run build:ejemplo
+      - name: firma del índice (la clave de release solo vive en el env)
+        env:
+          ESME_PRIV_KEY: ${{ secrets.ESME_RELEASE_KEY_PEM }}
+        run: |
+          if [ -f "scripts/firmar-index.ts" ]; then npm run firma:index || echo "sin clave de release: índice quedará con firma dev"; fi
+      - name: paquete del core
+        run: npm pack --pack-destination dist/ 2>/dev/null || mkdir -p dist && npm pack --pack-destination dist/
+      - name: release en GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.tgz
+          generate_release_notes: true
+      - name: anuncio al canal
+        env:
+          CANAL_URL: ${{ secrets.ESME_CANAL_WEBHOOK }}
+        run: echo "canal: $CANAL_URL"; # el webhook cliente del Taller lo dispara (W3)

@@ -17,3 +17,16 @@ export function ciclo(
   const recuerdos = recallFn("saludo");
   return { id: MODULO_ID, saludo: "hola", recuerdos };
 }
+
+/** Función pura y serializable: los datos cruzan el límite del worker. */
+export function resumen(recuerdas: string[]): {
+  id: string;
+  total: number;
+  primera: string | null;
+} {
+  return {
+    id: MODULO_ID,
+    total: recuerdas.length,
+    primera: recuerdas[0] ?? null,
+  };
+}
