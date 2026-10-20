@@ -57,20 +57,48 @@ function cuerpo(indice: Record<string, unknown>): unknown {
   return resto;
 }
 
+/** Firma bytes concretos (un tarball, el cuerpo del índice…): la primitiva común. */
+export interface FirmaBytes {
+  algorithm: "ed25519-sha512";
+  signature: string; // base64
+  signed_at: string; // ISO
+  signed_by: string; // huella o nombre de la clave
+  hash: string; // sha256 base64 de los bytes firmados
+}
+
+export function firmarBytes(
+  b: Buffer,
+  privPem: string,
+  signedBy: string
+): FirmaBytes {
+  const bytes = Buffer.isBuffer(b) ? b : Buffer.from(b as unknown as string, "utf8");
+  const hash = createHash("sha256").update(bytes).digest("base64");
+  return {
+    algorithm: "ed25519-sha512",
+    signature: sign(null, bytes, privPem).toString("base64"),
+    signed_at: new Date().toISOString(),
+    signed_by: signedBy,
+    hash,
+  };
+}
+
+export function verificarBytes(b: Buffer, f: FirmaBytes, pubPem: string): Veredicto {
+  if (f.algorithm !== "ed25519-sha512")
+    return { ok: false, razon: `algoritmo desconocido: ${String(f.algorithm)}` };
+  const hashActual = createHash("sha256").update(b).digest("base64");
+  if (hashActual !== f.hash)
+    return { ok: false, razon: "los bytes cambiaron respecto al hash firmado" };
+  const ok = verify(null, b, createPublicKey(pubPem), Buffer.from(f.signature, "base64"));
+  return ok ? { ok: true, hash: f.hash } : { ok: false, razon: "firma Ed25519 inválida" };
+}
+
 export function firmarIndex(
   indice: Record<string, unknown>,
   privPem: string,
   signedBy: string
 ): Record<string, unknown> {
   const bytes = Buffer.from(canonical(cuerpo(indice)), "utf8");
-  const firma: FirmaIndice = {
-    algorithm: "ed25519-sha512",
-    signature: sign(null, bytes, privPem).toString("base64"),
-    signed_at: new Date().toISOString(),
-    signed_by: signedBy,
-    hash: createHash("sha256").update(bytes).digest("base64"),
-  };
-  return { ...indice, signature: firma };
+  return { ...indice, signature: firmarBytes(bytes, privPem, signedBy) };
 }
 
 export type Veredicto =

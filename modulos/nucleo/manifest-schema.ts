@@ -53,9 +53,17 @@ export const ManifestSchema = z
       .optional(),
     signatures: z
       .object({
-        minisign: z.string(),
+        minisign: z.string().optional(),
+        ed25519: z.string().optional(), // firma del artefacto (node:crypto, cero dependencias)
         signed_by: z.string(),
         signed_at: z.string(),
+      })
+      .superRefine((s, ctx) => {
+        if (!s.minisign && !s.ed25519)
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "signatures: pone minisign o ed25519 (uno, no ninguno)",
+          });
       })
       .optional(),
   })
@@ -96,6 +104,6 @@ export function validaManifiesto(raw: unknown): {
   if (!parsed.data.benchmarks)
     avisos.push("sin benchmarks: la Prueba 0 es obligatoria para publicar");
   if (!parsed.data.signatures)
-    avisos.push("sin firma minisign: no entra al índice firmado");
+    avisos.push("sin firma (ed25519): el artefacto no puede verificarse");
   return { ok: true, manifest: parsed.data, errores: [], avisos };
 }

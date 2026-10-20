@@ -1,0 +1,14 @@
+{
+  "modulo": "esme.nucleo.hola-mundo",
+  "version": "0.1.0",
+  "tar": "f953948a94d7e5db55c2c7b0ae75c8019a1198c583b24c9b545d8179f84cc190",
+  "bytes": 1832,
+  "firmado_en": "2026-10-20",
+  "firma": {
+    "algorithm": "ed25519-sha512",
+    "signature": "6IkaN+F3aT2XJ6YdG2hc/xyctj+BlKYn2xhM9J9/6wfPIqFb5i6cUNh9V3m6+kHR0fpZUCfgqRmW21i3d+G1BQ==",
+    "signed_at": "2026-10-20T04:01:03.874Z",
+    "signed_by": "esme@bench",
+    "hash": "+VOUipTX5dtVwsewrnXIAZoRmMWDskybVF2BefhMwZA="
+  }
+}

@@ -18,7 +18,9 @@ export interface Panel {
 interface EntradaIndice {
   id?: unknown;
   version?: unknown;
+  category?: unknown;
   bench?: unknown;
+  bench_ciclo?: unknown;
   firma_ok?: unknown;
 }
 
@@ -32,6 +34,14 @@ interface BenchIndice {
   tokens_con?: number;
   fecha?: string;
   semilla?: number;
+}
+
+interface BenchCicloIndice {
+  modulo?: string;
+  version?: string;
+  casos?: number;
+  ciclo_ok?: unknown;
+  tokens_ciclo?: number;
 }
 
 /** Levanta el panel de un índice **NO** firmado aún: juzga por contenido. */
@@ -50,6 +60,34 @@ export function panelDe(
   for (const m of modulos) {
     const id = typeof m.id === "string" ? m.id : "<sin id>";
     const version = typeof m.version === "string" ? m.version : null;
+    const herramienta = m.category === "tool";
+
+    // módulos herramienta: el bench es el CICLO completo, no el recall
+    if (herramienta || (!m.bench && m.bench_ciclo)) {
+      const c = m.bench_ciclo as BenchCicloIndice | undefined;
+      if (!c) {
+        filas.push({ id, version, entra: false, causa: "sin bench de ciclo: el índice no publica eso" });
+        continue;
+      }
+      const tokens = Math.round((c.tokens_ciclo ?? 0) * 10) / 10;
+      if (c.ciclo_ok === true && (c.casos ?? 0) >= 3 && (c.tokens_ciclo ?? 1e9) <= 500) {
+        filas.push({
+          id,
+          version,
+          entra: true,
+          causa: `el ciclo funciona: ${c.casos} escenarios, ${tokens} tokens por ciclo`,
+        });
+      } else {
+        filas.push({
+          id,
+          version,
+          entra: false,
+          causa: `el ciclo de la herramienta no pasa (ciclo_ok=${String(c.ciclo_ok)}, ${c.casos ?? 0} escenarios, ${tokens} tokens)`,
+        });
+      }
+      continue;
+    }
+
     if (!m.bench) {
       filas.push({ id, version, entra: false, causa: "sin bench de la Prueba 0: el índice no publica eso" });
       continue;

@@ -46,3 +46,45 @@ export function estable(b: BenchModulo, otro: BenchModulo): boolean {
     Math.abs(b.recall_con - otro.recall_con) < 0.005
   );
 }
+
+// — módulos herramienta: no prometen recordar mejor, prometen FUNCIONAR —
+// Un módulo tool no compite por recall: su prueba es el ciclo de extremo a
+// extremo (recall → inject) corriendo entero, con el coste medido. El tope
+// existe para que "funciona" no siga significando "inyecta 5000 tokens".
+export interface BenchCiclo {
+  modulo: string;
+  version: string;
+  fecha: string;
+  casos: number; // escenarios del ciclo probados ≥ 3
+  ciclo_ok: boolean;
+  tokens_ciclo: number; // media de tokens que el módulo inyecta por ciclo
+}
+
+const MIN_CASOS_CICLO = 3;
+const MAX_TOKENS_CICLO = 500;
+
+export function validaCiclo(b: BenchCiclo): VeredictoEntrada {
+  if (!b.ciclo_ok)
+    return { entra: false, causa: `el ciclo falló en el examen (${b.casos} escenarios)` };
+  if (b.casos < MIN_CASOS_CICLO)
+    return { causa: `solo ${b.casos} escenarios: mínimo ${MIN_CASOS_CICLO}`, entra: false };
+  if (b.tokens_ciclo > MAX_TOKENS_CICLO)
+    return {
+      causa: `el ciclo funciona pero inyecta ${Math.round(b.tokens_ciclo)} tokens (tope ${MAX_TOKENS_CICLO})`,
+      entra: false,
+    };
+  return {
+    causa: `el ciclo funciona: ${b.casos} escenarios, ${Math.round(b.tokens_ciclo)} tokens por ciclo`,
+    entra: true,
+  };
+}
+
+/** Regla de oro también aquí: dos corridas del mismo bench de ciclo, mismos números. */
+export function cicloEstable(b: BenchCiclo, otro: BenchCiclo): boolean {
+  return (
+    b.modulo === otro.modulo &&
+    b.version === otro.version &&
+    b.tokens_ciclo === otro.tokens_ciclo &&
+    b.ciclo_ok === otro.ciclo_ok
+  );
+}

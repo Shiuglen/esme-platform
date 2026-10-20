@@ -5,14 +5,25 @@
     {
       "id": "esme.nucleo.hola-mundo",
       "version": "0.1.0",
-      "hash": null,
-      "bench": null,
-      "pubkey": null,
-      "published_at": null
+      "category": "tool",
+      "bench_ciclo": {
+        "modulo": "esme.nucleo.hola-mundo",
+        "version": "0.1.0",
+        "fecha": "2026-10-20",
+        "casos": 3,
+        "ciclo_ok": true,
+        "tokens_ciclo": 19.166666666666668
+      },
+      "firma_ok": true,
+      "artefacto": {
+        "tar": "f953948a94d7e5db55c2c7b0ae75c8019a1198c583b24c9b545d8179f84cc190",
+        "bytes": 1832
+      }
     },
     {
       "id": "esme.nucleo.troceo-pro",
       "version": "0.1.0",
+      "category": "memory",
       "bench": {
         "modulo": "esme.nucleo.troceo-pro",
         "version": "0.1.0",
@@ -25,14 +36,17 @@
         "semilla": 0
       },
       "firma_ok": true,
-      "published_at": "2026-10-20"
+      "artefacto": {
+        "tar": "898e2636d96876d1146d93bc5d3cd00ecca934ab764598236c608c008d2b4852",
+        "bytes": 2482
+      }
     }
   ],
   "signature": {
     "algorithm": "ed25519-sha512",
-    "signature": "CX5iQTzuqH/dPUEgGt1y25n3XjA7CkU6J9q0EhSOJFX8BzRgF8JpdIMfmHynoCZV8RZ95BbgVJvyBBtnkhbiAQ==",
-    "signed_at": "2026-10-20T03:48:27.733Z",
+    "signature": "N80tdxtj9FYMEVFPil+HytKugiIAOBukfQa7vXCnvJAg9+4urg3oAbTg665Y+lIEi1gxX0zbbNpRzV8ZKG/1Cg==",
+    "signed_at": "2026-10-20T04:01:03.875Z",
     "signed_by": "esme@bench",
-    "hash": "MfJSo6QrDnRq0RAVV/pjfQv4sdpVNknUfmnk2C8mAgk="
+    "hash": "c56K5jcR2n4TJdWCUS1McB6tLvA7d6wArWRYk//90ZU="
   }
 }

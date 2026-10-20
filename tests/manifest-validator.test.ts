@@ -48,10 +48,11 @@ describe("manifiesto de módulo (esme.nucleo.hola-mundo como oro)", () => {
     expect(r.ok).toBe(false);
   });
 
-  it("la nota sin sideEffects ni firma logra superar en valid screen pero con avisos", () => {
-    const r = validaManifiesto(modifica({}));
+  it("sin firma → pasa con aviso de la Prueba 0 (verificable o no entra)", () => {
+    const { signatures: _drop, ...rest } = modifica({}) as Record<string, unknown>;
+    const r = validaManifiesto(rest);
     expect(r.ok).toBe(true);
-    expect(r.avisos).toContainEqual(expect.stringContaining("firma minisign"));
+    expect(r.avisos).toContainEqual(expect.stringContaining("sin firma (ed25519)"));
   });
 
   it("copies the índice sin ownership — descripción corta no nos contrata", () => {

@@ -25,3 +25,7 @@ sideEffects: false
 benchmarks:
   recall_delta: 0.01
   report: "bench.json"
+signatures:
+  ed25519: "62304bfd9e441c73" # huella de la clave que firma (verificar.ts contra el libro)
+  signed_by: "esme@bench"
+  signed_at: "2026-10-19"
