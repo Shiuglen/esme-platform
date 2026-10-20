@@ -1,14 +1,14 @@
 {
   "modulo": "esme.nucleo.troceo-pro",
   "version": "0.1.0",
-  "tar": "898e2636d96876d1146d93bc5d3cd00ecca934ab764598236c608c008d2b4852",
-  "bytes": 2482,
+  "tar": "8b47f21c31cfae2a6900fd5ba702c18001156eaee6160d4e40ff22476b8e907a",
+  "bytes": 2495,
   "firmado_en": "2026-10-20",
   "firma": {
     "algorithm": "ed25519-sha512",
-    "signature": "gJ9uybW4F3crokSTEgIL3TIdDmVXyebzUy/V6NTTgOFtwe15MsCTv+9xzBdJlXRYlWLrKrkqOVmiRutviGAsBg==",
-    "signed_at": "2026-10-20T04:32:52.871Z",
+    "signature": "WcKA0mSNNV5fNfFTiEs7F6uNkieFNxEaTeEmMinAZWlZ724D8ospUsRJ0mWaYnoTFp/ADu2YQWuRiuWRi696DA==",
+    "signed_at": "2026-10-20T17:19:58.576Z",
     "signed_by": "adaaf79999a7296f",
-    "hash": "iY4mNtlodtEUbZO8XTzQDsypNKt2RZgjbGCMAI0rSFI="
+    "hash": "i0fyHDHPrippAP1bpwLBgAEVbq7mFg1OQP8iR2uOkHo="
   }
 }

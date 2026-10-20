@@ -7,6 +7,7 @@
 // (Ed25519), sube entradas al índice, firma el índice y redacta el panel.
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { resolve, join } from "node:path";
+import { tmpdir } from "node:os";
 import { createPublicKey } from "node:crypto";
 import {
   candidatosBase,
@@ -16,7 +17,7 @@ import {
 } from "../core/bench/examen-real.ts";
 import { corre, armaBench, veredicto } from "../core/bench/runner.ts";
 import { validaCiclo, type BenchCiclo } from "../tienda/bench.ts";
-import { claveDeFirma } from "../tienda/claves.ts";
+import { claveDeFirma, puedePublicar } from "../tienda/claves.ts";
 import { empaquetar } from "../tienda/empaque.ts";
 import { firmarIndex, firmarBytes } from "../tienda/firma.ts";
 import { panelDe, render } from "../tienda/panel.ts";
@@ -29,6 +30,9 @@ const escribir = (ruta: string, dato: unknown) =>
 // key local (que nace sola si no existe). Ver tienda/claves.ts.
 const clave = claveDeFirma();
 const priv = clave.priv;
+// ¿esta llave tiene derecho a firmar la tienda? (la raíz congelada la avala o
+// no la avala). Si no: se mide y se mide, pero la tienda PUBLICADA no se toca.
+const publicable = puedePublicar(clave, raiz);
 
 // ——— 1. MEDIR: memoria (el examen del 12-oct) y herramienta (el ciclo) ———
 const base = corre(candidatosBase(), casosBase(), { k: 2, budget: 60 });
@@ -78,14 +82,19 @@ const benchHola: BenchCiclo = {
 const veredictoHola = validaCiclo(benchHola);
 
 // ——— 2. EMPAQUETAR: tarball reproducible por módulo ———
-const dirPaquetes = join(raiz, "tienda", "paquetes");
+// si esta llave no puede publicar, los paquetes se montan en un directorio de
+// trabajo: la tienda publicada (tarballs firmados) no se toca de lejos.
+const dirPaquetes = publicable.ok
+  ? join(raiz, "tienda", "paquetes")
+  : join(tmpdir(), "esme-paquetes-sin-derecho");
+mkdirSync(dirPaquetes, { recursive: true });
 const paquetes = [
   empaquetar(join(raiz, "modulos", "ejemplo-hola-mundo"), dirPaquetes),
   empaquetar(join(raiz, "modulos", "ejemplo-troceo-pro"), dirPaquetes),
 ];
 
 // ——— 3. REGISTRAR Y FIRMAR: bench.json, artefacto.json, índice ———
-if (priv) {
+if (priv && publicable.ok) {
   // la huella real de la clave: el identificador que revoca o declara
   const pubPem = clave.pub;
   const huella = clave.huella;
@@ -158,4 +167,7 @@ writeFileSync(join(raiz, "tienda", "panel.md"), render(panel));
 console.log(`memoria    : recall ${base.recall.toFixed(3)} → ${con.recall.toFixed(3)} · ${veredictoPro.entra ? "ENTRA" : "FUERA"} (${veredictoPro.causa})`);
 console.log(`herramienta: ${veredictoHola.entra ? "ENTRA" : "FUERA"} — ${veredictoHola.causa}`);
 console.log(`paquetes   : ${paquetes.map((p) => `${p.sha256.slice(0, 12)}… ${p.bytes}B`).join(" · ")}`);
+console.log(
+  `publico    : ${publicable.ok ? "SÍ — " + publicable.razon : "NO — " + publicable.razon}`
+);
 console.log(`panel      : ${panel.filas.map((f) => `${f.id.split(".").pop()} ${f.entra ? "✓" : "✗"}`).join(" ")}`);

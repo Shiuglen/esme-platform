@@ -37,17 +37,17 @@
       },
       "firma_ok": true,
       "artefacto": {
-        "tar": "898e2636d96876d1146d93bc5d3cd00ecca934ab764598236c608c008d2b4852",
-        "bytes": 2482
+        "tar": "8b47f21c31cfae2a6900fd5ba702c18001156eaee6160d4e40ff22476b8e907a",
+        "bytes": 2495
       }
     }
   ],
   "signature": {
     "algorithm": "ed25519-sha512",
-    "signature": "7KodvgojswunCmQgqC97xyZ3yTqtOtm26pNacgJxz5pTFwuMEtfIXK6lto9HfwqTSYan50kHRQBmm//TezCgDQ==",
-    "signed_at": "2026-10-20T04:32:52.872Z",
+    "signature": "KdFdI35Q99/Q43JLIP0mVJ97TFwAGVU+pbrVVk+JT7cSU4BfMXMSk6wXN4YHEnlrUFrB8n5u6FQGkok00K1hDQ==",
+    "signed_at": "2026-10-20T17:19:58.576Z",
     "signed_by": "adaaf79999a7296f",
-    "hash": "DKVAT4X2pIaaJSalvsMqjp0+JRVFvl3EgyYV3d1NT4I="
+    "hash": "uQiislhSAFhHlydkNH7dfAVxZjsU/B7D+XUW4XRhbgA="
   },
   "claves": {
     "62304bfd9e441c73": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAWMd+6VJIBCckRb2ZcjZ/oEAv/upjD5OWPxR6Gm97yEE=\n-----END PUBLIC KEY-----\n",
