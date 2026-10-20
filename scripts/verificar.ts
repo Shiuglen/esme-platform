@@ -10,6 +10,7 @@ import { resolve, join } from "node:path";
 import { createHash, createPublicKey } from "node:crypto";
 import { verificarIndex, verificarBytes, type FirmaBytes } from "../tienda/firma.ts";
 import { estaRevocada } from "../tienda/revocacion.ts";
+import { confiaIndexChain } from "../tienda/rotacion.ts";
 
 const raiz = resolve(import.meta.dirname, "..");
 const indice = JSON.parse(
@@ -38,6 +39,7 @@ const pubKey =
   })();
 
 let fallos = 0;
+let pubActiva: string | null = null;
 
 // 0. el libro de revocaciones: si el firmante del índice está revocado,
 //    TODA la tienda cae — ni artefactos ni veredictos valen nada
@@ -52,15 +54,24 @@ if (
   process.exit(1);
 }
 
-// 1. la firma del índice
+// 1. la firma del índice — directa, o vía la estirpe de rotaciones
 if (!pubKey) {
   console.log("índice    : sin clave pública → no verificable (pon ESME_PUB_KEY)");
   fallos++;
 } else {
-  const r = verificarIndex(indice, pubKey);
-  const razon = !r.ok && "razon" in r ? ` (${r.razon})` : "";
-  console.log(`índice    : ${r.ok ? "firma verificada ✓" : `FALLA ✗${razon}`}`);
-  if (!r.ok) fallos++;
+  const confianza = confiaIndexChain(
+    indice,
+    pubKey,
+    join(raiz, "tienda", "rotaciones.json")
+  );
+  if (confianza.ok) {
+    const etiqueta = confianza.via === "directa" ? "" : " — la raíz congelada lo avala por la estirpe";
+    console.log(`índice    : firma verificada ✓ (${confianza.via})${etiqueta}`);
+    pubActiva = confianza.pubActiva ?? null;
+  } else {
+    console.log("índice    : FALLA ✗ — no viene de la raíz ni de su estirpe");
+    fallos++;
+  }
 }
 
 // 2. los artefactos: tar firmado == tar publicado == hash del índice
@@ -93,10 +104,14 @@ for (const m of indice.modulos) {
   const bytes = readFileSync(rutaTar);
   const hashLocal = createHash("sha256").update(bytes).digest("hex");
   const cuadraEnIndice = art.tar === m.artefacto?.tar;
-  const firmaVale = pubKey ? verificarBytes(bytes, art.firma, pubKey).ok : false;
+  // la pub del firmante del artefacto sale del índice CONFIADO (claves declaradas)
+  const pubFirmante = (indice.claves as Record<string, string> | undefined)?.[
+    art.firma.signed_by
+  ];
+  const firmaVale = pubFirmante ? verificarBytes(bytes, art.firma, pubFirmante).ok : false;
   const firmanteRevocado =
-    pubKey && art.firma.signed_by
-      ? estaRevocada(art.firma.signed_by, join(raiz, "tienda", "revocaciones.json"), pubKey)
+    pubActiva && art.firma.signed_by
+      ? estaRevocada(art.firma.signed_by, join(raiz, "tienda", "revocaciones.json"), pubActiva)
       : false;
   const ok = firmaVale && cuadraEnIndice && hashLocal === art.tar && !firmanteRevocado;
   console.log(

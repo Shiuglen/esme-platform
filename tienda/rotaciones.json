@@ -1,0 +1,18 @@
+{
+  "sucesiones": [
+    {
+      "vieja": {
+        "huella": "62304bfd9e441c73",
+        "pub": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAWMd+6VJIBCckRb2ZcjZ/oEAv/upjD5OWPxR6Gm97yEE=\n-----END PUBLIC KEY-----\n"
+      },
+      "nueva": {
+        "huella": "d9978d32d1e71df0",
+        "pub": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEA/gL6os9AP7AvWiggqPO1aO2PXp9L+IsbJHDVnotAKas=\n-----END PUBLIC KEY-----\n"
+      },
+      "motivo": "demostración del kit: rotación una llave y la tienda sigue viva",
+      "fecha": "2026-10-20T04:22:14.006Z",
+      "firmaVieja": "a9qknY7cts4d22cPsf3B8WG5WVl5cMWGYuN51prEm/O20x3eIT+rSrOEdSwKMUykMQf9BaXG74m1NPw1+/QfCQ==",
+      "firmaNueva": "k/X+6RJbU23Ie7qk+0sdPN/hYZkeayZXI9g3UXwoUxZ+VGDj6CJP/dVVRAz8zeGQq7raZ+5myo0ox1hzro31DA=="
+    }
+  ]
+}

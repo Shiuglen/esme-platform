@@ -8,8 +8,9 @@ import { createHash, createPublicKey } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import yaml from "js-yaml";
-import { verificarBytes, verificarIndex } from "./firma.ts";
+import { verificarBytes } from "./firma.ts";
 import { estaRevocada, rutaRevocaciones } from "./revocacion.ts";
+import { confiaIndexChain, huellaDePub } from "./rotacion.ts";
 
 export interface Instalacion {
   id: string;
@@ -44,12 +45,23 @@ export function verificarPaquete(
   if (!existsSync(rutaIndice)) return { ok: false, razon: "sin índice de la tienda" };
 
   const indice = JSON.parse(readFileSync(rutaIndice, "utf8")) as Record<string, unknown>;
-  const posturaIndice = verificarIndex(indice, pubPem);
-  if (!posturaIndice.ok) return { ok: false, razon: `índice no confiable: ${posturaIndice.razon}` };
+  // el índice: firma directa con la raíz, o sucesión firmada (estirpe de rotaciones)
+  const rutaLedger = join(raiz, "tienda", "rotaciones.json");
+  const confianza = confiaIndexChain(indice, pubPem, rutaLedger);
+  if (!confianza.ok) return { ok: false, razon: "índice no confiable (ni directa ni por la estirpe)" };
 
-  const huellaFirmante = (indice.signature as { signed_by?: string } | undefined)?.signed_by;
-  if (huellaFirmante && estaRevocada(huellaFirmante, rutaRevocaciones(raiz), pubPem))
-    return { ok: false, razon: `el firmante del índice (${huellaFirmante}) está revocado` };
+  const pubFirmanteIndice =
+    confianza.pubActiva ?? (indice.signature as { signed_by?: string } | undefined)?.signed_by;
+  const clavesIndice = indice.claves as Record<string, string> | undefined;
+  const pubDeIndice =
+    (indice.signature as { signed_by?: string } | undefined)?.signed_by &&
+    clavesIndice?.[(indice.signature as { signed_by?: string }).signed_by ?? ""];
+  if (pubDeIndice && estaRevocada(
+    (indice.signature as { signed_by: string }).signed_by,
+    rutaRevocaciones(raiz),
+    confianza.pubActiva ?? pubPem
+  ))
+    return { ok: false, razon: `el firmante del índice está revocado` };
 
   const entrada = (inicioModulos(indice).find((m) => m.id === id) ?? {}) as {
     version?: string;
@@ -70,9 +82,14 @@ export function verificarPaquete(
   if (entrada.artefacto?.tar && entrada.artefacto.tar !== art.tar)
     return { ok: false, razon: "el índice y el libro discrepan del tar" };
 
-  const firma = verificarBytes(bytes, art.firma, pubPem);
+  // la pub del firmante del artefacto: declarada dentro del índice ya confiado
+  const pubFirmante = clavesIndice?.[art.firma.signed_by];
+  if (!pubFirmante) return { ok: false, razon: `la clave ${art.firma.signed_by} del artefacto no la declara el índice` };
+  const firma = verificarBytes(bytes, art.firma, pubFirmante);
   if (!firma.ok) return { ok: false, razon: `firma del paquete: ${firma.razon}` };
   if (sha256 !== art.tar) return { ok: false, razon: "los bytes no son los firmados" };
+  if (estaRevocada(art.firma.signed_by, rutaRevocaciones(raiz), confianza.pubActiva ?? pubPem))
+    return { ok: false, razon: `el firmante del artefacto (${art.firma.signed_by.slice(0, 8)}…) está revocado` };
   return { ok: true, bytes: bytes.length, sha256 };
 }
 

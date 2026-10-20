@@ -6,9 +6,9 @@
   "firmado_en": "2026-10-20",
   "firma": {
     "algorithm": "ed25519-sha512",
-    "signature": "6IkaN+F3aT2XJ6YdG2hc/xyctj+BlKYn2xhM9J9/6wfPIqFb5i6cUNh9V3m6+kHR0fpZUCfgqRmW21i3d+G1BQ==",
-    "signed_at": "2026-10-20T04:15:13.193Z",
-    "signed_by": "62304bfd9e441c73",
+    "signature": "upuvSiKI/Tb+um649dtSwmJrm3HooqaSfQ8z1wBuoZOfNhRYbkGvMfPxCV4vAk/el/8CFDGrTsuNRiNygNqNBw==",
+    "signed_at": "2026-10-20T04:27:16.016Z",
+    "signed_by": "d9978d32d1e71df0",
     "hash": "+VOUipTX5dtVwsewrnXIAZoRmMWDskybVF2BefhMwZA="
   }
 }

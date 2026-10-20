@@ -44,12 +44,13 @@
   ],
   "signature": {
     "algorithm": "ed25519-sha512",
-    "signature": "8y+EWK+vnZrM5K7bYUgQq3IDqcAJAN88F/qJhqPCfxmsJMluZZ0tkcMKEuz9drVklbDFcKjHkX6Vj61CPS69BA==",
-    "signed_at": "2026-10-20T04:15:13.196Z",
-    "signed_by": "62304bfd9e441c73",
-    "hash": "kgCSFwi8DVktkdhMTlQhXYheOaiIVZ+ZxjGrd3ckwxM="
+    "signature": "fBTD/ABmuvtFzYrkaI2nlapsVjwb/woKJ2nzmVXrCauMFxc7hSeFZ/ATd1TkAo51KCDxodcNS/Ic6qRoXjTuDQ==",
+    "signed_at": "2026-10-20T04:27:16.017Z",
+    "signed_by": "d9978d32d1e71df0",
+    "hash": "x+Ru646uX6g2o8OeHEP29/Aby82SIakpKG4M8K9B7Jg="
   },
   "claves": {
-    "62304bfd9e441c73": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAWMd+6VJIBCckRb2ZcjZ/oEAv/upjD5OWPxR6Gm97yEE=\n-----END PUBLIC KEY-----\n"
+    "62304bfd9e441c73": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAWMd+6VJIBCckRb2ZcjZ/oEAv/upjD5OWPxR6Gm97yEE=\n-----END PUBLIC KEY-----\n",
+    "d9978d32d1e71df0": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEA/gL6os9AP7AvWiggqPO1aO2PXp9L+IsbJHDVnotAKas=\n-----END PUBLIC KEY-----\n"
   }
 }

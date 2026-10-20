@@ -16,6 +16,7 @@
     "verificar": "tsx scripts/verificar.ts",
     "instalar": "tsx scripts/instalar.ts",
     "revocar": "tsx scripts/revocar.ts",
+    "rotar": "tsx scripts/rotar.ts",
     "tienda": "npm run bench && npm run verificar",
     "test:offline": "vitest run tests/offline.test.ts tests/tienda-firma.test.ts tests/redaction.test.ts tests/mind-format.test.ts",
     "lint": "tsc --noEmit"
