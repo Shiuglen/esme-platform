@@ -50,8 +50,12 @@ contrato:
     responde: "{ ok: boolean, memories: number }"
   recuerdos:
     metodo: GET
-    ruta: "/memories?q=&limit="
+    ruta: "/memories?q=&limit=&fuente="
     responde: "[{ id, text, source, kind, ts, trust, compartment, score? }]  (score: 0 si no hay búsqueda)"
+    por_fuente: >-
+      Con ?fuente= no hay búsqueda: es una coleta. Devuelve los recuerdos de esa
+      fuente (x:bookmarks, x:fyp…), los más recientes primero, hasta ?limit= (500
+      el tope). Es lo que hace la Tienda con «lo que guardaste».
   recordar:
     metodo: POST
     ruta: "/recall"
