@@ -46,6 +46,31 @@ y el hash coincide. Los permisos (`mind:read`, `mind:write`, `net:fetch`,
 `fs:project`, `ui:render`, `ipc:emit`) piden consentimiento interactivo la primera
 vez, con el modal de Tinta y Luz.
 
+## El catálogo de productos (la Tienda, firmado)
+
+La Tienda vende productos: pieles, herramientas, agentes, apps. Van en un solo
+fichero, `catalogo.json`, con la firma Ed25519 de quien publica. La app solo
+muestra lo que trae una firma válida: cambiar una coma de un producto la rompe.
+
+- **La app nunca firma.** Genera el catálogo *sin firmar*
+  (`app/scripts/catalogo-productos.mjs` → `app/src/main/tienda/productos.json`).
+- **El kit firma y publica** (`npm run tienda:publicar -- --productos <ruta>`):
+  con la llave de release si el entorno la apunta (`ESME_PRIV_KEY`), si no con la
+  dev key local. Antes de escribirlo lo comprueba con la misma puerta que tiene
+  la app: no se publica lo que no se puede verificar.
+- **La app lo baja y lo comprueba** (`app/src/main/tienda/ipc.ts`): la red primero,
+  luego la copia local (para estar sin conexión), y si no, la colección de casa.
+- **Lo firmado manda sobre lo empaquetado**: si una piel de la red tiene el
+  mismo id que la que viaja en la app, la de la red la sustituye.
+
+El formato es una spec abierta (`estandar/catalogo-productos.spec.yaml`): el
+orden de las claves es parte del contrato, y `tests/catalogo-productos.test.ts`
+lo fija con un ejemplo firmado por el propio código de la app, así que el kit y
+la app no pueden separarse sin que se caiga el test.
+
+La llave de las licencias es otra: una llave que firma licencias no firma la
+Tienda. La app tiene las suyas en `app/src/main/claves.ts`.
+
 ## El juez de las skills
 
 Los módulos de la tienda se miden contra la Prueba 0. Las **skills** no: una

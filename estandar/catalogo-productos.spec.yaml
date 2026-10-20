@@ -1,0 +1,76 @@
+> **Spec abierta v1 — el catálogo de productos de la Tienda.**
+> Referencia: `docs/TIENDA.md` §El catálogo, `tienda/catalogo.ts`.
+> CI `spec-lint` no la valida (es documental); la implementan el kit
+> (`tienda/catalogo.ts`) y la app (`app/src/main/tienda/catalogo.ts`).
+>
+> **Cambios:** para cambiar esta spec abre un PR a `estandar/`. Quien produce
+> y quien verifica tienen que sacar los MISMOS bytes: el orden de las claves
+> es parte del contrato.
+
+schema_version: 1
+artefacto: "catalogo.json"
+descripcion: >-
+  Los productos que se publican en la Tienda (pieles, herramientas, agentes,
+  apps) con la firma Ed25519 de quien publica. La app solo muestra lo que
+  trae una firma válida: cambiar una coma de un producto la rompe. El
+  contenido de cada piel lo valida la ventana al vestirla (validarPiel), no
+  el catálogo: el catálogo garantiza la integridad, la app la validez.
+
+cuerpo_firmado:
+  # JSON con las claves en ESTE orden fijo (no se ordenan: el orden es la spec).
+  orden: [version, emitido, productos]
+  version: 1
+  emitido: <ms desde la época>
+  productos:
+    - id: "<slug en minúsculas, [a-z0-9-], 2..60>"
+      tipo: <piel | herramienta | agente | app>
+      nombre: "<lo que se ve en la ficha>"
+      autor: "<quien lo hizo>"
+      descripcion: "<una frase>"
+      etiquetas: ["<palabra>"]
+      version: <n>
+      precio: <n | null>      # opcional; la Tienda no cobra (peaje cero)
+      contenido: {}            # el producto en sí (una piel = su objeto Piel)
+
+firma:
+  # Ed25519 sobre los bytes EXACTOS de cuerpo_firmado: JSON.stringify con las
+  # claves en ese orden, sin espacios. base64url (sin relleno).
+  algoritmo: "Ed25519"
+  bytes: "JSON.stringify({ version, emitido, productos }) — el orden manda"
+  codificacion: "base64url"
+  donde: "firma"           # clave del JSON firmado, junto a version/emitted/productos
+  # El JSON firmado es: { version, emitido, productos, firma } (mismo orden + la firma al final).
+
+quien_firma:
+  # La app NUNCA firma: solo comprueba. Quien publica es el kit
+  # (scripts/publicar-catalogo.ts), con la llave de la Tienda: la de release si
+  # el entorno la apunta (ESME_PRIV_KEY), si no la dev key local.
+  # La app confía en la lista de claves públicas de la Tienda (app/src/main/claves.ts):
+  # hoy la dev key; cuando la de release firme, su clave entra en la lista.
+  # La llave de las licencias es OTRA: una llave que firma licencias no firma la Tienda.
+
+verificar:
+  pasos:
+    - "el JSON se lee y tiene la forma (version, emitido, productos, firma)"
+    - "los bytes del cuerpo se rehacen con el orden de claves de esta spec"
+    - "Ed25519(cuerpo, firma) con alguna clave de la lista de confianza"
+    - "cada producto tiene la forma (id, tipo, nombre, autor, descripcion, etiquetas, version, contenido)"
+  si_falla: "el catálogo NO se usa: la Tienda enseña lo de casa y lo dice"
+
+publicar:
+  # El flujo: la app genera el catálogo SIN firmar (scripts/catalogo-productos.mjs),
+  # el kit lo firma y lo publica en el repo de la tienda, y la app lo baja de
+  # ahí y lo comprueba. Nadie publica sin firma.
+  pasos:
+    - "node scripts/catalogo-productos.mjs  (en la app): productos.json, sin firma"
+    - "npm run tienda:publicar -- --productos <ruta>  (en el kit): firma y publica"
+  destino: "https://raw.githubusercontent.com/Shiuglen/esme-tienda/main/catalogo.json"
+
+garantías:
+  - "Lo que llega de la red con un id que ya viaja en la app SUSTITUYE a la de
+    casa: lo firmado manda sobre lo empaquetado (la copia de casa queda para
+    estar sin conexión)."
+  - "Un producto con un id repetido dentro del mismo catálogo no vale: el
+    catálogo entero se rechaza."
+  - "Sin conexión, la app usa la última copia que verificó (y lo dice:
+    'catálogo guardado'), o la colección de casa si no hay copia."

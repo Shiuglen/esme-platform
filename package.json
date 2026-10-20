@@ -4,7 +4,9 @@
   "type": "module",
   "version": "0.1.0",
   "description": "El runtime de la mente local: contratos, extension host y Laya",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "test": "vitest run",
     "spec:lint": "tsx scripts/spec-lint.ts",
@@ -20,6 +22,7 @@
     "incidente": "tsx scripts/incidente.ts",
     "skills:juzgar": "tsx scripts/juzgar-skills.ts",
     "skills:publicar": "tsx scripts/publicar-veredictos.ts",
+    "tienda:publicar": "tsx scripts/publicar-catalogo.ts",
     "tienda": "npm run bench && npm run verificar",
     "test:offline": "vitest run tests/offline.test.ts tests/tienda-firma.test.ts tests/redaction.test.ts tests/mind-format.test.ts",
     "lint": "tsc --noEmit"
