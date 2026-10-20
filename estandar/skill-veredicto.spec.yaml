@@ -1,0 +1,73 @@
+> **Spec abierta v1 — el veredicto de las skills de la Tienda.**
+> Referencia: `docs/TIENDA.md` §El juez de las skills, `tienda/skills.ts`.
+> CI `spec-lint` no la valida (es documental); la implementan el kit
+> (`tienda/skills.ts`) y la app (`app/src/main/tienda/veredicto.ts`).
+>
+> **Cambios:** para cambiar esta spec abre un PR a `estandar/`. Quien produce
+> y quien verifica tienen que sacar los MISMOS bytes: el orden de las claves
+> es parte del contrato.
+
+schema_version: 1
+artefacto: "skills/veredictos.json"
+descripcion: >-
+  El veredicto firmado del juez de las skills: por skill, si entra en la
+  Tienda, con qué riesgo y por qué. La firma cubre la huella del árbol que
+  se juzgó, así que la app puede negarse a instalar un árbol que no sea
+  exactamente el que el juez miró.
+
+cuerpo_firmado:
+  # JSON con las claves en ESTE orden fijo (no se ordenan: el orden es la spec).
+  # skills[] viene ordenado por id (comparación de bytes, no de idioma).
+  orden: [version, emitido, firmante, skills]
+  version: 1
+  emitido: <ms desde la época>
+  firmante: <huella de la clave: 16 hex del sha256 del PEM público>
+  skills:
+    - id: "<repo>/<nombre>"
+      entra: <boolean>
+      nivel: <ok | aviso | fuera>
+      causa: "<por qué, en una frase>"
+      medidas:
+        orden: [arbolSha256, licencia, commit, ficheros, bytes, ejecutables]
+        arbolSha256: <64 hex>
+        licencia: "<SPDX>"
+        commit: <40 hex>
+        ficheros: <n>
+        bytes: <n>
+        ejecutables: <boolean>
+
+firma:
+  algorithm: "ed25519-sha512"
+  firma: "<base64>"        # Ed25519 sobre los bytes UTF-8 del cuerpo_firmado
+  signed_at: "<ISO 8601>"
+  signed_by: "<la misma huella que `firmante`>"
+  hash: "<base64>"         # sha256 de los MISMOS bytes firmados
+
+reglas_del_juez:
+  fuera:
+    - "id inválido (no coincide con ^[a-z0-9][a-z0-9._/-]{2,119}$)"
+    - "no hay commit fijado (40 hex): no se puede probar qué es"
+    - "no hay huella del árbol (64 hex): no se puede probar qué se descarga"
+    - "licencia fuera de la lista permitida: sin permiso claro para redistribuir"
+  aviso:
+    - "trae scripts ejecutables: hay que pedirlos"
+    - "el árbol pesa más de 1 MiB"
+    - "trae más de 40 ficheros"
+  lista_licencias_permitidas:
+    [MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, Unlicense]
+
+verificar:
+  pasos:
+    - "el JSON se lee y tiene la forma (version, emitido, firmante, skills, firma)"
+    - "los bytes del cuerpo se rehacen con el orden de claves de esta spec"
+    - "sha256(cuerpo) base64 == firma.hash  (el cuerpo no cambió)"
+    - "Ed25519(cuerpo, firma.firma) con la clave fijada de confianza"
+    - "firma.signed_by == firmante (la firma es de quien dice firmar)"
+  si_falla: "el veredicto NO se aplica: la skill queda 'sin medir'"
+
+garantías:
+  - "NUNCA se estima el ahorro de contexto: eso lo mide la app en la vista
+    previa, con el SKILL.md delante. El juez solo mide hechos del catálogo."
+  - "Un id repetido en el catálogo no juzga dos veces: la segunda queda fuera."
+  - "Sin veredicto firmado, la app NO bloquea nada: sigue como antes, pero
+    lo dice ('sin medir'). El juez pone el listón, no lo quita."

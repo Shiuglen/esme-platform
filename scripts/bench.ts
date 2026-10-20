@@ -5,9 +5,9 @@
 //   tool   → el ciclo recall→inject completo de extremo a extremo
 // Después empaqueta cada módulo en tarball reproducible, firma los bytes
 // (Ed25519), sube entradas al índice, firma el índice y redacta el panel.
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { resolve, join } from "node:path";
-import { createHash, createPublicKey } from "node:crypto";
+import { createPublicKey } from "node:crypto";
 import {
   candidatosBase,
   casosBase,
@@ -16,25 +16,19 @@ import {
 } from "../core/bench/examen-real.ts";
 import { corre, armaBench, veredicto } from "../core/bench/runner.ts";
 import { validaCiclo, type BenchCiclo } from "../tienda/bench.ts";
+import { claveDeFirma } from "../tienda/claves.ts";
 import { empaquetar } from "../tienda/empaque.ts";
-import { firmarIndex, firmarBytes, generarPar } from "../tienda/firma.ts";
+import { firmarIndex, firmarBytes } from "../tienda/firma.ts";
 import { panelDe, render } from "../tienda/panel.ts";
 
 const raiz = resolve(import.meta.dirname, "..");
 const escribir = (ruta: string, dato: unknown) =>
   writeFileSync(ruta, JSON.stringify(dato, null, 2) + "\n");
 
-const clavesPem = (): string | null => {
-  if (process.env.ESME_PRIV_KEY && existsSync(process.env.ESME_PRIV_KEY))
-    return readFileSync(process.env.ESME_PRIV_KEY, "utf8");
-  const ruta = join(raiz, ".keys", "index-dev.pem");
-  if (existsSync(ruta)) return readFileSync(ruta, "utf8");
-  // clon fresco: la dev key nace aquí (la release nunca vive en el repo)
-  const par = generarPar();
-  mkdirSync(join(raiz, ".keys"), { recursive: true });
-  writeFileSync(ruta, par.priv);
-  return par.priv;
-};
+// la llave de esta copia: la de release si el entorno la apunta, si no la dev
+// key local (que nace sola si no existe). Ver tienda/claves.ts.
+const clave = claveDeFirma();
+const priv = clave.priv;
 
 // ——— 1. MEDIR: memoria (el examen del 12-oct) y herramienta (el ciclo) ———
 const base = corre(candidatosBase(), casosBase(), { k: 2, budget: 60 });
@@ -91,11 +85,10 @@ const paquetes = [
 ];
 
 // ——— 3. REGISTRAR Y FIRMAR: bench.json, artefacto.json, índice ———
-const priv = clavesPem();
 if (priv) {
   // la huella real de la clave: el identificador que revoca o declara
-  const pubPem = createPublicKey(priv).export({ type: "spki", format: "pem" }).toString();
-  const huella = createHash("sha256").update(pubPem).digest("hex").slice(0, 16);
+  const pubPem = clave.pub;
+  const huella = clave.huella;
 
   escribir(join(raiz, "modulos", "ejemplo-hola-mundo", "bench.json"), benchHola);
   escribir(join(raiz, "modulos", "ejemplo-troceo-pro", "bench.json"), benchPro);

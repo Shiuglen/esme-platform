@@ -1,0 +1,784 @@
+{
+  "version": 1,
+  "emitido": 1792472414062,
+  "firmante": "adaaf79999a7296f",
+  "skills": [
+    {
+      "id": "addy/api-and-interface-design",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "5da66d70c80bba15b728c38ae02ffefcfccff3259104707da0d043de5eaa5434",
+        "licencia": "MIT",
+        "commit": "aeac41d4d005999432bb7312f7ff06383a91d59d",
+        "ficheros": 1,
+        "bytes": 14886,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "addy/browser-testing-with-devtools",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "68d682e0ce5142d3a75f1bb8320ef2308c200272b1524c7f6d78caf0eb0d09a8",
+        "licencia": "MIT",
+        "commit": "aeac41d4d005999432bb7312f7ff06383a91d59d",
+        "ficheros": 1,
+        "bytes": 14539,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "addy/ci-cd-and-automation",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "483bd838c62e5b35da8ff34e9d2ef1bee7a3adb94a4adbfb3a8656ec810beddf",
+        "licencia": "MIT",
+        "commit": "aeac41d4d005999432bb7312f7ff06383a91d59d",
+        "ficheros": 1,
+        "bytes": 11332,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "addy/code-review-and-quality",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "a9aeddb6e15fd4b738c2f18fcdf1d5dca6a415f0180ab9104047c5cb763e676d",
+        "licencia": "MIT",
+        "commit": "aeac41d4d005999432bb7312f7ff06383a91d59d",
+        "ficheros": 1,
+        "bytes": 20976,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "addy/code-simplification",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "5cb288668707479057796f29164a132413981ecee91c2bb9d381cc4d6ec6e06c",
+        "licencia": "MIT",
+        "commit": "aeac41d4d005999432bb7312f7ff06383a91d59d",
+        "ficheros": 1,
+        "bytes": 13545,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "addy/constraint-driven-development",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "53b5cb0cbdf636fa66576e4c298dc9940e8960609eae1cf10c62bea1aaec71aa",
+        "licencia": "MIT",
+        "commit": "aeac41d4d005999432bb7312f7ff06383a91d59d",
+        "ficheros": 2,
+        "bytes": 31689,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "addy/context-engineering",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "d89f5e68a2b6b731824ad2e64a561f51df607abebea068541c7765389e6dc4c9",
+        "licencia": "MIT",
+        "commit": "aeac41d4d005999432bb7312f7ff06383a91d59d",
+        "ficheros": 1,
+        "bytes": 15486,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "addy/debugging-and-error-recovery",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "8006283c42c17cda58c785613d925d166e24eb2da60889c450072dd14bcc5f8b",
+        "licencia": "MIT",
+        "commit": "aeac41d4d005999432bb7312f7ff06383a91d59d",
+        "ficheros": 1,
+        "bytes": 10913,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "addy/deprecation-and-migration",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "70929a69a9352bd38ce85c416b1ca292b5237de93259259a53a57d405c3381fc",
+        "licencia": "MIT",
+        "commit": "aeac41d4d005999432bb7312f7ff06383a91d59d",
+        "ficheros": 1,
+        "bytes": 12642,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "addy/documentation-and-adrs",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "bc5061708430e958aaa1a6fc563923252ca7450fb0c0a0c51b7985196c196ca9",
+        "licencia": "MIT",
+        "commit": "aeac41d4d005999432bb7312f7ff06383a91d59d",
+        "ficheros": 1,
+        "bytes": 10910,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "addy/doubt-driven-development",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "0a37344f128b67047e060f799c6a1b7ec0f9a7a5c8f81f1995352be068a7a32f",
+        "licencia": "MIT",
+        "commit": "aeac41d4d005999432bb7312f7ff06383a91d59d",
+        "ficheros": 1,
+        "bytes": 16647,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "addy/frontend-ui-engineering",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "42ec60bede9ee03be73daa1fb503aa49544214bd7d2e4f1d750fac40ae391f2c",
+        "licencia": "MIT",
+        "commit": "aeac41d4d005999432bb7312f7ff06383a91d59d",
+        "ficheros": 1,
+        "bytes": 11721,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "addy/git-workflow-and-versioning",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "91c8c72654ee6ef163e49df26d1810cb7a6a91a4d8dee5b9f1bc03fd1fb8ec3a",
+        "licencia": "MIT",
+        "commit": "aeac41d4d005999432bb7312f7ff06383a91d59d",
+        "ficheros": 1,
+        "bytes": 14141,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "addy/idea-refine",
+      "entra": true,
+      "nivel": "aviso",
+      "causa": "trae scripts ejecutables: hay que pedirlos",
+      "medidas": {
+        "arbolSha256": "e5e3bf66a0b9e6769319ea61c430e9c6775ed453bfc4687cca870ffe10720185",
+        "licencia": "MIT",
+        "commit": "aeac41d4d005999432bb7312f7ff06383a91d59d",
+        "ficheros": 5,
+        "bytes": 41021,
+        "ejecutables": true
+      }
+    },
+    {
+      "id": "addy/incremental-implementation",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "9c717c7dd541eb6a91e705c665dd35921295308568a684625006609d66af5c61",
+        "licencia": "MIT",
+        "commit": "aeac41d4d005999432bb7312f7ff06383a91d59d",
+        "ficheros": 1,
+        "bytes": 9629,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "addy/interview-me",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "0b2d005c06a0060945926468373b13097d09a545a7106b5b9da5efb33d30e9eb",
+        "licencia": "MIT",
+        "commit": "aeac41d4d005999432bb7312f7ff06383a91d59d",
+        "ficheros": 1,
+        "bytes": 15080,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "addy/observability-and-instrumentation",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "f9f0f7174b1a677cbd9735a5940401766ff76544b771c56c289942c3ddbc7797",
+        "licencia": "MIT",
+        "commit": "aeac41d4d005999432bb7312f7ff06383a91d59d",
+        "ficheros": 1,
+        "bytes": 13948,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "addy/performance-optimization",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "7108da1589f6d604db42036fec9bea20d937d5f2178abc79174e7ffaad945a50",
+        "licencia": "MIT",
+        "commit": "aeac41d4d005999432bb7312f7ff06383a91d59d",
+        "ficheros": 2,
+        "bytes": 26390,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "addy/planning-and-task-breakdown",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "f9de8730b88bbc3be25a3c75090a49c12c1ed6bf6f173b528fd6a296db192b16",
+        "licencia": "MIT",
+        "commit": "aeac41d4d005999432bb7312f7ff06383a91d59d",
+        "ficheros": 1,
+        "bytes": 10564,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "addy/security-and-hardening",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "f52100523848c210063c3ff5b7f8184285f71f8c959de9aeeee1b3699f8e3245",
+        "licencia": "MIT",
+        "commit": "aeac41d4d005999432bb7312f7ff06383a91d59d",
+        "ficheros": 2,
+        "bytes": 30595,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "addy/shipping-and-launch",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "729bad5a3b0ffcaa86dcdb4686cf50d6b1710910bbd28a3e463ebb8afb243da9",
+        "licencia": "MIT",
+        "commit": "aeac41d4d005999432bb7312f7ff06383a91d59d",
+        "ficheros": 1,
+        "bytes": 11515,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "addy/source-driven-development",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "cc1b0589dad63690cd6c380c13fdc771defe73eefcaa22630b80e7097aec9a87",
+        "licencia": "MIT",
+        "commit": "aeac41d4d005999432bb7312f7ff06383a91d59d",
+        "ficheros": 1,
+        "bytes": 10038,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "addy/spec-driven-development",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "3a533b650cbc1532e2607cbce4e8ac024a5c57a16dca02cf7965c877b019fb17",
+        "licencia": "MIT",
+        "commit": "aeac41d4d005999432bb7312f7ff06383a91d59d",
+        "ficheros": 1,
+        "bytes": 13096,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "addy/test-driven-development",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "cdc20a7a17269aa4f1ed27cd9705bc063d8a618335ed57861420ad3bf04d10c6",
+        "licencia": "MIT",
+        "commit": "aeac41d4d005999432bb7312f7ff06383a91d59d",
+        "ficheros": 1,
+        "bytes": 16676,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "addy/using-agent-skills",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "41927b79f274a2a4eac841895bb1c75f7a1c37af2748a6a89e13bce13ff79bbd",
+        "licencia": "MIT",
+        "commit": "aeac41d4d005999432bb7312f7ff06383a91d59d",
+        "ficheros": 1,
+        "bytes": 10446,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "anthropics/canvas-design",
+      "entra": true,
+      "nivel": "aviso",
+      "causa": "el árbol pesa 5.3 MiB · trae 83 ficheros",
+      "medidas": {
+        "arbolSha256": "5cf2ae9381b71029e9a2ac321d92dd4e9e64f32089659138fe29d379dc813200",
+        "licencia": "Apache-2.0",
+        "commit": "dbd4588f9e1033efb41dad4bef2f7947c8993d44",
+        "ficheros": 83,
+        "bytes": 5554003,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "anthropics/frontend-design",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "89a6e59de80320a32e8b4c597a329ef3c503f624a2e68874bb0475dfb66dbf4b",
+        "licencia": "Apache-2.0",
+        "commit": "dbd4588f9e1033efb41dad4bef2f7947c8993d44",
+        "ficheros": 2,
+        "bytes": 19564,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "anthropics/mcp-builder",
+      "entra": true,
+      "nivel": "aviso",
+      "causa": "trae scripts ejecutables: hay que pedirlos",
+      "medidas": {
+        "arbolSha256": "fbc00db06f808e792e97b71426bbced01888cd67c65e49764e5849e0d939577e",
+        "licencia": "Apache-2.0",
+        "commit": "dbd4588f9e1033efb41dad4bef2f7947c8993d44",
+        "ficheros": 10,
+        "bytes": 121756,
+        "ejecutables": true
+      }
+    },
+    {
+      "id": "anthropics/skill-creator",
+      "entra": true,
+      "nivel": "aviso",
+      "causa": "trae scripts ejecutables: hay que pedirlos",
+      "medidas": {
+        "arbolSha256": "b016b0011ee9cee8ba46dfed19ccde8f1d8e0ea6edc60ea90b3962d35e8b013a",
+        "licencia": "Apache-2.0",
+        "commit": "dbd4588f9e1033efb41dad4bef2f7947c8993d44",
+        "ficheros": 18,
+        "bytes": 224992,
+        "ejecutables": true
+      }
+    },
+    {
+      "id": "anthropics/theme-factory",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "d9bb249c6b837f5cdedb385593829eb01195b4294d52b1c5b2e5c5df756bb353",
+        "licencia": "Apache-2.0",
+        "commit": "dbd4588f9e1033efb41dad4bef2f7947c8993d44",
+        "ficheros": 13,
+        "bytes": 144094,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "anthropics/webapp-testing",
+      "entra": true,
+      "nivel": "aviso",
+      "causa": "trae scripts ejecutables: hay que pedirlos",
+      "medidas": {
+        "arbolSha256": "7dd9eedc497fbf8b5634a293190b11f93cf4b80f7cd6c1a775def12deadeebb9",
+        "licencia": "Apache-2.0",
+        "commit": "dbd4588f9e1033efb41dad4bef2f7947c8993d44",
+        "ficheros": 6,
+        "bytes": 22394,
+        "ejecutables": true
+      }
+    },
+    {
+      "id": "marketing/content-strategy",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "ca93d57593f6b3f4f69388af12f4f4448e2e094c256032eaa579699165e59f49",
+        "licencia": "MIT",
+        "commit": "e85f3cbc2e4a79bf33b2a12e9bdd9087d414735b",
+        "ficheros": 4,
+        "bytes": 43736,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "marketing/copywriting",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "11d447a14127604eb9e51b08c016a481a41d1df7f7c135e03701dbce9cca6e4b",
+        "licencia": "MIT",
+        "commit": "e85f3cbc2e4a79bf33b2a12e9bdd9087d414735b",
+        "ficheros": 5,
+        "bytes": 69232,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "mattpocock/code-review",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "d8ea925a0be487470db65c58a5a2606c3bda9e61ad7a66cc72f59c3d6ed0b3b6",
+        "licencia": "MIT",
+        "commit": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
+        "ficheros": 2,
+        "bytes": 6770,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "mattpocock/diagnosing-bugs",
+      "entra": true,
+      "nivel": "aviso",
+      "causa": "trae scripts ejecutables: hay que pedirlos",
+      "medidas": {
+        "arbolSha256": "3314cd62e50cf688d13abdc4eb4cedcbcfdfe6f053fe3331f4a79928a0fe3c7f",
+        "licencia": "MIT",
+        "commit": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
+        "ficheros": 3,
+        "bytes": 10083,
+        "ejecutables": true
+      }
+    },
+    {
+      "id": "mattpocock/grill-me",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "8d501635f6935280c1e493a7551658038fef32a346fb3a4acd21a727ceee3b64",
+        "licencia": "MIT",
+        "commit": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
+        "ficheros": 2,
+        "bytes": 294,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "mattpocock/handoff",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "ec3e8c462e35745d5349384c25b2ee761d6b681004121499f90d9df2e50da5ce",
+        "licencia": "MIT",
+        "commit": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
+        "ficheros": 2,
+        "bytes": 1081,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "mattpocock/improve-codebase-architecture",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "d15e658a232ad79fa58891ef3e418071b28e942e5e95fa17969053e9db1601ce",
+        "licencia": "MIT",
+        "commit": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
+        "ficheros": 3,
+        "bytes": 12807,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "mattpocock/research",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "1a5c408b1843aba2ef8e67faa23bb02d83ddc6ac3e414101c555c938f5fc9033",
+        "licencia": "MIT",
+        "commit": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
+        "ficheros": 2,
+        "bytes": 888,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "mattpocock/tdd",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "09207778457604cc26b57047a3bb31378f8318085a5fb4e8b6eb38657898e04d",
+        "licencia": "MIT",
+        "commit": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
+        "ficheros": 4,
+        "bytes": 7411,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "openai/gh-fix-ci",
+      "entra": true,
+      "nivel": "aviso",
+      "causa": "trae scripts ejecutables: hay que pedirlos",
+      "medidas": {
+        "arbolSha256": "40662e9d4177f242fb571c9c60395ee9677a07fa45ce36dc7f533412db93c060",
+        "licencia": "Apache-2.0",
+        "commit": "49f948faa9258a0c61caceaf225e179651397431",
+        "ficheros": 6,
+        "bytes": 32642,
+        "ejecutables": true
+      }
+    },
+    {
+      "id": "openai/openai-docs",
+      "entra": true,
+      "nivel": "aviso",
+      "causa": "trae scripts ejecutables: hay que pedirlos",
+      "medidas": {
+        "arbolSha256": "f2c90216c2d084fcda46d075b98a7993ea17faebafff8b1e90978f0bd48f517f",
+        "licencia": "Apache-2.0",
+        "commit": "49f948faa9258a0c61caceaf225e179651397431",
+        "ficheros": 10,
+        "bytes": 79418,
+        "ejecutables": true
+      }
+    },
+    {
+      "id": "openai/pdf",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "2fc2347442a94ba102ec13234abd5195f865060aea08d0af76d008551dd40ef6",
+        "licencia": "Apache-2.0",
+        "commit": "49f948faa9258a0c61caceaf225e179651397431",
+        "ficheros": 4,
+        "bytes": 14824,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "openai/playwright",
+      "entra": true,
+      "nivel": "aviso",
+      "causa": "trae scripts ejecutables: hay que pedirlos",
+      "medidas": {
+        "arbolSha256": "ef6eb7ead439f87fd4007a071bd37bdbd97dd7a286695f63caeb6528c0057d21",
+        "licencia": "Apache-2.0",
+        "commit": "49f948faa9258a0c61caceaf225e179651397431",
+        "ficheros": 9,
+        "bytes": 22850,
+        "ejecutables": true
+      }
+    },
+    {
+      "id": "openai/security-best-practices",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "11fc4f203478f5a3b87d78450ac5b79991adc5a27cf1ff558e5ecc4daa59aaa4",
+        "licencia": "Apache-2.0",
+        "commit": "49f948faa9258a0c61caceaf225e179651397431",
+        "ficheros": 13,
+        "bytes": 411749,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "superpowers/brainstorming",
+      "entra": true,
+      "nivel": "aviso",
+      "causa": "trae scripts ejecutables: hay que pedirlos",
+      "medidas": {
+        "arbolSha256": "76096af618e6d2f68c3225af28c2f77f3e68734c4f73ddc6eae670fa914b9a59",
+        "licencia": "MIT",
+        "commit": "bb92a77741419a4ab5f06e711a283343f1ada0c3",
+        "ficheros": 8,
+        "bytes": 73946,
+        "ejecutables": true
+      }
+    },
+    {
+      "id": "superpowers/systematic-debugging",
+      "entra": true,
+      "nivel": "aviso",
+      "causa": "trae scripts ejecutables: hay que pedirlos",
+      "medidas": {
+        "arbolSha256": "fa3fac4e35376230eb41c5504722b8309e2428e26932c90482dd313cb3dd34ef",
+        "licencia": "MIT",
+        "commit": "bb92a77741419a4ab5f06e711a283343f1ada0c3",
+        "ficheros": 11,
+        "bytes": 40842,
+        "ejecutables": true
+      }
+    },
+    {
+      "id": "superpowers/test-driven-development",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "acf361b1743f444028ed8123f1ccf2df6e1d4dcca65b3f982aedb42f4f68ec44",
+        "licencia": "MIT",
+        "commit": "bb92a77741419a4ab5f06e711a283343f1ada0c3",
+        "ficheros": 2,
+        "bytes": 17846,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "superpowers/verification-before-completion",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "29d4bd654fdc57679501bf73b2821abf4ce035c536054a3e8e90ed7ed38644c7",
+        "licencia": "MIT",
+        "commit": "bb92a77741419a4ab5f06e711a283343f1ada0c3",
+        "ficheros": 1,
+        "bytes": 3646,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "superpowers/writing-plans",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "70aa13d73e96a9d810a3ef1c52f820686dfadd7755c9b9c57d6ef3e983328cb6",
+        "licencia": "MIT",
+        "commit": "bb92a77741419a4ab5f06e711a283343f1ada0c3",
+        "ficheros": 1,
+        "bytes": 10335,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "vercel/composition-patterns",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "8b67145fc3996d42af07ddf710c9900eb80b7bcad3aaecf008127782509006e1",
+        "licencia": "MIT",
+        "commit": "063bee94c3f4df8453406c830b0a7df0f2860278",
+        "ficheros": 14,
+        "bytes": 50339,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "vercel/react-best-practices",
+      "entra": true,
+      "nivel": "aviso",
+      "causa": "trae 76 ficheros",
+      "medidas": {
+        "arbolSha256": "741c320ab924f3d033c763574c1a166e4318454937dce6e10015f0230830a6bf",
+        "licencia": "MIT",
+        "commit": "063bee94c3f4df8453406c830b0a7df0f2860278",
+        "ficheros": 76,
+        "bytes": 230383,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "vercel/react-view-transitions",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "ada4ee14b4b8380bb921b3a720c1f92fbd5e8c6aad4e3991702d3c8bd08919a8",
+        "licencia": "MIT",
+        "commit": "063bee94c3f4df8453406c830b0a7df0f2860278",
+        "ficheros": 9,
+        "bytes": 121681,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "vercel/web-design-guidelines",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "f910cd9c88f04e87d03b2b7829b56fcf50b3be4582965f12bc163e3f6b5b59d2",
+        "licencia": "MIT",
+        "commit": "063bee94c3f4df8453406c830b0a7df0f2860278",
+        "ficheros": 1,
+        "bytes": 1231,
+        "ejecutables": false
+      }
+    },
+    {
+      "id": "vercel/writing-guidelines",
+      "entra": true,
+      "nivel": "ok",
+      "causa": "commit fijado, huella del árbol y licencia que deja redistribuir",
+      "medidas": {
+        "arbolSha256": "52968568379b0b3a2d48c21117462e219093573bed8d3b418f5a7a514e2d33be",
+        "licencia": "MIT",
+        "commit": "063bee94c3f4df8453406c830b0a7df0f2860278",
+        "ficheros": 1,
+        "bytes": 1233,
+        "ejecutables": false
+      }
+    }
+  ],
+  "firma": {
+    "algorithm": "ed25519-sha512",
+    "signature": "ywbbAy0L0B9ajaTVXluBwhzfhZjuIpcS7JYOoZyFKZlHXGtp5hv7URwdQAn1DHqAwK0jHrhrKw78BpPODvwsAg==",
+    "signed_at": "2026-10-20T05:00:14.064Z",
+    "signed_by": "adaaf79999a7296f",
+    "hash": "YmoSEPy/ZrYPAGcEgmvWcuTSOvJ4tdFUL+2BwQHJPqU="
+  }
+}

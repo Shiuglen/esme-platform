@@ -46,6 +46,42 @@ y el hash coincide. Los permisos (`mind:read`, `mind:write`, `net:fetch`,
 `fs:project`, `ui:render`, `ipc:emit`) piden consentimiento interactivo la primera
 vez, con el modal de Tinta y Luz.
 
+## El juez de las skills
+
+Los módulos de la tienda se miden contra la Prueba 0. Las **skills** no: una
+skill son instrucciones, no un módulo de memoria, y su valor no sale de un
+recall. Lo que sí se puede comprobar de una skill son **hechos**: que el
+commit está fijado, que hay huella del árbol, que la licencia deja
+redistribuir, que no trae scripts sueltos y que no pesa una barbaridad.
+
+`tienda/skills.ts` es ese juez. Juega el catálogo de skills que publica la app
+y dicta, skill por skill, si entra, con qué riesgo y por qué:
+
+| nivel | cuándo |
+|---|---|
+| `ok` | commit fijado, huella del árbol y licencia que deja redistribuir |
+| `aviso` | entra, pero trae scripts, pesa más de 1 MiB o trae más de 40 ficheros |
+| `fuera` | id inválido, sin commit, sin huella o licencia que no deja redistribuir |
+
+Lo que el juez **no** hace: estimar el ahorro de contexto. Eso lo mide la app
+en la vista previa, con el `SKILL.md` delante. Inventar un número aquí sería
+justo el tipo de promesa que la tienda no vende.
+
+**El veredicto va firmado.** La firma cubre la huella del árbol que se juzgó,
+así que la app puede negarse a instalar un árbol que no sea exactamente el que
+el juez miró (hasta ahora se comparaba contra el catálogo, que puede cambiar
+de mano entre la revisión y la descarga).
+
+```bash
+npm run skills:juzgar -- --catalogo /ruta/catalogo.json
+# → skills/veredictos.json (firmado) y skills/panel.md (legible)
+```
+
+El formato firmado es una spec abierta: `estandar/skill-veredicto.spec.yaml`.
+Quien produce y quien verifica sacan los mismos bytes porque el orden de las
+claves es parte del contrato. Sin veredicto válido, la app no bloquea nada:
+lo dice («sin medir»). El juez pone el listón, no lo quita.
+
 ## Escudo (lo que NUNCA se tolera)
 
 - Código que toca caminos de exclusión (`work/**`, `company/**`, `.env*`, `*.pem`,
