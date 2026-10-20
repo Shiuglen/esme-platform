@@ -18,6 +18,7 @@
  */
 import { createHash, createPublicKey, verify } from "node:crypto";
 import { canonical, firmarBytes, type FirmaBytes } from "./firma.ts";
+import type { MedidaSkill } from "./medir.ts";
 
 /** La versión del veredicto. Cambia si cambia el formato firmado. */
 export const VEREDICTO_VERSION = 1;
@@ -51,6 +52,10 @@ export interface MedidasSkill {
   ficheros: number;
   bytes: number;
   ejecutables: boolean;
+  /** Los tokens que ocupa su SKILL.md (medidos del fichero). Null = sin medir. */
+  tokens: number | null;
+  /** El sha256 del SKILL.md que se leyó ("" si no se leyó). */
+  skillMdSha256: string;
 }
 
 export interface VeredictoSkill {
@@ -91,6 +96,9 @@ export const TOPE_BYTES = 1024 * 1024;
 /** Por encima de esto, el árbol se avisa. */
 export const TOPE_FICHEROS = 40;
 
+/** Por encima de esto, la skill se avisa: ocupa demasiado contexto en cada carga. */
+export const TOPE_TOKENS = 12_000;
+
 const ID_OK = /^[a-z0-9][a-z0-9._/-]{2,119}$/;
 const HEX40 = /^[0-9a-f]{40}$/;
 const HEX64 = /^[0-9a-f]{64}$/;
@@ -111,8 +119,14 @@ const veredicto = (
 /**
  * Juega una skill. Primero la puerta de la forma (sin commit, sin huella o sin
  * licencia que redistribuir, no hay juicio posible), después los avisos.
+ *
+ * Si hay medición (el SKILL.md descargado del commit fijado), también manda: una
+ * skill que no se puede leer no entra, y una que ocupa media ventana se avisa.
  */
-export function juzgaSkill(c: Partial<SkillCatalogo>): VeredictoSkill {
+export function juzgaSkill(
+  c: Partial<SkillCatalogo>,
+  medicion?: MedidaSkill | null
+): VeredictoSkill {
   const id = typeof c?.id === "string" ? c.id : "";
   const medidas: MedidasSkill = {
     arbolSha256: typeof c?.arbolSha256 === "string" ? c.arbolSha256 : "",
@@ -121,6 +135,8 @@ export function juzgaSkill(c: Partial<SkillCatalogo>): VeredictoSkill {
     ficheros: cuenta(c?.ficheros),
     bytes: cuenta(c?.bytes),
     ejecutables: c?.tieneScripts === true,
+    tokens: medicion?.tokens ?? null,
+    skillMdSha256: medicion?.sha256 ?? "",
   };
 
   if (!ID_OK.test(id))
@@ -137,6 +153,14 @@ export function juzgaSkill(c: Partial<SkillCatalogo>): VeredictoSkill {
       `licencia ${medidas.licencia || "desconocida"}: sin permiso claro para redistribuir`,
       medidas
     );
+  if (medicion && !medicion.lectura.ok)
+    return veredicto(
+      id,
+      false,
+      "fuera",
+      `su SKILL.md no se puede leer: ${medicion.lectura.error}`,
+      medidas
+    );
 
   const avisos: string[] = [];
   if (medidas.ejecutables) avisos.push("trae scripts ejecutables: hay que pedirlos");
@@ -144,6 +168,9 @@ export function juzgaSkill(c: Partial<SkillCatalogo>): VeredictoSkill {
     avisos.push(`el árbol pesa ${(medidas.bytes / 1024 / 1024).toFixed(1)} MiB`);
   if (medidas.ficheros > TOPE_FICHEROS)
     avisos.push(`trae ${medidas.ficheros} ficheros`);
+  if (medidas.tokens !== null && medidas.tokens > TOPE_TOKENS)
+    avisos.push(`ocupa ~${medidas.tokens.toLocaleString("es-ES")} tokens de contexto en cada carga`);
+  if (medicion?.lectura.ok) avisos.push(...medicion.lectura.avisos);
 
   if (avisos.length)
     return veredicto(id, true, "aviso", avisos.join(" · "), medidas);
@@ -159,8 +186,12 @@ export function juzgaSkill(c: Partial<SkillCatalogo>): VeredictoSkill {
 /**
  * Juega el catálogo entero. Un id repetido no juzga dos veces: la segunda
  * repite es fuera (el catálogo no puede decidir cuál de las dos vale).
+ * `mediciones` son las medidas del fichero de verdad (por id), si las hay.
  */
-export function juzgaCatalogo(catalogo: unknown): {
+export function juzgaCatalogo(
+  catalogo: unknown,
+  mediciones?: Map<string, MedidaSkill> | null
+): {
   veredictos: VeredictoSkill[];
   dentro: number;
   avisos: number;
@@ -172,7 +203,7 @@ export function juzgaCatalogo(catalogo: unknown): {
   for (const crudo of lista) {
     const c = (crudo ?? {}) as Partial<SkillCatalogo>;
     const id = typeof c.id === "string" ? c.id : "";
-    const v = juzgaSkill(c);
+    const v = juzgaSkill(c, mediciones?.get(id) ?? null);
     if (vistos.has(id)) {
       veredictos.push(
         veredicto(id, false, "fuera", "id repetido en el catálogo", v.medidas)
@@ -224,6 +255,8 @@ export function cuerpoVeredictos(v: VeredictosSkills): string {
         ficheros: s.medidas.ficheros,
         bytes: s.medidas.bytes,
         ejecutables: s.medidas.ejecutables,
+        tokens: s.medidas.tokens ?? null,
+        skillMdSha256: s.medidas.skillMdSha256 ?? "",
       },
     })),
   });
@@ -331,19 +364,25 @@ export function renderPanelSkills(v: VeredictosSkills): string {
   const avisos = v.skills.filter((s) => s.nivel === "aviso").length;
   const fuera = v.skills.length - dentro;
   const fecha = new Date(v.emitido).toISOString().slice(0, 10);
+  const medido = v.skills.some((s) => s.medidas.tokens !== null);
   const lineas = [
     `# Veredicto de las skills — ${fecha}`,
     "",
     `${v.skills.length} skills juzgadas · ${dentro} entran · ${avisos} con aviso · ${fuera} fuera`,
-    `Firmante: ${v.firmante} · versión ${v.version}`,
+    `Firmante: ${v.firmante} · versión ${v.version} · catálogo ${v.catalogoSha256.slice(0, 16)}…`,
     "",
-    "| skill | veredicto | causa | licencia | peso |",
-    "|---|---|---|---|---|",
+    "| skill | veredicto | causa | licencia | peso | contexto |",
+    "|---|---|---|---|---|---|",
   ];
   for (const s of v.skills) {
-    const marca = s.nivel === "fuera" ? "✗ fuera" : s.nivel === "aviso" ? "⚠ aviso" : "✓ ok";
+    const marca =
+      s.nivel === "fuera" ? "✗ fuera" : s.nivel === "aviso" ? "⚠ aviso" : "✓ ok";
+    const contexto =
+      s.medidas.tokens === null
+        ? "sin medir"
+        : `~${s.medidas.tokens.toLocaleString("es-ES")} tokens`;
     lineas.push(
-      `| ${s.id} | ${marca} | ${s.causa} | ${s.medidas.licencia} | ${kb(s.medidas.bytes)} |`
+      `| ${s.id} | ${marca} | ${s.causa} | ${s.medidas.licencia} | ${kb(s.medidas.bytes)} | ${medido ? contexto : "—"} |`
     );
   }
   return lineas.join("\n") + "\n";

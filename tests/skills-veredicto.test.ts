@@ -75,6 +75,30 @@ describe("el juez de las skills", () => {
     expect(r.veredictos[1].causa).toContain("repetido");
   });
 
+  it("con el fichero medido: una skill que no se lee no entra", () => {
+    const r = juzgaCatalogo([skill()], new Map([["anthropics/frontend-design", {
+      sha256: "a".repeat(64), bytes: 10, tokens: 3,
+      lectura: { ok: false, error: "falta el campo obligatorio «name»" },
+    }]]));
+    expect(r.veredictos[0].entra).toBe(false);
+    expect(r.veredictos[0].causa).toContain("SKILL.md");
+  });
+
+  it("con el fichero medido: los tokens que ocupa van en el veredicto", () => {
+    const r = juzgaCatalogo([skill()], new Map([["anthropics/frontend-design", {
+      sha256: "a".repeat(64), bytes: 10, tokens: 13_000,
+      lectura: { ok: true, skill: { name: "frontend-design", description: "x", soloManual: false, cuerpo: "c" }, avisos: [] },
+    }]]));
+    expect(r.veredictos[0].medidas.tokens).toBe(13_000);
+    expect(r.veredictos[0].nivel).toBe("aviso");
+    expect(r.veredictos[0].causa).toContain("tokens");
+  });
+
+  it("sin medir, los tokens son null (no se inventan)", () => {
+    const r = juzgaCatalogo([skill()]);
+    expect(r.veredictos[0].medidas.tokens).toBeNull();
+  });
+
   it("el veredicto viene ordenado por id (los bytes firmados son estables)", () => {
     const r = juzgaCatalogo([skill({ id: "z/uno" }), skill({ id: "a/dos" })]);
     expect(r.veredictos.map((v) => v.id)).toEqual(["a/dos", "z/uno"]);

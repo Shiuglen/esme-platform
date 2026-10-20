@@ -9,6 +9,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { claveDeFirma } from "../tienda/claves.ts";
+import { medirSkill, type MedidaSkill } from "../tienda/medir.ts";
 import {
   catalogoSha256,
   firmaVeredictos,
@@ -53,7 +54,20 @@ if (!rutaCatalogo) {
 
 // ——— juzgar y firmar ———
 const catalogo = JSON.parse(readFileSync(rutaCatalogo, "utf8")) as unknown;
-const { veredictos, dentro, avisos, fuera } = juzgaCatalogo(catalogo);
+const mediciones = new Map<string, MedidaSkill>();
+if (tiene("--medir")) {
+  const lista = Array.isArray(catalogo) ? catalogo : [];
+  for (const crudo of lista) {
+    const c = (crudo ?? {}) as Record<string, string>;
+    if (!c.id) continue;
+    try {
+      mediciones.set(c.id, await medirSkill({ repo: c.repo, ruta: c.ruta, commit: c.commit }, { carpeta: c.nombre }));
+    } catch (e) {
+      console.error(`  ${c.id}: no se pudo medir (${e instanceof Error ? e.message : String(e)})`);
+    }
+  }
+}
+const { veredictos, dentro, avisos, fuera } = juzgaCatalogo(catalogo, mediciones);
 if (!veredictos.length) {
   console.error(`el catálogo ${rutaCatalogo} no trae skills`);
   process.exit(1);

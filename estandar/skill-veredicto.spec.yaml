@@ -29,13 +29,15 @@ cuerpo_firmado:
       nivel: <ok | aviso | fuera>
       causa: "<por qué, en una frase>"
       medidas:
-        orden: [arbolSha256, licencia, commit, ficheros, bytes, ejecutables]
+        orden: [arbolSha256, licencia, commit, ficheros, bytes, ejecutables, tokens, skillMdSha256]
         arbolSha256: <64 hex>
         licencia: "<SPDX>"
         commit: <40 hex>
         ficheros: <n>
         bytes: <n>
         ejecutables: <boolean>
+        tokens: <n | null>       # los tokens que ocupa su SKILL.md (null = sin medir)
+        skillMdSha256: <64 hex>  # el SKILL.md que se leyó ('' si no se leyó)
 
 firma:
   algorithm: "ed25519-sha512"
@@ -50,12 +52,25 @@ reglas_del_juez:
     - "no hay commit fijado (40 hex): no se puede probar qué es"
     - "no hay huella del árbol (64 hex): no se puede probar qué se descarga"
     - "licencia fuera de la lista permitida: sin permiso claro para redistribuir"
+    - "su SKILL.md no se puede leer (no existe, o le falta «name» o «description»)"
   aviso:
     - "trae scripts ejecutables: hay que pedirlos"
     - "el árbol pesa más de 1 MiB"
     - "trae más de 40 ficheros"
+    - "ocupa más de 12.000 tokens de contexto en cada carga"
+    - "su nombre no coincide con su carpeta, o su cuerpo está vacío"
   lista_licencias_permitidas:
     [MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, Unlicense]
+
+medir:
+  # Con --medir el juez baja el SKILL.md de cada skill del commit fijado y mide
+  # el fichero de verdad: si se lee, cuánto ocupa y si dice lo que dice.
+  fichero: "https://raw.githubusercontent.com/<repo>/<commit>/<ruta>/SKILL.md"
+  tokens: "caracteres / 4 (la misma cuenta que hace la app en la vista previa)"
+  por_que: >-
+    El catálogo es lo que alguien escribió; la medida es del fichero que el
+    usuario va a leer. Y como la medida va dentro del veredicto firmado, la app
+    puede enseñar el coste real de una skill ANTES de descargarla.
 
 verificar:
   pasos:

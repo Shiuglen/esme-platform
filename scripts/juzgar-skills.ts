@@ -12,6 +12,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { claveDeFirma } from "../tienda/claves.ts";
+import { medirSkill, type MedidaSkill } from "../tienda/medir.ts";
 import {
   catalogoSha256,
   firmaVeredictos,
@@ -52,7 +53,30 @@ const panel = arg("--panel") ?? join(raiz, "skills", "panel.md");
 
 // ——— juzgar ———
 const catalogo = JSON.parse(readFileSync(rutaCatalogo, "utf8")) as unknown;
-const { veredictos, dentro, avisos, fuera } = juzgaCatalogo(catalogo);
+
+// con --medir se baja el SKILL.md de cada skill del commit fijado y se mide de
+// verdad: si se lee, cuánto ocupa y si dice lo que dice. Sin red, sin medir.
+const medir = process.argv.includes("--medir");
+const mediciones = new Map<string, MedidaSkill>();
+if (medir) {
+  const lista = Array.isArray(catalogo) ? catalogo : [];
+  for (const crudo of lista) {
+    const c = (crudo ?? {}) as Record<string, string>;
+    if (!c.id) continue;
+    try {
+      const m = await medirSkill(
+        { repo: c.repo, ruta: c.ruta, commit: c.commit },
+        { carpeta: c.nombre }
+      );
+      mediciones.set(c.id, m);
+    } catch (e) {
+      console.error(`  ${c.id}: no se pudo medir (${e instanceof Error ? e.message : String(e)})`);
+    }
+  }
+  console.log(`medidas   : ${mediciones.size} ficheros leídos`);
+}
+
+const { veredictos, dentro, avisos, fuera } = juzgaCatalogo(catalogo, mediciones);
 if (!veredictos.length) {
   console.error(`el catálogo ${rutaCatalogo} no trae skills`);
   process.exit(1);

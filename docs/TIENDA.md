@@ -60,8 +60,15 @@ y dicta, skill por skill, si entra, con qué riesgo y por qué:
 | nivel | cuándo |
 |---|---|
 | `ok` | commit fijado, huella del árbol y licencia que deja redistribuir |
-| `aviso` | entra, pero trae scripts, pesa más de 1 MiB o trae más de 40 ficheros |
-| `fuera` | id inválido, sin commit, sin huella o licencia que no deja redistribuir |
+| `aviso` | entra, pero trae scripts, pesa más de 1 MiB, trae más de 40 ficheros o ocupa mucho contexto |
+| `fuera` | id inválido, sin commit, sin huella, licencia que no deja redistribuir o un `SKILL.md` que no se puede leer |
+
+Con `--medir` el juez baja el `SKILL.md` de cada skill del commit fijado y
+mide el fichero de verdad: si se lee, cuánto ocupa (tokens, la misma cuenta que
+la vista previa de la app) y si dice lo que dice. El catálogo es lo que alguien
+escribió; la medida es del fichero que el usuario va a leer. Como la medida va
+dentro del veredicto firmado, la app puede enseñar el coste real de una skill
+**antes** de descargarla.
 
 Lo que el juez **no** hace: estimar el ahorro de contexto. Eso lo mide la app
 en la vista previa, con el `SKILL.md` delante. Inventar un número aquí sería
