@@ -18,10 +18,11 @@ descripcion: >-
 cuerpo_firmado:
   # JSON con las claves en ESTE orden fijo (no se ordenan: el orden es la spec).
   # skills[] viene ordenado por id (comparación de bytes, no de idioma).
-  orden: [version, emitido, firmante, skills]
+  orden: [version, emitido, firmante, catalogoSha256, skills]
   version: 1
   emitido: <ms desde la época>
   firmante: <huella de la clave: 16 hex del sha256 del PEM público>
+  catalogoSha256: <64 hex>   # el catálogo EXACTO que se juzgó
   skills:
     - id: "<repo>/<nombre>"
       entra: <boolean>
@@ -58,16 +59,26 @@ reglas_del_juez:
 
 verificar:
   pasos:
-    - "el JSON se lee y tiene la forma (version, emitido, firmante, skills, firma)"
+    - "el JSON se lee y tiene la forma (version, emitido, firmante, catalogoSha256, skills, firma)"
     - "los bytes del cuerpo se rehacen con el orden de claves de esta spec"
     - "sha256(cuerpo) base64 == firma.hash  (el cuerpo no cambió)"
     - "Ed25519(cuerpo, firma.firma) con la clave fijada de confianza"
     - "firma.signed_by == firmante (la firma es de quien dice firmar)"
   si_falla: "el veredicto NO se aplica: la skill queda 'sin medir'"
 
+catalogo_sha256:
+  # QUÉ catálogo se juzgó: sha256 del catálogo en forma canónica (claves
+  # ordenadas recursivamente, sin espacios). El formato del fichero no altera
+  # la huella: el kit lo calcula del JSON, la app del mismo JSON en memoria.
+  regla: >-
+    La app solo aplica el veredicto si su catálogo tiene esa huella. Si el
+    catálogo cambió (app actualizada, tienda con otro catálogo), el veredicto
+    no aplica: las skills quedan 'sin medir' y se instala como antes. El juez
+    pone el listón, nunca lo quita.
+
 garantías:
   - "NUNCA se estima el ahorro de contexto: eso lo mide la app en la vista
     previa, con el SKILL.md delante. El juez solo mide hechos del catálogo."
   - "Un id repetido en el catálogo no juzga dos veces: la segunda queda fuera."
-  - "Sin veredicto firmado, la app NO bloquea nada: sigue como antes, pero
-    lo dice ('sin medir'). El juez pone el listón, no lo quita."
+  - "Sin veredicto firmado (o de otro catálogo), la app NO bloquea nada: sigue
+    como antes, pero lo dice ('sin medir')."

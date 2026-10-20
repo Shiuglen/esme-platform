@@ -17,7 +17,7 @@
  * con el SKILL.md delante.
  */
 import { createHash, createPublicKey, verify } from "node:crypto";
-import { firmarBytes, type FirmaBytes } from "./firma.ts";
+import { canonical, firmarBytes, type FirmaBytes } from "./firma.ts";
 
 /** La versión del veredicto. Cambia si cambia el formato firmado. */
 export const VEREDICTO_VERSION = 1;
@@ -66,6 +66,7 @@ export interface VeredictosSkills {
   version: number;
   emitido: number;
   firmante: string; // la huella de la clave (16 hex)
+  catalogoSha256: string; // el catálogo EXACTO que se juzgó (64 hex)
   skills: VeredictoSkill[];
 }
 
@@ -191,6 +192,15 @@ export function juzgaCatalogo(catalogo: unknown): {
 }
 
 /**
+ * La huella del catálogo: qué catálogo exacto se juzgó. El canónico (claves
+ * ordenadas) para que el formato del fichero no altere la huella — la app
+ * calcula la misma con el mismo catálogo en memoria.
+ */
+export function catalogoSha256(catalogo: unknown): string {
+  return createHash("sha256").update(canonical(catalogo)).digest("hex");
+}
+
+/**
  * El cuerpo firmado: JSON con las claves en un orden FIJO. No se ordena nada
  * (el orden de las claves es parte de la spec): el que verifica tiene que
  * sacar los mismos bytes que el que firmó.
@@ -201,6 +211,7 @@ export function cuerpoVeredictos(v: VeredictosSkills): string {
     version: v.version,
     emitido: v.emitido,
     firmante: v.firmante,
+    catalogoSha256: v.catalogoSha256,
     skills: v.skills.map((s) => ({
       id: s.id,
       entra: s.entra,
@@ -269,6 +280,8 @@ export function verificaVeredictos(
     return { ok: false, motivo: "el veredicto no tiene la forma esperada" };
   if (doc.version !== VEREDICTO_VERSION)
     return { ok: false, motivo: `versión de veredicto desconocida (${String(doc.version)})` };
+  if (!HEX64.test(typeof doc.catalogoSha256 === "string" ? doc.catalogoSha256 : ""))
+    return { ok: false, motivo: "el veredicto no dice qué catálogo juzgó" };
   if (!doc.skills.every(esVeredicto))
     return { ok: false, motivo: "el veredicto trae skills sin la forma esperada" };
 
@@ -276,6 +289,8 @@ export function verificaVeredictos(
     version: doc.version,
     emitido: cuenta(doc.emitido),
     firmante: typeof doc.firmante === "string" ? doc.firmante : "",
+    catalogoSha256:
+      typeof doc.catalogoSha256 === "string" ? doc.catalogoSha256 : "",
     skills: doc.skills,
   };
   const bytes = Buffer.from(cuerpoVeredictos(cuerpo), "utf8");

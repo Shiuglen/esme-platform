@@ -13,6 +13,7 @@ import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { claveDeFirma } from "../tienda/claves.ts";
 import {
+  catalogoSha256,
   firmaVeredictos,
   juzgaCatalogo,
   renderPanelSkills,
@@ -64,6 +65,7 @@ const documento = firmaVeredictos(
     version: VEREDICTO_VERSION,
     emitido: Date.now(),
     firmante: clave.huella,
+    catalogoSha256: catalogoSha256(catalogo),
     skills: veredictos,
   },
   clave.priv
@@ -76,6 +78,7 @@ writeFileSync(panel, renderPanelSkills(documento));
 
 console.log(`catálogo  : ${rutaCatalogo}`);
 console.log(`skills    : ${veredictos.length} juzgadas · ${dentro} entran · ${avisos} con aviso · ${fuera} fuera`);
+console.log(`catálogo  : sha256 ${documento.catalogoSha256.slice(0, 16)}… (el veredicto queda atado a este catálogo)`);
 console.log(`firmante  : ${clave.huella}`);
 console.log(`veredicto : ${salida}`);
 console.log(`panel     : ${panel}`);

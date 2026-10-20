@@ -70,7 +70,10 @@ justo el tipo de promesa que la tienda no vende.
 **El veredicto va firmado.** La firma cubre la huella del árbol que se juzgó,
 así que la app puede negarse a instalar un árbol que no sea exactamente el que
 el juez miró (hasta ahora se comparaba contra el catálogo, que puede cambiar
-de mano entre la revisión y la descarga).
+de mano entre la revisión y la descarga). Y además el veredicto declara **qué
+catálogo juzgó** (`catalogoSha256`): si el catálogo de la app cambia, el
+veredicto deja de aplicar y las skills vuelven a «sin medir». El juez pone el
+listón, nunca lo quita.
 
 ```bash
 npm run skills:juzgar -- --catalogo /ruta/catalogo.json

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { generarPar } from "../tienda/firma.ts";
 import {
+  catalogoSha256,
   cuerpoVeredictos,
   firmaVeredictos,
   juzgaCatalogo,
@@ -88,6 +89,7 @@ describe("el veredicto firmado", () => {
         version: 1,
         emitido: 1_700_000_000_000,
         firmante: par.huella,
+        catalogoSha256: catalogoSha256([skill()]),
         skills: juzgaCatalogo([skill()]).veredictos,
       },
       par.priv
@@ -128,9 +130,24 @@ describe("el veredicto firmado", () => {
       version: 1,
       emitido: 1,
       firmante: "abc",
+      catalogoSha256: "f".repeat(64),
       skills: juzgaCatalogo([skill()]).veredictos,
     });
-    expect(cuerpo.startsWith('{"version":1,"emitido":1,"firmante":"abc","skills":[')).toBe(true);
+    expect(cuerpo.startsWith('{"version":1,"emitido":1,"firmante":"abc","catalogoSha256":"')).toBe(true);
+  });
+
+  it("el veredicto dice qué catálogo juzgó (y solo ese vale)", () => {
+    const doc = documento();
+    expect(doc.catalogoSha256).toBe(catalogoSha256([skill()]));
+    const otro = { ...doc, catalogoSha256: "a".repeat(64) };
+    expect(verificaVeredictos(JSON.stringify(otro), par.pub).ok).toBe(false);
+  });
+
+  it("la huella del catálogo no depende del formato del fichero", () => {
+    const a = catalogoSha256([{ id: "x", b: 1, a: 2 }]);
+    const b = catalogoSha256([{ a: 2, b: 1, id: "x" }]);
+    expect(a).toBe(b);
+    expect(a).toMatch(/^[0-9a-f]{64}$/);
   });
 
   it("el veredicto de una skill concreta se encuentra por id", () => {
@@ -151,6 +168,7 @@ describe("el panel del veredicto", () => {
       version: 1,
       emitido: 1_700_000_000_000,
       firmante: "abc",
+      catalogoSha256: "f".repeat(64),
       skills: veredictos,
     });
     expect(panel).toContain("3 skills juzgadas · 2 entran · 1 con aviso · 1 fuera");
