@@ -11,6 +11,7 @@ import { createHash, createPublicKey } from "node:crypto";
 import { verificarIndex, verificarBytes, type FirmaBytes } from "../tienda/firma.ts";
 import { estaRevocada } from "../tienda/revocacion.ts";
 import { confiaIndexChain } from "../tienda/rotacion.ts";
+import { leeRaiz } from "../tienda/raiz.ts";
 
 const raiz = resolve(import.meta.dirname, "..");
 const indice = JSON.parse(
@@ -23,9 +24,11 @@ const indice = JSON.parse(
   }>;
 };
 
-// la clave pública: env, o la de desarrollo del repo (lo asumible en local)
+// la clave pública: env, o la raíz CONGELADA que viaja en el repo, o la de
+// desarrollo (solo si el repo la tiene: una clave de desarrollo no viaja)
 const pubKey =
   process.env.ESME_PUB_KEY ??
+  leeRaiz(raiz) ??
   (() => {
     try {
       return createPublicKey(

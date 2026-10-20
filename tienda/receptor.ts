@@ -11,6 +11,7 @@ import yaml from "js-yaml";
 import { verificarBytes } from "./firma.ts";
 import { estaRevocada, rutaRevocaciones } from "./revocacion.ts";
 import { confiaIndexChain, huellaDePub } from "./rotacion.ts";
+import { leeRaiz } from "./raiz.ts";
 
 export interface Instalacion {
   id: string;
@@ -142,9 +143,11 @@ export function instalar(
   return { id: manifiesto.id, version: manifiesto.version, dir, entrada: manifiesto.entry };
 }
 
-/** Clave pública: env o la de desarrollo del repo. */
+/** Clave pública del ancla: env → la raíz congelada del repo → la de desarrollo. */
 export function clavePub(raiz: string): string {
   if (process.env.ESME_PUB_KEY) return process.env.ESME_PUB_KEY;
+  const congelada = leeRaiz(raiz);
+  if (congelada) return congelada;
   return createPublicKey(readFileSync(join(raiz, ".keys", "index-dev.pem"), "utf8"))
     .export({ type: "spki", format: "pem" })
     .toString();

@@ -2,18 +2,16 @@ import { describe, expect, it, afterAll } from "vitest";
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { createPublicKey } from "node:crypto";
 import { crearServidor } from "../tienda/servidor.ts";
 import { instalarRemoto } from "../tienda/cliente.ts";
 import { abreHost } from "../core/extension-host/host.ts";
 import { firmarIndex, generarPar } from "../tienda/firma.ts";
+import { leeRaiz } from "../tienda/raiz.ts";
 
 const raiz = resolve(import.meta.dirname, "..");
-// la raíz que un forastero fija: su única lectura de confianza
-const pubRaiz = () =>
-  createPublicKey(
-    readFileSync(join(raiz, ".keys", "index-dev.pem"), "utf8")
-  ).export({ type: "spki", format: "pem" }).toString();
+// la raíz que un forastero fija: la CONGELADA que viaja en el repo (su única
+// lectura de confianza). No la clave de desarrollo: esa es de quien publica.
+const pubRaiz = () => leeRaiz(raiz) as string;
 
 const servidor = crearServidor(raiz);
 await servidor.listo();
@@ -30,7 +28,10 @@ describe("el consumidor remoto: HTTP + confianza en su raíz", () => {
       destino
     );
     expect(inst.id).toBe("esme.nucleo.troceo-pro");
-    expect(inst.via).toBe("directa");
+    // la raíz congelada es la antepasada: la tienda llega por la CADENA de
+    // rotaciones, no directa. Directa sería igual de válida, pero aquí la
+    // prueba es justamente que la estirpe avala al firmante vivo.
+    expect(inst.via).toBe("cadena");
     // el módulo instalado corre en SU host
     const host = abreHost(join(inst.dir, inst.entrada));
     const filas = (await host.call(

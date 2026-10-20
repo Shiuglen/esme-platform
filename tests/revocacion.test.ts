@@ -20,7 +20,7 @@ describe("el libro de las claves caídas", () => {
     anotarRevocacion(
       "cafebabe0000abcd",
       "prueba de revocación",
-      readFileSync(`${raiz}/.keys/index-dev.pem`, "utf8"),
+      generarPar().priv,
       ruta
     );
     const libro = leerRevocaciones(ruta);
