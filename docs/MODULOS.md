@@ -123,6 +123,12 @@ El juez no concede permisos: concede veredictos. Y **nunca estima**: si el
 módulo no se puede abrir y ejercitar, el veredicto es «sin medida», no un
 número inventado.
 
+Y el veredicto **se firma**: el documento entero (el catálogo juzgado, la
+huella del árbol que se miró y el dictamen) va firmado con la clave de la
+Tienda, para que la app pueda comprobarlo sin guardar ninguna clave privada y
+negarse a activar un árbol que no sea exactamente el que el juez miró.
+`npm run modulos:juzgar` → `modulos/veredictos.json`.
+
 ### Cómo se mide de verdad
 
 `core/bench/modulos.ts` abre el módulo en su worker, con la puerta real, y
@@ -238,11 +244,23 @@ persona dice que sí o que no: sin ese momento, la puerta no tiene dueño.
 todavía. Publicarlo es un paso de una persona (la cuenta de npm), no un
 problema de código. Mientras tanto, el pegamento puede ir con `file:`.
 
-### 6.3 El veredicto no está firmado todavía
+### 6.3 El veredicto ya está firmado
 
-El juez produce el dictamen; la firma del veredicto (como la de las skills) es
-el siguiente escalón: sin firma, el dictamen vale para quien lo pide, no para
-la Tienda.
+El juez produce el dictamen **y lo firma** (`npm run modulos:juzgar`). El
+documento firmado (`modulos/veredictos.json`) ata tres cosas:
+
+- **el catálogo**: la proyección estable de lo publicado (id, versión y el
+  sha256 del tarball). Los números del bench no entran en la huella: se
+  vuelven a medir cada día y el veredicto no puede caducar por eso. Lo que sí
+  lo caduca es que cambie el artefacto.
+- **el árbol**: la huella de los bytes que el juez miró. Si el módulo cambia
+  después del juicio, el veredicto deja de aplicar y la app lo vuelve a poner
+  en «sin medir».
+- **el dictamen**: lo que el juez vio, con sus números, firmado con la clave
+  de la Tienda. La app verifica con su clave pública (la misma que ya usaba
+  para el veredicto de las skills) y **no necesita ninguna clave privada**.
+
+La spec es abierta y pública: `estandar/module-veredicto.spec.yaml`.
 
 ### 6.4 Lo que NO falta
 

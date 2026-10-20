@@ -17,6 +17,11 @@ import {
   MIN_CASOS_CICLO,
   MAX_TOKENS_CICLO,
 } from "../core/modulos/veredicto.ts";
+import {
+  cuerpoVeredictosModulos,
+  medidasVacias,
+  VEREDICTO_MODULOS_VERSION,
+} from "../tienda/veredictos-modulos.ts";
 
 const raiz = resolve(import.meta.dirname, "..");
 const dirSpecs = resolve(raiz, "estandar");
@@ -158,5 +163,46 @@ describe("la spec del veredicto de los módulos y el juez dicen lo mismo", () =>
     expect(reglas).toContain("no carga");
     expect(reglas).toContain("no declaró");
     expect(reglas).toContain("informe de examen");
+  });
+
+  it("el orden de cada módulo es el que dice la spec (los bytes son el contrato)", () => {
+    const spec = yaml.load(textoVeredicto()) as {
+      cuerpo_firmado: { orden: string[]; orden_modulo: string[] };
+    };
+    const cuerpo = JSON.parse(
+      cuerpoVeredictosModulos({
+        version: VEREDICTO_MODULOS_VERSION,
+        emitido: 0,
+        firmante: "x",
+        catalogoSha256: "a".repeat(64),
+        modulos: [
+          {
+            id: "esme.prueba.módulo",
+            version: "0.1.0",
+            arbolSha256: "b".repeat(64),
+            entra: true,
+            nivel: "ok",
+            causa: "",
+            medidas: medidasVacias(),
+          },
+        ],
+      })
+    ) as Record<string, unknown>;
+    expect(Object.keys(cuerpo)).toEqual(spec.cuerpo_firmado.orden);
+    expect(Object.keys((cuerpo.modulos as Record<string, unknown>[])[0])).toEqual(
+      spec.cuerpo_firmado.orden_modulo
+    );
+  });
+
+  it("la spec del veredicto firmado dice cómo se verifica", () => {
+    const spec = yaml.load(textoVeredicto()) as {
+      firma: { algorithm: string };
+      verificar: { pasos: string[] };
+    };
+    expect(spec.firma.algorithm).toBe("ed25519-sha512");
+    const pasos = spec.verificar.pasos.join(" ");
+    expect(pasos).toContain("sha256(cuerpo)");
+    expect(pasos).toContain("Ed25519");
+    expect(pasos).toContain("signed_by");
   });
 });

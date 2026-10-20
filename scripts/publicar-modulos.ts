@@ -49,6 +49,11 @@ if (existsSync(join(raiz, "tienda", "rotaciones.json")))
   copiar(join(raiz, "tienda", "rotaciones.json"), "rotaciones.json");
 if (existsSync(join(raiz, "tienda", "revocaciones.json")))
   copiar(join(raiz, "tienda", "revocaciones.json"), "revocaciones.json");
+// el veredicto del juez (firmado): lo que la app verifica antes de activar
+if (existsSync(join(raiz, "modulos", "veredictos.json")))
+  copiar(join(raiz, "modulos", "veredictos.json"), "veredictos-modulos.json");
+if (existsSync(join(raiz, "modulos", "panel-modulos.md")))
+  copiar(join(raiz, "modulos", "panel-modulos.md"), "panel-modulos.md");
 
 let publicados = 0;
 for (const m of indice.modulos) {

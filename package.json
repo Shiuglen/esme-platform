@@ -45,6 +45,7 @@
     "instalar": "tsx scripts/instalar.ts",
     "instalar:remoto": "tsx scripts/instalar-remoto.ts",
     "modulos": "tsx scripts/modulos.ts",
+    "modulos:juzgar": "tsx scripts/juzgar-modulos.ts",
     "revocar": "tsx scripts/revocar.ts",
     "rotar": "tsx scripts/rotar.ts",
     "incidente": "tsx scripts/incidente.ts",

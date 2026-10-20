@@ -21,12 +21,16 @@ cuerpo_firmado:
   # JSON con las claves en ESTE orden fijo (no se ordenan: el orden es la spec).
   # modulos[] viene ordenado por id (comparación de bytes, no de idioma).
   orden: [version, emitido, firmante, catalogoSha256, modulos]
+  # Cada módulo, con SUS claves en ESTE orden (también es parte del contrato):
+  orden_modulo: [id, version, arbolSha256, entra, nivel, causa, medidas]
   version: 1
   emitido: "<ms desde la época>"
   firmante: "<huella de la clave: 16 hex del sha256 del PEM público>"
   catalogoSha256: "<64 hex>"   # el catálogo EXACTO que se juzgó
   modulos:
     - id: "esme.<autor>.<slug>"
+      version: "<x.y.z>"
+      arbolSha256: "<64 hex>"    # el árbol EXACTO que se miró (ver `arbol`)
       entra: "<boolean>"
       nivel: "<ok | aviso | fuera>"
       causa: "<por qué, en una frase>"
@@ -46,6 +50,32 @@ cuerpo_firmado:
         declaradas: ["<capacidad>"] # lo que el manifiesto declara
         usadas: ["<capacidad>"]      # lo que la medición le vio usar
         casos: "<n>"
+
+firma:
+  algorithm: "ed25519-sha512"
+  firma: "<base64>"        # Ed25519 sobre los bytes UTF-8 del cuerpo_firmado
+  signed_at: "<ISO 8601>"
+  signed_by: "<la misma huella que `firmante`>"
+  hash: "<base64>"         # sha256 de los MISMOS bytes firmados
+
+arbol:
+  # La huella del árbol que el juez MIRÓ: el módulo desempaquetado, con sus
+  # ficheros y sus bytes. Mismo árbol → misma huella; un byte de diferencia →
+  # otra huella. Es lo que ata el veredicto al artefacto exacto: si el
+  # módulo cambia después del juicio, el veredicto deja de aplicar y la app
+  # lo vuelve a poner en «sin medir».
+  forma: "sha256 sobre (ruta relativa \\0 sha256 del contenido \\n), en orden de ruta"
+  donde: "el directorio del módulo instalado (el que se desempaqueta del tarball firmado)"
+
+verificar:
+  pasos:
+    - "el JSON se lee y tiene la forma (version, emitido, firmante, catalogoSha256, modulos, firma)"
+    - "los bytes del cuerpo se rehacen con el orden de claves de esta spec"
+    - "sha256(cuerpo) base64 == firma.hash  (el cuerpo no cambió)"
+    - "Ed25519(cuerpo, firma.firma) con la clave fijada de confianza"
+    - "firma.signed_by == firmante (la firma es de quien dice firmar)"
+    - "cada módulo trae la forma de esta spec (incluida su arbolSha256 de 64 hex)"
+  si_falla: "el veredicto NO se aplica: el módulo queda 'sin medir'"
 
 veredicto:
   # Las reglas del juez. No se negocian: son el contenido de la spec.
@@ -84,7 +114,16 @@ medicion:
 
 catalogo_sha256:
   # QUÉ catálogo se juzgó: sha256 del catálogo en forma canónica (claves
-  # ordenadas recursivamente, sin espacios).
+  # ordenadas recursivamente, sin espacios). El formato del fichero no altera
+  # la huella: el kit lo calcula del JSON, la app del mismo JSON en memoria.
+  #
+  # El catálogo de módulos NO es el índice entero: es su PROYECCIÓN ESTABLE,
+  # la identidad de lo que se publica y nada más:
+  #   [{ id, version, artefacto: <sha256 del tarball firmado> }]  (ordenado por id)
+  # Los números del bench (recall, tokens, la fecha del examen) NO entran: se
+  # vuelven a medir cada vez, y si la huella dependiera de ellos el veredicto
+  # caducaría cada día sin que nadie hubiera tocado un módulo. Lo que sí
+  # cambia el veredicto es que cambie el ARTEFACTO: otros bytes, otro módulo.
   regla: >-
     La app solo aplica el veredicto si su catálogo tiene esa huella. Si el
     catálogo cambió (app actualizada, tienda con otro catálogo), el veredicto
