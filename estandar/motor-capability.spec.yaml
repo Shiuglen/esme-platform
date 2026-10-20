@@ -1,0 +1,42 @@
+> **Spec abierta v1 — capacidad de motor.** Cada proveedor declara sus capacidades
+> y el core/módulos consultan esto en vez de adivinar. Referencia: ARQUITECTURA §8.
+
+# Proveedor: claude-code
+id: "claude-code"
+version: "1.0"
+capabilities:
+  streaming: true
+  tools: true
+  max_context: 200000
+  local_only: false
+  pricing: "api"             # api | local | gratuito
+  cancel_support: true
+dialecto_deteccion_herramientas: "locales castellano con su fichero u orden"
+adapter: "motores/acp-motores.ts"   # cuando usa el bucle por ACP
+health_endpoint: null
+
+# Proveedor: opencode (por defecto al instalar)
+id: "opencode"
+version: "1.0"
+capabilities:
+  streaming: true
+  tools: true
+  max_context: 262000
+  local_only: false
+  pricing: "gratuito"
+  cancel_support: true
+adapter: "motores/acp-motores.ts"
+health_endpoint: null
+
+# Proveedor: local (llamacpp / ONNX dentro del cerebro)
+id: "local"
+version: "1.0"
+capabilities:
+  streaming: true
+  tools: false
+  max_context: 32768
+  local_only: true
+  pricing: "local"
+  cancel_support: true
+adapter: "core/talamus/laya-adapter.ts"
+health_endpoint: null

@@ -1,0 +1,48 @@
+> **Spec abierta v1 — manifiesto de módulo.** Referencia: `docs/ARQUITECTURA.md` §3.
+> CI `spec-lint` valida cada `module.yaml` contra este fichero.
+>
+> **Cambios:** para cambiar esta spec abre un PR a `estandar/`; el lint de specs
+> puede fallar y eso depende del contenido. El merge requiere 1 maintainer: el
+> creador (RACI lite, ver ARQUITECTURA §8).
+>
+> Vamos a permitir: (1) `category` enum cerrado; (2) `permissions` declarativa y
+> consentimiento interactivo del usuario la primera vez; (3) firma aplicada a manifiesto
+> + artifact; (4) pruebe la Prueba 0 obligatorio para publicar en el índice.
+>
+
+schema_version: 1
+id: "esme.<autor>.<slug>"           # único, minúsculas, sin espacios
+name: "Hola Mundo"
+version: "0.1.0"                    # semver estricto
+category: "tool"                    # tool | agent | theme | memory | integration | thinking
+description: "Saluda al usuario y demuestra recall/inject"
+author: "usuario@ejemplo.com"
+license: "MIT"                      # MIT | Apache-2.0 | ESME-CL (con permiso previo)
+entry: "dist/index.js"              # o "dist/index.wasm" para módulos wasm
+runtime: "nodejs"                   # nodejs | wasm | python
+
+# --- Permiso ---
+permissions: []                     # mind:read | mind:write | ipc:emit | fs:project | net:fetch | ui:render
+# Nota: pedir cualquier "net:*" sin "net:fetch" declarado ⇒ rechazo automático.
+
+# --- Decisión con Laya (opcional) ---
+decision_criteria:
+  - when: "user_greeting"           # etiqueta semántica, no código
+    weight: 0.9
+    tags: ["saludo", "onboarding"]
+
+# --- Información del sistema ---
+dependencies:
+  - "esme.core@^1.0"
+sideEffects: false                  # sideEffects true exige justificar en description
+
+# --- Prueba 0 (obligatorio para publicar) ---
+benchmarks:
+  recall_delta: 0.01                # mínimo +0,01 o -10% tokens en su categoría
+  report: "bench.json"              # generado por `pnpm prueba0 --delta`
+
+# --- Firma (relleno automático en publish) ---
+signatures:
+  minisign: "RWQ...base64..."
+  signed_by: "usuario@ejemplo.com"
+  signed_at: "2026-10-19T12:00:00Z"

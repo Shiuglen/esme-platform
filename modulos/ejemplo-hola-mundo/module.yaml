@@ -1,0 +1,27 @@
+schema_version: 1
+id: "esme.hola-mundo"
+name: "Hola Mundo"
+version: "0.1.0"
+category: "tool"
+description: "Saluda al usuario y demuestra el ciclo completo recall-inject de la mente."
+author: "esme@nucleo"
+license: "MIT"
+entry: "dist/index.js"
+runtime: "nodejs"
+permissions:
+  - mind:read
+  - mind:write
+  - ui:render
+decision_criteria:
+  - when: "user_greeting"
+    weight: 0.9
+    tags: ["saludo", "onboarding"]
+  - when: "test_recall"
+    weight: 0.6
+    tags: ["debug", "memoria"]
+dependencies:
+  - "esme.core@^1.0"
+sideEffects: false
+benchmarks:
+  recall_delta: 0.01
+  report: "bench.json"

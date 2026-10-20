@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "firmado": null,
+  "modulos": [
+    {
+      "id": "esme.hola-mundo",
+      "version": "0.1.0",
+      "hash": null,
+      "bench": null,
+      "pubkey": null,
+      "published_at": null
+    }
+  ]
+}
