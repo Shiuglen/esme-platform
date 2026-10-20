@@ -6,6 +6,7 @@
 // host le pasa, pública su propia boca (exports), y cada llamada es una
 // petición con nonce — nada cruza sin esta puerta.
 import { Worker } from "node:worker_threads";
+import { MindMethods, CAPACIDAD_POR_METODO, type MindMethod, type MenteViva } from "../ipc/mind-schema.ts";
 
 export interface Respuesta {
   nonce: string;
@@ -34,7 +35,13 @@ import(pathToFileURL(workerData.ruta).href).then((m) => {
 `;
 
 /** Abre el host con el módulo buildado. Un módulo = un mundo = un worker. */
-export function abreHost(rutaModulo: string): {
+export function abreHost(
+  rutaModulo: string,
+  opts: {
+    permisos?: string[]; // las capacidades DECLARADAS en module.yaml
+    mente?: MenteViva;   // el Tálamo real conectado (o stub en pruebas)
+  } = {}
+): {
   call: (fn: string, ...args: unknown[]) => Promise<unknown>;
   cerrar: () => Promise<void>;
 } {
@@ -61,6 +68,39 @@ export function abreHost(rutaModulo: string): {
 
   let n = 0;
   const call = async (fn: string, ...args: unknown[]): Promise<unknown> => {
+    // La puerta del host: los métodos mind.* NO llegan al worker. El host los
+    // intercepta, exige permiso declarado, verifica forma con el schema y
+    // ejecuta contra la mente en ESTE proceso (la mente nunca sale del core).
+    if (fn.startsWith("mind.")) {
+      const metodo = fn.slice(5) as MindMethod;
+      const schema = MindMethods[metodo];
+      if (!schema) throw new Error(`metodo de mente desconocido: ${fn}`);
+      const pide = CAPACIDAD_POR_METODO[metodo];
+      const declarados = opts.permisos ?? [];
+      if (!declarados.includes(pide))
+        throw new Error(
+          `permiso no concedido: '${fn}' exige '${pide}' y el módulo declaró [${declarados.join(", ") || "nada"}]`
+        );
+      const parsed = schema.safeParse(args[0] ?? {});
+      if (!parsed.success)
+        throw new Error(`forma ilegal en ${fn}: ${parsed.error.issues.map((i) => `${i.path.join(".")} ${i.message}`).join("; ")}`);
+      const mente = opts.mente;
+      if (!mente) throw new Error("no hay mente conectada a este host");
+      if (metodo === "recall") {
+        const d = parsed.data as { query: string; budget: number };
+        return mente.recall(d.query, d.budget);
+      }
+      if (metodo === "remember") {
+        if (!mente.remember) throw new Error("la mente no acepta remember");
+        const d = parsed.data as { text: string; kind: string };
+        return mente.remember(d.text, d.kind);
+      }
+      if (metodo === "intake") {
+        if (!mente.intake) throw new Error("la mente no acepta intake");
+        const d = parsed.data as { source: string; content: string; tags: string[] };
+        return mente.intake(d.source, d.content, d.tags);
+      }
+    }
     await listo;
     const nonce = String(++n);
     return new Promise<unknown>((res, rej) => {
