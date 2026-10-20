@@ -11,6 +11,9 @@ import {
   proyectoDeTranscripcion,
   respuestaDe,
   validaBanco,
+  casosDesdeSesion,
+  casosDesdeNotas,
+  preguntasConHoraDeTranscripcion,
   type BancoReal,
 } from "../core/bench/banco.ts";
 
@@ -153,5 +156,65 @@ describe("el banco medido", () => {
     expect(r.casos).toBe(1);
     // el módulo no puede empeorar el número
     expect(r.con.recall).toBeGreaterThanOrEqual(r.base.recall);
+  });
+});
+
+describe("el banco por la constitution", () => {
+  it("el oro sale de lo que pasó después en esa misma sesión", () => {
+    const casos = casosDesdeSesion(
+      [{ texto: "¿qué hace Sakoi?", ts: "2026-10-01T10:00:00.000Z", source: "s.jsonl" }],
+      [
+        { ts: "2026-10-01T09:59:00.000Z", kind: "ai_msg", source: "s.jsonl", texto: "otra cosa" },
+        {
+          ts: "2026-10-01T10:00:30.000Z",
+          kind: "ai_msg",
+          source: "s.jsonl",
+          texto: "Sakoi es un agente de IA de escritorio: Python, FastAPI y una UI en español.",
+        },
+      ]
+    );
+    expect(casos).toHaveLength(1);
+    expect(casos[0].oro).toContain("Sakoi es un agente");
+    expect(casos[0].validado).toBe(true);
+  });
+
+  it("sin respuesta después, no hay caso (nada se inventa)", () => {
+    expect(
+      casosDesdeSesion(
+        [{ texto: "¿qué hace Sakoi?", ts: "2026-10-01T10:00:00.000Z", source: "s.jsonl" }],
+        [{ ts: "2026-10-01T09:59:00.000Z", kind: "ai_msg", source: "s.jsonl", texto: "otra cosa" }]
+      )
+    ).toHaveLength(0);
+  });
+
+  it("la pregunta y su respuesta se unen por sesión y hora", () => {
+    const preguntas = preguntasConHoraDeTranscripcion(
+      JSON.stringify({
+        type: "user",
+        timestamp: "2026-10-01T10:00:00.000Z",
+        message: { role: "user", content: "¿qué hace Sakoi?" },
+      }),
+      "s.jsonl"
+    );
+    expect(preguntas[0]).toEqual({
+      texto: "¿qué hace Sakoi?",
+      ts: "2026-10-01T10:00:00.000Z",
+      source: "s.jsonl",
+    });
+  });
+
+  it("el saber propio: la pregunta escrita en su nota, con el trozo que va detrás", () => {
+    const casos = casosDesdeNotas([
+      {
+        source: "nota.md",
+        trozos: [
+          { id: "nota.md:0", texto: "¿Cómo se decide el precio? Es la pregunta que manda.", ancla: "precio" },
+          { id: "nota.md:1", texto: "El precio sale de la demanda real: lo que pagan y lo que no.", ancla: "precio" },
+        ],
+      },
+    ]);
+    expect(casos).toHaveLength(1);
+    expect(casos[0].pregunta).toContain("precio");
+    expect(casos[0].oro).toContain("demanda real");
   });
 });

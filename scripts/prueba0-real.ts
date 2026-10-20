@@ -22,81 +22,29 @@ import { copyFileSync, existsSync, mkdtempSync, readFileSync, rmSync } from "nod
 import { randomBytes } from "node:crypto";
 import { homedir, tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { oroEnContexto, validaBanco, type BancoReal } from "../core/bench/banco.ts";
+import { oroEnContexto, validaBanco, resumeReal, type BancoReal } from "../core/bench/banco.ts";
+import {
+  arrancaCerebro,
+  hogarDeLaMente,
+  preguntaAlCerebro,
+  pythonDelCerebro,
+} from "../core/bench/cerebro.ts";
 
 const arg = (flag: string): string | null => {
   const i = process.argv.indexOf(flag);
   return i >= 0 && process.argv[i + 1] ? process.argv[i + 1] : null;
 };
 
-/** El hogar de la mente: el mismo que usa la app (DAIMON_HOME o el de por defecto). */
-export function hogarDeLaMente(): string {
-  const env = process.env.DAIMON_HOME;
-  if (env) return resolve(env);
-  return join(homedir(), "Daimon", "data", "mente_v2");
-}
-
 /** Los ficheros que hacen falta para que la mente recuerde (sin el candado). */
 const FICHEROS = ["mem.db", "mem.vectors.npy", "config.json", "pesos.npz", "thalamus.npy"];
 
-export interface RecuerdoReal {
+interface RecuerdoReal {
   id: string;
   pregunta: string;
   oro: string;
   acierto: boolean;
   tokens: number;
   ms: number;
-}
-
-/** Arranca un cerebro sobre el hogar dado y devuelve su url y su token. */
-export async function arrancaCerebro(
-  home: string,
-  python: string
-): Promise<{ url: string; token: string; proceso: ChildProcess }> {
-  const token = randomBytes(32).toString("hex");
-  const proceso = spawn(python, ["-m", "daimon.cli", "serve", "--home", home, "--port", "0", "--token", token], {
-    cwd: resolve(homedir(), "Daimon"),
-    stdio: ["ignore", "pipe", "pipe"],
-  });
-  const anuncio = await new Promise<{ port: number; token: string }>((res, rej) => {
-    let buffer = "";
-    const t = setTimeout(() => rej(new Error("el cerebro no anunció nada en 120 s")), 120_000);
-    proceso.stdout?.on("data", (d: Buffer) => {
-      buffer += d.toString("utf8");
-      const m = /\{[^\n]*"port"[^\n]*\}/.exec(buffer);
-      if (m) {
-        clearTimeout(t);
-        try {
-          res(JSON.parse(m[0]) as { port: number; token: string });
-        } catch (e) {
-          rej(e);
-        }
-      }
-    });
-    proceso.on("exit", (code) => {
-      clearTimeout(t);
-      rej(new Error(`el cerebro murió al arrancar (código ${String(code)})`));
-    });
-  });
-  return { url: `http://127.0.0.1:${anuncio.port}`, token: anuncio.token ?? token, proceso };
-}
-
-/** Le pregunta a la mente y devuelve el contexto. */
-export async function preguntaAlCerebro(
-  url: string,
-  token: string,
-  query: string,
-  ms = 30_000
-): Promise<{ context: string; tokens: number }> {
-  const r = await fetch(`${url}/recall`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ query, budget: 0 }),
-    signal: AbortSignal.timeout(ms),
-  });
-  if (!r.ok) throw new Error(`la mente respondió ${r.status}`);
-  const j = (await r.json()) as { context?: string; tokens?: number };
-  return { context: j.context ?? "", tokens: j.tokens ?? 0 };
 }
 
 // ——— la carrera ———
@@ -125,7 +73,7 @@ if (!casos.length) {
 }
 
 const trabajo = mkdtempSync(join(tmpdir(), "prueba0-real-"));
-const python = process.env.DAIMON_PYTHON ?? join(homedir(), "Daimon", ".venv", "bin", "python");
+const python = pythonDelCerebro();
 let cerebro: { url: string; token: string; proceso: ChildProcess } | null = null;
 
 try {
@@ -164,8 +112,19 @@ try {
   const tokens = recuerdos.length ? recuerdos.reduce((a, r) => a + r.tokens, 0) / recuerdos.length : 0;
   const ms = recuerdos.length ? recuerdos.reduce((a, r) => a + r.ms, 0) / recuerdos.length : 0;
   console.log("");
+  const resumen = resumeReal(
+    banco,
+    new Map(recuerdos.map((r) => [r.id, { acierto: r.acierto, tokens: r.tokens }]))
+  );
   console.log(`casos     : ${recuerdos.length} preguntados a la mente de verdad`);
-  console.log(`recall    : ${aciertos} aciertos (${(aciertos / Math.max(1, recuerdos.length)).toFixed(3)})`);
+  const control = recuerdos.find((r) => r.id === "control");
+  console.log(
+    `saber     : ${resumen.saber.aciertos}/${resumen.saber.casos} — ¿la mente encuentra el conocimiento?` +
+      (control ? ` (control: ${control.acierto ? "✓ el aparato mide bien" : "✗ el aparato NO mide bien"})` : "")
+  );
+  console.log(
+    `sesión    : ${resumen.sesion.aciertos}/${resumen.sesion.casos} — ¿la mente recuerda dónde lo dejamos?`
+  );
   console.log(`contexto  : ${tokens.toFixed(0)} tokens de media · ${ms.toFixed(0)} ms de media`);
   if (aciertos < recuerdos.length) {
     console.log("");
