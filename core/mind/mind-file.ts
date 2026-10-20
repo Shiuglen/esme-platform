@@ -6,10 +6,11 @@
 //   3. cognition.sig: hash canónico del estado SEMÁNTICO (ids, textos
 //      redactados y vectores, ordenados por id). Otra cuantización del mismo
 //      estado cuenta como la misma cognición.
-import { mkdirSync, writeFileSync, readFileSync, rmSync } from "node:fs";
+import { mkdirSync, writeFileSync, readFileSync, rmSync, existsSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { redacta, excluido, EXCLUSION_MINIMA } from "./redaction.ts";
 import { validaMindDir } from "./portable-format.ts";
+import { normalizaRumbo, rumboAPng, redactaRumbo, type Rumbo } from "./rumbo.ts";
 import { canonical } from "../../tienda/firma.ts";
 import { createHash } from "node:crypto";
 
@@ -27,6 +28,12 @@ export interface MenteAExportar {
   recall: number;
   exclusionesExtra?: string[]; // se SUMAN a la mínima
   vault?: string;
+  /**
+   * El rumbo de la mente (para qué trabaja): OPCIONAL y de la mente, no de la
+   * app. Si está, viaja con ella. Se normaliza y se redacta como cualquier
+   * otro texto que sale del equipo.
+   */
+  rumbo?: unknown;
 }
 
 const sha256 = (s: string) => createHash("sha256").update(s).digest("base64");
@@ -89,6 +96,14 @@ export function escribeMind(
     join(dir, "exclusion-list.json"),
     JSON.stringify(exclusiones, null, 2)
   );
+
+  // El rumbo viaja con la mente: si la mente tiene un rumbo, el paquete lo
+  // lleva (redactado y normalizado, con los mismos bytes que Python).
+  if (mente.rumbo !== undefined && mente.rumbo !== null) {
+    const rumbo = redactaRumbo(mente.rumbo, (n) => { secretos += n; });
+    writeFileSync(join(dir, "rumbo.json"), rumboAPng(rumbo));
+  }
+
   writeFileSync(
     join(dir, "metadata.json"),
     JSON.stringify(
@@ -112,6 +127,8 @@ export function escribeMind(
 export function leeMind(rutaMind: string): {
   recuerdos: RecuerdoPortatil[];
   exclusions: string[];
+  /** El rumbo de la mente importada, o null si esta mente no lo tiene. */
+  rumbo: Rumbo | null;
 } {
   const dictamen = validaMindDir(rutaMind);
   if (!dictamen.ok) throw new Error(`.mind inválido: ${dictamen.errores.join("; ")}`);
@@ -128,5 +145,10 @@ export function leeMind(rutaMind: string): {
   const exclusions = JSON.parse(
     readFileSync(join(rutaMind, "exclusion-list.json"), "utf8")
   ) as string[];
-  return { recuerdos, exclusions };
+  // el rumbo es opcional, pero si está, vale (ya lo ha comprobado el dictamen)
+  const rutaRumbo = join(rutaMind, "rumbo.json");
+  const rumbo = existsSync(rutaRumbo)
+    ? normalizaRumbo(JSON.parse(readFileSync(rutaRumbo, "utf8")) as unknown)
+    : null;
+  return { recuerdos, exclusions, rumbo };
 }

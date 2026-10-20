@@ -24,13 +24,23 @@ rumbo.json:
   opcional: true
   forma: "{ version: 1, pilares: [{id, texto, creado}], objetivos: [{id, texto, estado, creado, cerrado, pilar}] }"
   estados: [activo, hecho, pausado]
+  topes: { pilares: 7, objetivos: 60, texto: 200 }
   nota: >-
     El rumbo es de la mente, no de la app: viaja con ella. Si un .mind no lo
     tiene, sigue siendo una mente válida (solo pierde el para qué).
+  espejo_python: >-
+    El dueño del dato es el Python (`daimon/rumbo.py`): el que ESCRIBE
+    normaliza (lo que no vale se cae) y el que VERIFICA exige el contrato.
+    `core/mind/rumbo.ts` es el espejo exacto: las dos lenguas tienen que sacar
+    los MISMOS bytes (`json.dumps(sano, ensure_ascii=False, indent=1) + "\n"`),
+    mismo orden de claves. Comprobado byte a byte contra el Python real.
+  redactado: >-
+    El rumbo pasa por la redacción como cualquier otro texto que sale del
+    equipo: un secreto en un pilar no viaja en claro.
 
 garantías:
   - NINGÚN texto se exporta sin pasar por core/mind/redaction.ts (secretos bajo
-    [SECRET:<tipo>], sin contenido residual en el paquete).
+    [SECRET:<tipo>], sin contenido residual en el paquete). El rumbo también.
   - La lista de exclusión mínima es inviolable: puede añadirse, nunca quitarse.
   - cognition.sig = hash semántico del estado, no del binario: misma mente
     semántica con distinto cuantizado sigue verificando.

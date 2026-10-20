@@ -1,12 +1,14 @@
-// mind-cli — los cuatro verbos de la mente portable desde la terminal.
+// mind-cli — los verbos de la mente portable desde la terminal.
 //   absorber <ruta vault> <out.json>     : Vault → trozos absorbibles (sin vectores)
 //   exportar  <records.json> <destino>   : recuerdos (con vector) → .mind firmado
 //   importar  <mind> <out.json>          : .mind verificado → recuerdos
 //   info <mind>                          : metadatos + exclusión, sin tocar nada
+//   rumbo <mind>                         : el para qué de la mente (rumbo.json)
 // Ejecución: npx tsx scripts/mind-cli.ts <verbo> ...
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { importaVault } from "../core/mind/importers/obsidian.ts";
 import { escribeMind, leeMind, type MenteAExportar, type RecuerdoPortatil } from "../core/mind/mind-file.ts";
+import { rumboAPng } from "../core/mind/rumbo.ts";
 
 export interface Salida {
   code: number;
@@ -38,7 +40,8 @@ export function cli(argv: string[]): Salida {
       if (sinVector.length)
         return fail(`recuerdos sin vector: ${sinVector.length} (corre la Lente antes de exportar)`);
       const { ruta, excluidos, secretos, cognicion } = escribeMind(destino, raw);
-      return ok(`mente en ${ruta}: ${raw.recuerdos.length - excluidos.length} recuerdos, excluidos ${excluidos.length}, secretos ${secretos}, cognición ${cognicion.slice(0, 12)}`);
+      const rumbo = raw.rumbo ? " (con rumbo)" : "";
+      return ok(`mente en ${ruta}: ${raw.recuerdos.length - excluidos.length} recuerdos, excluidos ${excluidos.length}, secretos ${secretos}, cognición ${cognicion.slice(0, 12)}${rumbo}`);
     }
     case "importar": {
       const [origen, destino] = args;
@@ -51,12 +54,23 @@ export function cli(argv: string[]): Salida {
     case "info": {
       const [origen] = args;
       if (!origen) return fail("uso: info <mind>");
-      const { recuerdos, exclusions } = leeMind(origen);
+      const { recuerdos, exclusions, rumbo } = leeMind(origen);
       const meta = JSON.parse(readFileSync(`${origen}/metadata.json`, "utf8")) as Record<string, unknown>;
-      return ok(`motor ${meta.motor} | recall ${meta.recall} | recuerdos ${recuerdos.length} | exclusión mínima ${exclusions.length} reglas`);
+      const para = rumbo
+        ? ` | rumbo ${rumbo.pilares.length} pilares, ${rumbo.objetivos.length} objetivos`
+        : " | sin rumbo";
+      return ok(`motor ${meta.motor} | recall ${meta.recall} | recuerdos ${recuerdos.length} | exclusión mínima ${exclusions.length} reglas${para}`);
+    }
+    case "rumbo": {
+      const [origen] = args;
+      if (!origen) return fail("uso: rumbo <mind>");
+      if (!existsSync(origen)) return fail(`no existe ${origen}`);
+      const { rumbo } = leeMind(origen);
+      if (!rumbo) return ok("esta mente no tiene rumbo (puede ser una mente vieja)");
+      return ok(rumboAPng(rumbo).trimEnd());
     }
     default:
-      return fail("uso: mind-cli <absorber|exportar|importar|info> ...");
+      return fail("uso: mind-cli <absorber|exportar|importar|info|rumbo> ...");
   }
 }
 

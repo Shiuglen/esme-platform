@@ -180,11 +180,13 @@ export async function selectMemoriesForPack(query: string, candidates: Memory[],
 
 ### 7. Formato de Mente Portable — `.mind` (Open Spec v1)
 
-**Decisión:** `.mind` = archivo único (ZIP con estructura interna) o directorio `.mind/`. Contiene: `embeddings/` (`.onnx` + `.bin` weights), `metadata.json` (schema versionado), `cognition.sig` (firma Ed25519 del hash de cognición), `crs-delta/` (encoding delta entre versiones). Privacidad: `redaction-rules.json` (patrones PII, claves API, datos de empresa/terceros) + `exclusion-list.json` (paths que nunca se exportan). Importadores en `core/mind/importers/`.
+**Decisión:** `.mind` = archivo único (ZIP con estructura interna) o directorio `.mind/`. Contiene: `embeddings/` (`.onnx` + `.bin` weights), `metadata.json` (schema versionado), `cognition.sig` (firma Ed25519 del hash de cognición), `crs-delta/` (encoding delta entre versiones), `rumbo.json` (opcional: para qué trabaja la mente — pilares y objetivos; viaja con ella). Privacidad: `redaction-rules.json` (patrones PII, claves API, datos de empresa/terceros) + `exclusion-list.json` (paths que nunca se exportan). Importadores en `core/mind/importers/`.
 
 **Rutas exactas:**
 - `estandar/mind-format.spec.yaml` (spec completa)
 - `core/mind/portable-format.ts` (serialización/deserialización)
+- `core/mind/mind-file.ts` (export/import con verificación de cognición)
+- `core/mind/rumbo.ts` (el rumbo: espejo exacto de `daimon/rumbo.py`)
 - `core/mind/crs-delta.ts` (delta encoding)
 - `core/mind/redaction.ts` (motor de redacción)
 - `core/mind/importers/{obsidian,notion,markdown,json}.ts`

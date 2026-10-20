@@ -28,6 +28,7 @@ crs-delta/       # delta entre versiones (refresh OTA sin re-embedding completo)
 redaction-rules.json   # patrones PII, claves API
 exclusion-list.json    # paths que NUNCA se exportan:
     /work/**/**, /company/**/**, /*.env*/, /*.pem/, /*.key/
+rumbo.json           # OPCIONAL: para qué trabaja la mente (pilares y objetivos)
 ```
 
 Importadores: `core/mind/importers/{obsidian,notion,markdown,json}.ts`.
