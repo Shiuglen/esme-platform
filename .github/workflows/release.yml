@@ -9,6 +9,8 @@ permissions:
 
 jobs:
   release:
+    # borrar una etiqueta NO es publicar: si no, cada limpieza deja un rojo
+    if: ${{ !github.event.deleted }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,6 +31,7 @@ jobs:
           ESME_PRIV_KEY: ${{ secrets.ESME_RELEASE_KEY_PEM }}
         # sin `||`: si la clave de release no está en la estirpe de la raíz
         # congelada, la release NO sale. Publicar sin derecho no es publicar.
+        # (sin la llave, este paso es el que dice por qué no hay release)
         run: npm run firma:index
       - name: la tienda firmada se verifica (con la raíz congelada)
         run: npm run verificar
