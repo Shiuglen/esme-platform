@@ -31,6 +31,10 @@ export async function instalarRemoto(
   const indice = JSON.parse((await bajar(`${baseUrl}/index.json`)).toString("utf8"));
   const rutaLedger = join(destino, ".rotaciones.json");
   try {
+    // la carpeta puede no existir todavía: sin esto el ledger se perdía en
+    // silencio y la tienda parecía no ser de la estirpe (la estirpe es lo
+    // que prueba quién firmó).
+    mkdirSync(destino, { recursive: true });
     writeFileSync(rutaLedger, (await bajar(`${baseUrl}/rotaciones.json`)).toString("utf8"));
   } catch {
     // 404: la tienda no rota — bien
@@ -48,6 +52,7 @@ export async function instalarRemoto(
   const firmaIndice = (indice as { signature?: { signed_by?: string } }).signature;
   const rutaRevocaciones = join(destino, ".revocaciones.json");
   try {
+    mkdirSync(destino, { recursive: true });
     writeFileSync(rutaRevocaciones, (await bajar(`${baseUrl}/revocaciones.json`)).toString("utf8"));
   } catch {
     // sin libro: nada revocado
