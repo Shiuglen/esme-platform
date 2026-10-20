@@ -45,10 +45,11 @@ Entre dos lenguas solo sobrevive lo que está escrito.
 
 ```bash
 npm ci
-npm test                 # la batería completa (319 tests)
+npm test                 # la batería completa (331 tests)
 npm run lint             # tsc --noEmit: los tipos no mienten
 npm run spec:lint        # cada module.yaml contra su spec
 npm run test:offline     # la garantía: funciona sin red
+npm run build            # compila el paquete (lo que se publica es JS, no TS)
 ```
 
 **Medir y publicar en la Tienda** (lo que hace el mantenedor):
@@ -58,7 +59,32 @@ npm run bench            # mide (examen + ciclo), empaqueta, firma y publica
 npm run tienda           # bench + verificar (la tienda se comprueba)
 npm run panel            # el panel de la tienda, en markdown
 npm run skills:juzgar    # el juez de las skills: el veredicto medible de cada una
+npm run modulos:juzgar   # el juez de los módulos: mide, dicta y FIRMA
 npm run tienda:publicar-modulos -- --repo <ruta> --push   # el store de módulos, público
+```
+
+## Publicar el kit (una vez)
+
+El kit es un paquete npm (`esme-platform`, MIT). Todo está listo: el build
+compila el paquete, `npm pack` lo arma y `prepublishOnly` pasa por la puerta
+(lint + tests + spec-lint + build). Lo que falta es la cuenta:
+
+```bash
+npm login                # la cuenta de npm del mantenedor
+npm publish              # publica esme-platform@0.1.0
+```
+
+Mientras tanto, quien lo consuma puede apuntar a una copia local:
+
+```json
+"esme-platform": "file:../esme-platform"
+```
+
+Y quien quiera sólo la puerta de los módulos:
+
+```ts
+import { modulos } from "esme-platform/core/modulos/api";
+import { mente } from "esme-platform/sdk";
 ```
 
 El store de módulos vive en `Shiuglen/esme-tienda` (ficheros firmados, nada

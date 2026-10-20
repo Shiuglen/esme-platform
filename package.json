@@ -1,6 +1,5 @@
 {
   "name": "esme-platform",
-  "private": true,
   "type": "module",
   "version": "0.1.0",
   "description": "El runtime de la mente local: contratos, formatos, firmas, extension host y la Tienda",
@@ -15,16 +14,45 @@
   "engines": {
     "node": ">=22"
   },
+  "main": "./dist/core/ipc/sdk.js",
+  "types": "./dist/core/ipc/sdk.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
-    "./core/*": "./core/*",
-    "./tienda/*": "./tienda/*",
-    "./motores/*": "./motores/*",
+    ".": {
+      "types": "./dist/core/ipc/sdk.d.ts",
+      "import": "./dist/core/ipc/sdk.js"
+    },
+    "./sdk": {
+      "types": "./dist/core/ipc/sdk.d.ts",
+      "import": "./dist/core/ipc/sdk.js"
+    },
+    "./core/*": {
+      "types": "./dist/core/*.d.ts",
+      "import": "./dist/core/*.js"
+    },
+    "./tienda/*": {
+      "types": "./dist/tienda/*.d.ts",
+      "import": "./dist/tienda/*.js"
+    },
+    "./motores/*": {
+      "types": "./dist/motores/*.d.ts",
+      "import": "./dist/motores/*.js"
+    },
+    "./modulos/nucleo/*": {
+      "types": "./dist/modulos/nucleo/*.d.ts",
+      "import": "./dist/modulos/nucleo/*.js"
+    },
     "./estandar/*": "./estandar/*",
-    "./modulos/nucleo/*": "./modulos/nucleo/*"
+    "./package.json": "./package.json"
   },
   "files": [
+    "dist",
     "core",
-    "tienda",
+    "tienda/*.ts",
+    "tienda/*.json",
+    "tienda/*.pem",
     "motores",
     "estandar",
     "modulos",
@@ -33,9 +61,14 @@
     "LICENSE",
     "LICENSE-COMMUNITY.md"
   ],
+  "dependencies": {
+    "js-yaml": "^4.1.0",
+    "zod": "^3.23.8"
+  },
   "scripts": {
     "test": "vitest run",
     "spec:lint": "tsx scripts/spec-lint.ts",
+    "build": "tsc -p tsconfig.build.json",
     "build:ejemplo": "tsx scripts/construir-modulos.ts",
     "firma:index": "tsx scripts/firmar-index.ts",
     "mind": "tsx scripts/mind-cli.ts",
@@ -59,16 +92,14 @@
     "prueba0:real": "tsx scripts/prueba0-real.ts",
     "test:offline": "vitest run tests/offline.test.ts tests/tienda-firma.test.ts tests/redaction.test.ts tests/mind-format.test.ts",
     "lint": "tsc --noEmit",
-    "prepublishOnly": "npm run lint && npm test && npm run spec:lint"
+    "prepublishOnly": "npm run lint && npm test && npm run spec:lint && npm run build"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.0.0",
     "esbuild": "^0.28.2",
-    "js-yaml": "^4.1.0",
     "tsx": "^4.19.0",
     "typescript": "^5.6.0",
-    "vitest": "^2.1.0",
-    "zod": "^3.23.8"
+    "vitest": "^2.1.0"
   }
 }

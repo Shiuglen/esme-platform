@@ -6,12 +6,26 @@ import { join, resolve } from "node:path";
 
 const raiz = resolve(import.meta.dirname, "..");
 const pkg = JSON.parse(readFileSync(join(raiz, "package.json"), "utf8")) as {
-  exports: Record<string, string>;
+  exports: Record<string, string | { types: string; import: string }>;
   files: string[];
   license: string;
   scripts: Record<string, string>;
   prepublishOnly?: string;
+  dependencies?: Record<string, string>;
+  main?: string;
+  types?: string;
 };
+
+/** El destino de una exportación: el fichero (o el patrón) que se sirve. */
+const destinoDe = (v: string | { types: string; import: string }): string =>
+  typeof v === "string" ? v : v.import;
+
+/** `dist/core/x.js` → `core/x.ts`: el mismo fichero, antes de compilar. */
+const enFuente = (destino: string): string =>
+  destino
+    .replace(/^\.\/dist\//, "./")
+    .replace(/\.js$/, ".ts")
+    .replace(/\.d\.ts$/, ".ts");
 
 const ficheros = (dir: string): string[] =>
   readdirSync(dir).flatMap((n) => {
@@ -24,20 +38,53 @@ describe("el kit se puede consumir", () => {
     expect(Object.keys(pkg.exports).length).toBeGreaterThan(0);
     // lo exportado es el núcleo MIT: nada de app, marca ni servicios
     for (const clave of Object.keys(pkg.exports))
-      expect(clave, `${clave} no es núcleo MIT`).toMatch(/^\.\/(core|tienda|motores|estandar|modulos)\b/);
+      expect(
+        clave === "." || clave.startsWith("./"),
+        `${clave} no es núcleo MIT`
+      ).toBe(true);
+    for (const clave of Object.keys(pkg.exports)) {
+      if (clave === "." || clave === "./package.json") continue; // raíz y metadatos
+      expect(clave, `${clave} no es núcleo MIT`).toMatch(
+        /^\.\/(sdk|core|tienda|motores|estandar|modulos)\b/
+      );
+    }
   });
 
   it("cada ruta exportada existe de verdad", () => {
-    for (const [clave, destino] of Object.entries(pkg.exports)) {
-      const patron = destino.replace("*", "ipc/mind-schema-types");
+    for (const [clave, bruto] of Object.entries(pkg.exports)) {
+      const destino = destinoDe(bruto);
       if (destino.includes("*")) {
         // los patrones: basta con que la carpeta exista
-        const carpeta = destino.slice(0, destino.indexOf("*"));
+        const carpeta = enFuente(destino.slice(0, destino.indexOf("*")));
         expect(statSync(join(raiz, carpeta)).isDirectory(), `${clave} → ${carpeta}`).toBe(true);
       } else {
+        const patron = enFuente(destino);
         expect(() => statSync(join(raiz, patron)), `${clave} → ${patron}`).not.toThrow();
       }
     }
+  });
+
+  it("lo que se sirve es lo compilado (y el compilado sale de lo que hay)", () => {
+    // el paquete sirve dist/…: los tipos y el js de cada ruta
+    for (const [clave, bruto] of Object.entries(pkg.exports)) {
+      if (typeof bruto === "string") continue; // estandar/* son datos, no código
+      expect(bruto.types, `${clave} sin tipos`).toMatch(/^\.\/dist\/.+\.d\.ts$/);
+      expect(bruto.import, `${clave} sin js`).toMatch(/^\.\/dist\/.+\.js$/);
+    }
+    // y hay un build que produce eso
+    expect(pkg.scripts.build).toBeTruthy();
+    const build = JSON.parse(
+      readFileSync(join(raiz, "tsconfig.build.json"), "utf8")
+    ) as { compilerOptions: { outDir: string; rootDir: string } };
+    expect(build.compilerOptions.outDir.replace(/^\.\//, "")).toBe("dist");
+    expect(pkg.files).toContain("dist");
+    expect(pkg.main).toMatch(/^\.\/dist\//);
+    expect(pkg.types).toMatch(/^\.\/dist\//);
+  });
+
+  it("las dependencias son las justas (y ninguna es secreta)", () => {
+    // lo único ajeno al núcleo es zod (los contratos) y js-yaml (la Tienda).
+    expect(Object.keys(pkg.dependencies ?? {}).sort()).toEqual(["js-yaml", "zod"]);
   });
 
   it("los tipos del contrato NO arrastran zod (quien importa los tipos no carga el validador)", () => {

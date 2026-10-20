@@ -23,6 +23,10 @@ jobs:
       - run: npm run spec:lint
       - name: offline — el router decide sin red
         run: npm run test:offline
+      - name: el paquete se compila (lo que se publica es lo que compila)
+        run: npm run build
+      - name: el paquete se arma (lo que se publica, byte a byte)
+        run: npm pack --dry-run
 
   build:
     name: módulos — build + lint de manifiesto
