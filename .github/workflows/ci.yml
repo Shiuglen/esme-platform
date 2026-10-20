@@ -18,6 +18,8 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm test
+      - name: la puerta de la Prueba 0 (el número no puede empeorar)
+        run: npx vitest run tests/prueba0.test.ts
       - run: npm run spec:lint
       - name: offline — el router decide sin red
         run: npm run test:offline
