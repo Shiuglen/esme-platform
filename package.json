@@ -3,10 +3,36 @@
   "private": true,
   "type": "module",
   "version": "0.1.0",
-  "description": "El runtime de la mente local: contratos, extension host y Laya",
+  "description": "El runtime de la mente local: contratos, formatos, firmas, extension host y la Tienda",
+  "license": "MIT",
+  "keywords": [
+    "esme",
+    "mente-local",
+    "extension-host",
+    "tienda",
+    "contratos"
+  ],
   "engines": {
     "node": ">=22"
   },
+  "exports": {
+    "./core/*": "./core/*",
+    "./tienda/*": "./tienda/*",
+    "./motores/*": "./motores/*",
+    "./estandar/*": "./estandar/*",
+    "./modulos/nucleo/*": "./modulos/nucleo/*"
+  },
+  "files": [
+    "core",
+    "tienda",
+    "motores",
+    "estandar",
+    "modulos",
+    "docs",
+    "README.md",
+    "LICENSE",
+    "LICENSE-COMMUNITY.md"
+  ],
   "scripts": {
     "test": "vitest run",
     "spec:lint": "tsx scripts/spec-lint.ts",
@@ -25,7 +51,8 @@
     "tienda:publicar": "tsx scripts/publicar-catalogo.ts",
     "tienda": "npm run bench && npm run verificar",
     "test:offline": "vitest run tests/offline.test.ts tests/tienda-firma.test.ts tests/redaction.test.ts tests/mind-format.test.ts",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "prepublishOnly": "npm run lint && npm test && npm run spec:lint"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",

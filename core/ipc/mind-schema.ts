@@ -1,8 +1,20 @@
 // El contrato de mente por IPC (ARQUITECTURA §2): recall, remember, intake,
 // rumbo. Schemas con zod: nada cruza la puerta sin forma verificada y permiso
 // declarado.
+//
+// Los TIPOS viven en mind-schema-types.ts (sin zod): quien solo quiere el
+// contrato (la app, un módulo) no carga el validador. Aquí están los
+// validadores y el contrato completo.
 import { z } from "zod";
 import type { Rumbo } from "../mind/rumbo.ts";
+
+export type {
+  RecuerdoClad,
+  MenteViva,
+  MindMethod,
+  Rumbo,
+} from "./mind-schema-types.ts";
+export { CAPACIDAD_POR_METODO } from "./mind-schema-types.ts";
 
 export const MindMethods = {
   recall: z.object({
@@ -23,28 +35,5 @@ export const MindMethods = {
   rumbo: z.object({}),
 } as const;
 
-export type MindMethod = keyof typeof MindMethods;
-
-/** Mapa método con capacidad del enum cerrado que exige cada cual. */
-export const CAPACIDAD_POR_METODO: Record<MindMethod, string> = {
-  recall: "mind:read",
-  remember: "mind:write",
-  intake: "mind:write",
-  rumbo: "mind:read",
-};
-
-/** El recuerdo que devuelve la mente (forma ligera para el cable). */
-export interface RecuerdoClad {
-  id: string;
-  texto: string;
-  tokens?: number;
-}
-
-/** La mente que el host ejecuta cuando un módulo pide (Tálamo real o stub). */
-export interface MenteViva {
-  recall: (q: string, budget?: number) => Promise<RecuerdoClad[]>;
-  remember?: (text: string, kind?: string) => Promise<{ id: string }>;
-  intake?: (source: string, content: string, tags: string[]) => Promise<{ id: string }>;
-  /** Para qué trabaja la mente: pilares y objetivos. */
-  rumbo?: () => Promise<Rumbo>;
-}
+/** El tipo del contrato, derivado de los validadores (la fuente de verdad). */
+export type MindMethodsShape = typeof MindMethods;
