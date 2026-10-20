@@ -253,3 +253,27 @@ export function opcionesDeOro(
   return opciones.sort((a, b) => b.score - a.score).slice(0, max);
 }
 
+
+
+/* ————————————————————————————————————————————————————————————————
+ * La mecánica de la medición real: el oro se busca en lo que respondió la
+ * mente (el cerebro la devuelve con su prefijo y sus comillas), y el hogar
+ * de la mente es el de la app.
+ * ———————————————————————————————————————————————————————————————— */
+
+/** Normaliza para comparar: el cerebro puede reponer espacios o acentos. */
+export function normalizaParaComparar(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(new RegExp("[\\u0300-\\u036f]", "g"), "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** ¿El oro está en lo que respondió la mente? (una ventana de 60 caracteres) */
+export function oroEnContexto(oro: string, contexto: string): boolean {
+  const o = normalizaParaComparar(oro).slice(0, 60);
+  if (!o) return false;
+  return normalizaParaComparar(contexto).includes(o);
+}

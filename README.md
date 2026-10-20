@@ -64,7 +64,12 @@ npm run skills:juzgar    # el juez de las skills: el veredicto medible de cada u
 npm run banco -- --construir   # propone los casos: sus preguntas y sus documentos
 npm run banco -- --validar     # el humano elige el oro (eso es la constitution)
 npm run banco -- --medir       # mide: el módulo no puede empeorar el número
+npm run prueba0:real           # la Prueba 0 REAL: el cerebro de verdad, con sus memorias
 ```
+
+`prueba0:real` copia el hogar de la mente, arranca un cerebro sobre la copia
+(su candado y sus recuerdos no se tocan) y le pregunta cada caso: ese es el
+recall de producción, con la Lente de verdad y no con el proxy del kit.
 
 El banco vive FUERA del repo (`~/.esme/prueba0-banco.json`): las preguntas del
 usuario y su Vault no van a un repositorio.

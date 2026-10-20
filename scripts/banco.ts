@@ -26,6 +26,7 @@ import {
   nombreDeProyecto,
   type BancoReal,
   type CasoReal,
+  type OpcionOro,
 } from "../core/bench/banco.ts";
 import { importaMarkdown } from "../core/mind/importers/markdown.ts";
 
@@ -98,25 +99,37 @@ export function construyeBanco(maxCasos = 40): BancoReal {
       /* un jsonl roto no para el banco */
     }
   }
-  const casos: CasoReal[] = [];
+  // Las preguntas que MÁS se parecen a algo del Vault van primero: una
+  // pregunta de conversación ("sigue en donde estabas") no es un examen de
+  // conocimiento, y proponerla es ruido.
+  const propuestas: { pregunta: string; opciones: OpcionOro[] }[] = [];
   const vistas = new Set<string>();
   for (const p of preguntas) {
-    if (casos.length >= maxCasos) break;
     if (vistas.has(p.texto)) continue;
     // primero el proyecto de la sesión; si no hay nada, cualquier documento
     const opciones = opcionesDeOro(p.texto, documentos, p.proyecto);
     const sueltas = opciones.length ? opciones : opcionesDeOro(p.texto, documentos);
     if (!sueltas.length) continue;
     vistas.add(p.texto);
-    casos.push({
-      id: `p${String(casos.length + 1).padStart(3, "0")}`,
-      pregunta: p.texto,
-      opciones: sueltas,
-      oro: "", // lo elige el humano
-      validado: false,
-    });
+    propuestas.push({ pregunta: p.texto, opciones: sueltas });
   }
-  return { version: 1, creado: new Date().toISOString(), documentos, casos };
+  propuestas.sort((a, b) => b.opciones[0].score - a.opciones[0].score);
+  const casos: CasoReal[] = propuestas.slice(0, maxCasos).map((p, i) => ({
+    id: `p${String(i + 1).padStart(3, "0")}`,
+    pregunta: p.pregunta,
+    opciones: p.opciones,
+    oro: "", // lo elige el humano
+    validado: false,
+  }));
+  // el banco guarda SOLO los documentos que usa: el banco es del usuario y
+  // no tiene por qué pesar 7 MB
+  const usados = new Set(casos.flatMap((c) => c.opciones.map((o) => o.origen)));
+  return {
+    version: 1,
+    creado: new Date().toISOString(),
+    documentos: documentos.filter((d) => usados.has(d.id)),
+    casos,
+  };
 }
 
 const lee = (): BancoReal | null => {
