@@ -191,7 +191,7 @@ export async function selectMemoriesForPack(query: string, candidates: Memory[],
 - `core/mind/rumbo.ts` (el rumbo: espejo exacto de `daimon/rumbo.py`)
 - `core/mind/crs-delta.ts` (delta encoding)
 - `core/mind/redaction.ts` (motor de redacción)
-- `core/mind/importers/{obsidian,notion,markdown,json}.ts`
+- `core/mind/importers/{obsidian,markdown,json}.ts` (el pipeline en `arbol.ts`)
 
 **Component shape:**
 ```yaml

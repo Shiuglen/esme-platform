@@ -7,8 +7,10 @@
 //   zip   <records.json> <destino.zip>   : la mente en un solo fichero
 //   unzip <mind.zip> <out.json>          : el fichero verificado → recuerdos
 // Ejecución: npx tsx scripts/mind-cli.ts <verbo> ...
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, statSync } from "node:fs";
 import { importaVault } from "../core/mind/importers/obsidian.ts";
+import { importaMarkdown } from "../core/mind/importers/markdown.ts";
+import { importaJson } from "../core/mind/importers/json.ts";
 import { escribeMind, leeMind, type MenteAExportar, type RecuerdoPortatil } from "../core/mind/mind-file.ts";
 import { escribeMindZip, leeMindZip } from "../core/mind/mind-zip.ts";
 import { rumboAPng } from "../core/mind/rumbo.ts";
@@ -23,8 +25,16 @@ export function cli(argv: string[]): Salida {
   switch (verbo) {
     case "absorber": {
       const [ruta, destino] = args;
-      if (!ruta || !destino) return fail("uso: absorber <ruta vault> <out.json>");
-      const r = importaVault(ruta, { vaultNombre: "vault" });
+      if (!ruta || !destino) return fail("uso: absorber <ruta vault|nota.md|dump.json> <out.json>");
+      if (!existsSync(ruta)) return fail(`no existe ${ruta}`);
+      // el pipeline es el mismo (excluir → redactar → trocear); lo que cambia
+      // es de dónde viene el conocimiento
+      const esJson = ruta.toLowerCase().endsWith(".json");
+      const r = esJson
+        ? importaJson(ruta, { vaultNombre: "json" })
+        : statSync(ruta).isDirectory()
+          ? importaVault(ruta, { vaultNombre: "vault" })
+          : importaMarkdown(ruta, { vaultNombre: "markdown" });
       const absorbido = {
         vault: r.vault,
         ficheros: r.ficheros,
