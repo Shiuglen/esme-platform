@@ -13,6 +13,20 @@
       "fecha": "2026-10-20T04:22:14.006Z",
       "firmaVieja": "a9qknY7cts4d22cPsf3B8WG5WVl5cMWGYuN51prEm/O20x3eIT+rSrOEdSwKMUykMQf9BaXG74m1NPw1+/QfCQ==",
       "firmaNueva": "k/X+6RJbU23Ie7qk+0sdPN/hYZkeayZXI9g3UXwoUxZ+VGDj6CJP/dVVRAz8zeGQq7raZ+5myo0ox1hzro31DA=="
+    },
+    {
+      "vieja": {
+        "huella": "d9978d32d1e71df0",
+        "pub": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEA/gL6os9AP7AvWiggqPO1aO2PXp9L+IsbJHDVnotAKas=\n-----END PUBLIC KEY-----\n"
+      },
+      "nueva": {
+        "huella": "adaaf79999a7296f",
+        "pub": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAkePUK6fQTkQ5Il5Wwq5W0Dtf99h8j1P8eY2z7X3p1rk=\n-----END PUBLIC KEY-----\n"
+      },
+      "motivo": "incidente: sospecha de fuga: probamos el pánico",
+      "fecha": "2026-10-20T04:32:52.031Z",
+      "firmaVieja": "nWFji87RIXtCh+LnMl32mzoHadEQCpaKjigZ6V6fcBS0nc+UCXc2vkW8ipkEu7Xp+jVYOiFCjitBO+VUxeQAAw==",
+      "firmaNueva": "BerdIZzunikXUQF6VY6pLfqBzcpCHXkLYvgWcNPaIgRhcHQLj9rv7OF+SJZOOiREL5R0TyfjWNzo8y+FT9ebBQ=="
     }
   ]
 }
