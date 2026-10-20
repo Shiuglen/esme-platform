@@ -116,6 +116,17 @@ contrato:
     nota: >-
       El proceso principal lee el flujo y lo reparte a la ventana por IPC: la
       ventana no abre flujos ni lleva el token.
+  rumbo:
+    metodo: GET
+    ruta: "/rumbo"
+    responde: "{ version: 1, pilares: [{id, texto, creado}], objetivos: [{id, texto, estado, creado, cerrado, pilar}] }"
+    nota: >-
+      Para qué trabaja la mente. Vive en la CARPETA de la mente (rumbo.json),
+      no en la app: es de la mente y viaja con ella. Los pilares son las
+      estrellas fijas (hasta 7); los objetivos, lo que va cambiando (hasta 60),
+      cada uno con su estado (activo | hecho | pausado) y su pilar opcional.
+    metodo_post: "POST — { accion: anadir_pilar | anadir_objetivo | cambiar_objetivo | quitar_pilar | quitar_objetivo, ... }"
+    responde_post: "el rumbo entero, ya guardado (nunca lo que se pidió sin más)"
   mcp:
     metodo: "POST/GET (streamable-http)"
     ruta: "/mcp"

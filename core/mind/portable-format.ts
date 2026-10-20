@@ -34,6 +34,27 @@ export function validaMindDir(ruta: string): Dictamen {
       errores.push("exclusion-list.json no es JSON válido");
     }
   }
+  // el rumbo (para qué trabaja la mente) es OPCIONAL: las mentes viejas no lo tienen, pero si está, tiene que valer
+  if (existsSync(join(ruta, "rumbo.json"))) {
+    try {
+      const r = JSON.parse(readFileSync(join(ruta, "rumbo.json"), "utf8")) as Record<string, unknown>;
+      const pilares = r.pilares, objetivos = r.objetivos;
+      if (!Array.isArray(pilares) || !Array.isArray(objetivos)) errores.push("rumbo.json: tiene que tener pilares[] y objetivos[]");
+      else {
+        for (const p of pilares) {
+          const x = p as Record<string, unknown>;
+          if (typeof x.id !== "string" || typeof x.texto !== "string" || !x.texto.trim()) errores.push("rumbo.json: un pilar sin id o sin texto");
+        }
+        for (const o of objetivos) {
+          const x = o as Record<string, unknown>;
+          if (typeof x.id !== "string" || typeof x.texto !== "string" || !x.texto.trim()) errores.push("rumbo.json: un objetivo sin id o sin texto");
+          else if (!["activo", "hecho", "pausado"].includes(String(x.estado))) errores.push(`rumbo.json: el objetivo «${x.texto}» tiene un estado raro`);
+        }
+      }
+    } catch {
+      errores.push("rumbo.json no es JSON válido");
+    }
+  }
   if (existsSync(join(ruta, "metadata.json"))) {
     try {
       const meta = JSON.parse(

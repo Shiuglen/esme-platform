@@ -11,12 +11,22 @@ structure:
   crs-delta/           # deltas entre versiones (recodificación parcial)
   redaction-rules.json # patrones extra del usuario, además de los mínimos
   exclusion-list.json  # rutas que NUNCA se exportan (mínimo: EXCLUSION_MINIMA)
+  rumbo.json           # OPCIONAL: para qué trabaja la mente (pilares y objetivos)
 
 metadata.json:
   required: [schema_version, created_at, motor, recall, counts]
   schema_version: 1
   motor: "EmbeddingGemma-300M int8"
   exclusion_must_include: [work/**, company/**, .env*, *.pem, *.key]
+
+rumbo.json:
+  # Opcional: las mentes viejas no lo tienen. Si está, tiene que valer (o no vale la mente entera).
+  opcional: true
+  forma: "{ version: 1, pilares: [{id, texto, creado}], objetivos: [{id, texto, estado, creado, cerrado, pilar}] }"
+  estados: [activo, hecho, pausado]
+  nota: >-
+    El rumbo es de la mente, no de la app: viaja con ella. Si un .mind no lo
+    tiene, sigue siendo una mente válida (solo pierde el para qué).
 
 garantías:
   - NINGÚN texto se exporta sin pasar por core/mind/redaction.ts (secretos bajo
