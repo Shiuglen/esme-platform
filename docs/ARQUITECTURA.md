@@ -24,25 +24,25 @@ export function assertCoreOnly(feature: string): void { /* throw si feature ∉ 
 
 **Decisión:** Plugins corren en **child process** (Node `worker_threads` con `isolated-vm`) + **WASM** para código de confianza parcial. `vm2` está descartado explícitamente: abandonado y con fugas de sandbox conocidas. Sandbox por defecto: `deny-all` capability list. Permisos: `mind:read`, `mind:write`, `ipc:emit`, `fs:project`, `net:fetch`, `ui:render`. Cada permiso pide consentimiento interactivo la primera vez (modal Tinta y Luz). Plugins hablan con la mente vía **IPC tipado** (MessagePort + schema Zod), no RPC.
 
-**Ruta exacta:** `core/extension-host/host.ts`, `core/extension-host/sandbox.ts`, `core/extension-host/permissions.ts`, `core/ipc/plugin-schema.ts`.
+**Ruta exacta:** `core/extension-host/host.ts`, `core/extension-host/permissions.ts`, `core/ipc/mind-schema.ts` (el contrato), `core/ipc/sdk.ts` (lo que ve el módulo).
+
+**La puerta hacia dentro:** el módulo **pide**, no recibe. El host le pone `globalThis.mente` al arrancar su worker, y eso no es la mente: es una llamada que cruza la puerta y vuelve con la respuesta (o con el fallo). El host decide: permiso declarado (`mind:read` / `mind:write`), forma verificada con zod, y la mente se queda en su proceso. Un módulo que no tiene a quién preguntar lo sabe (`mente()` lo dice) en vez de fingir que preguntó.
+
+```ts
+// lo que ve el módulo (core/ipc/sdk.ts)
+import { mente } from "esme-platform/sdk";
+const r = await mente().rumbo();     // para qué trabaja esta mente
+```
 
 **Component shape:**
 ```ts
-// core/extension-host/host.ts
-export interface PluginSandbox {
-  id: string;
-  manifest: ModuleManifest;
-  permissions: Set<Capability>;
-  port: MessagePort;
-  async call<M extends MindMethod>(method: M, args: MindArgs<M>): Promise<MindResult<M>>;
-}
-
-// core/ipc/plugin-schema.ts
+// core/ipc/mind-schema.ts
 export const MindMethods = {
   inject: z.object({ vectors: z.array(z.number()), metadata: z.record(z.unknown()) }),
   recall: z.object({ query: z.string(), budget: z.number().default(1500) }),
   remember: z.object({ text: z.string(), kind: z.enum(["note","decision","preference"]).default("note") }),
-  intake: z.object({ source: z.string(), content: z.string(), tags: z.array(z.string()) })
+  intake: z.object({ source: z.string(), content: z.string(), tags: z.array(z.string()) }),
+  rumbo: z.object({})    // para qué trabaja la mente: se LEE. Escribirlo es cosa de la persona
 } as const;
 ```
 

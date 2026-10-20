@@ -24,6 +24,8 @@ runtime: "nodejs"                   # nodejs | wasm | python
 # --- Permiso ---
 permissions: []                     # mind:read | mind:write | ipc:emit | fs:project | net:fetch | ui:render
 # Nota: pedir cualquier "net:*" sin "net:fetch" declarado ⇒ rechazo automático.
+# `mind:read` cubre también LEER el rumbo de la mente (para qué trabaja). Moverlo
+# es cosa de la persona: ningún permiso de módulo permite cambiarlo.
 
 # --- Decisión con Laya (opcional) ---
 decision_criteria:

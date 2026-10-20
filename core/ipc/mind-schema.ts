@@ -1,6 +1,8 @@
-// El contrato de mente por IPC (ARQUITECTURA §2): recall, remember, intake.
-// Schemas con zod: nada cruza la puerta sin forma verificada y permiso declarado.
+// El contrato de mente por IPC (ARQUITECTURA §2): recall, remember, intake,
+// rumbo. Schemas con zod: nada cruza la puerta sin forma verificada y permiso
+// declarado.
 import { z } from "zod";
+import type { Rumbo } from "../mind/rumbo.ts";
 
 export const MindMethods = {
   recall: z.object({
@@ -16,6 +18,9 @@ export const MindMethods = {
     content: z.string().min(1),
     tags: z.array(z.string()),
   }),
+  // el para qué de la mente: se LEE desde un módulo. Escribirlo es cosa de
+  // la persona, no de un módulo: por eso no hay método de escritura aquí.
+  rumbo: z.object({}),
 } as const;
 
 export type MindMethod = keyof typeof MindMethods;
@@ -25,6 +30,7 @@ export const CAPACIDAD_POR_METODO: Record<MindMethod, string> = {
   recall: "mind:read",
   remember: "mind:write",
   intake: "mind:write",
+  rumbo: "mind:read",
 };
 
 /** El recuerdo que devuelve la mente (forma ligera para el cable). */
@@ -39,4 +45,6 @@ export interface MenteViva {
   recall: (q: string, budget?: number) => Promise<RecuerdoClad[]>;
   remember?: (text: string, kind?: string) => Promise<{ id: string }>;
   intake?: (source: string, content: string, tags: string[]) => Promise<{ id: string }>;
+  /** Para qué trabaja la mente: pilares y objetivos. */
+  rumbo?: () => Promise<Rumbo>;
 }
