@@ -1,6 +1,14 @@
 # ESPECIFICACIÓN DE ARQUITECTURA ESME/DAIMON
 ## 15 decisiones para el runtime de la mente local
 
+> **Dónde estás:** este repo es la **mitad MIT** de Esme — los contratos, los
+> formatos, las firmas, la Tienda y el extension host. La ventana
+> (`apps/desktop/`), el Taller y el cerebro en Python viven en el repo de la
+> app; las dos mitades se hablan por `estandar/cerebro-frontera.spec.yaml`.
+> Cuando una decisión habla de `apps/desktop/` o de `pnpm dev`, habla del
+> conjunto: aquí los comandos son `npm run …` (ver
+> `docs/COLABORADOR-KIT/RUNBOOK-DEV.md`).
+
 ---
 
 ### 1. Open Core — Frontera MIT vs Licencia Comunitaria
@@ -189,7 +197,7 @@ export async function selectMemoriesForPack(query: string, candidates: Memory[],
 - `core/mind/mind-zip.ts` (la misma mente en un solo fichero)
 - `core/mind/zip.ts` (el contenedor, en bytes y sin dependencias)
 - `core/mind/rumbo.ts` (el rumbo: espejo exacto de `daimon/rumbo.py`)
-- `core/mind/crs-delta.ts` (delta encoding)
+- `core/mind/delta.ts` + `core/mind/delta-pack.ts` (crs-delta: la mente viaja por diferencias)
 - `core/mind/redaction.ts` (motor de redacción)
 - `core/mind/importers/{obsidian,markdown,json}.ts` (el pipeline en `arbol.ts`)
 

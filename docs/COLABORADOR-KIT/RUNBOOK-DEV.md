@@ -1,8 +1,28 @@
 # Runbook de desarrollo
 
-## Comandos (misma casa, cuatro pisos)
+## Comandos del kit (este repo)
 
-| Comando | Qué correa |
+| Comando | Qué corre |
+|---|---|
+| `npm ci` | deps del kit |
+| `npm test` | la batería completa (209 tests) |
+| `npm run lint` | `tsc --noEmit`: los tipos no mienten |
+| `npm run spec:lint` | cada `module.yaml` contra su spec |
+| `npm run test:offline` | la garantía: funciona sin red |
+| `npm run bench` | mide (Prueba 0 + ciclo), empaqueta, firma y publica |
+| `npm run tienda` | bench + verificar: la tienda se comprueba |
+| `npm run panel` | el panel de la tienda, en markdown |
+| `npm run firma:index` | firma el índice y lo verifica (en un paso) |
+| `npm run rotar` | certifica una llave nueva: la vieja atestigua, la nueva firma |
+| `npm run skills:juzgar -- --medir` | el juez de las skills, con medición real |
+| `npm run mind -- <verbo>` | la mente portable (`absorber`, `exportar`, `zip`, `rumbo`…) |
+| `npm run instalar` | instala un módulo de la tienda (verifica antes) |
+| `npm run verificar` | la tienda se verifica: índice y artefactos, byte a byte |
+| `npm run build:ejemplo` | construye los módulos de ejemplo (los flags son uno solo) |
+
+## Comandos de la app (el otro repo)
+
+| Comando | Qué corre |
 |---|---|
 | `pnpm install` | deps del workspace (app Electron + módulos) |
 | `pnpm dev` | modo ventana (Electron vivo, caliente) |
@@ -11,7 +31,7 @@
 | `pnpm test` | unit + integración |
 | `pnpm test:offline` | desconecta red/las llamadas y demuestra autonomía |
 | `pnpm prueba0` | banco local de la Prueba 0 |
-| `pnpm prueba0 --delta` | compararantes/primero después en este cambio |
+| `pnpm prueba0 --delta` | comparar antes/después en este cambio |
 | `pnpm spec:lint` | valida specs en `estandar/` + `module.yaml` |
 | `pnpm sync:server` | corre el servidor de sync ligero (solo backup/restauro/share) |
 
@@ -28,9 +48,9 @@
 
 - Log del cerebro: `scripts/` (a empedrar vida con un PR).
 - Las cifras del estado en cada paso están en `docs/ESME.md` (requiere consulta).
-- Los límites de: no hay پرد dos iguales en la estética — no toques tokens sin ADR.
+- Los límites de: no hay dos iguales en la estética — no toques tokens sin ADR.
 
-## El flujo del taller (esencial para quienes correa los agentes)
+## El flujo del taller (esencial para quienes corren los agentes)
 
 - Cada cambio en el repo vivo dentro de `taller/copias/<id>/`.
 - Al aplicar la revisión: (a) aplicación a la carpeta madre, (b) guardar en su rama,
