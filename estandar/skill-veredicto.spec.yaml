@@ -1,11 +1,11 @@
-> **Spec abierta v1 — el veredicto de las skills de la Tienda.**
-> Referencia: `docs/TIENDA.md` §El juez de las skills, `tienda/skills.ts`.
-> CI `spec-lint` no la valida (es documental); la implementan el kit
-> (`tienda/skills.ts`) y la app (`app/src/main/tienda/veredicto.ts`).
->
-> **Cambios:** para cambiar esta spec abre un PR a `estandar/`. Quien produce
-> y quien verifica tienen que sacar los MISMOS bytes: el orden de las claves
-> es parte del contrato.
+# **Spec abierta v1 — el veredicto de las skills de la Tienda.**
+# Referencia: `docs/TIENDA.md` §El juez de las skills, `tienda/skills.ts`.
+# CI `spec-lint` no la valida (es documental); la implementan el kit
+# (`tienda/skills.ts`) y la app (`app/src/main/tienda/veredicto.ts`).
+#
+# **Cambios:** para cambiar esta spec abre un PR a `estandar/`. Quien produce
+# y quien verifica tienen que sacar los MISMOS bytes: el orden de las claves
+# es parte del contrato.
 
 schema_version: 1
 artefacto: "skills/veredictos.json"
@@ -20,24 +20,24 @@ cuerpo_firmado:
   # skills[] viene ordenado por id (comparación de bytes, no de idioma).
   orden: [version, emitido, firmante, catalogoSha256, skills]
   version: 1
-  emitido: <ms desde la época>
-  firmante: <huella de la clave: 16 hex del sha256 del PEM público>
-  catalogoSha256: <64 hex>   # el catálogo EXACTO que se juzgó
+  emitido: "<ms desde la época>"
+  firmante: "<huella de la clave: 16 hex del sha256 del PEM público>"
+  catalogoSha256: "<64 hex>"   # el catálogo EXACTO que se juzgó
   skills:
     - id: "<repo>/<nombre>"
-      entra: <boolean>
-      nivel: <ok | aviso | fuera>
+      entra: "<boolean>"
+      nivel: "<ok | aviso | fuera>"
       causa: "<por qué, en una frase>"
       medidas:
         orden: [arbolSha256, licencia, commit, ficheros, bytes, ejecutables, tokens, skillMdSha256]
-        arbolSha256: <64 hex>
+        arbolSha256: "<64 hex>"
         licencia: "<SPDX>"
-        commit: <40 hex>
-        ficheros: <n>
-        bytes: <n>
-        ejecutables: <boolean>
-        tokens: <n | null>       # los tokens que ocupa su SKILL.md (null = sin medir)
-        skillMdSha256: <64 hex>  # el SKILL.md que se leyó ('' si no se leyó)
+        commit: "<40 hex>"
+        ficheros: "<n>"
+        bytes: "<n>"
+        ejecutables: "<boolean>"
+        tokens: "<n | null>"       # los tokens que ocupa su SKILL.md (null = sin medir)
+        skillMdSha256: "<64 hex>"  # el SKILL.md que se leyó ('' si no se leyó)
 
 firma:
   algorithm: "ed25519-sha512"

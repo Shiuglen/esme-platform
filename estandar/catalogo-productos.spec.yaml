@@ -1,11 +1,11 @@
-> **Spec abierta v1 — el catálogo de productos de la Tienda.**
-> Referencia: `docs/TIENDA.md` §El catálogo, `tienda/catalogo.ts`.
-> CI `spec-lint` no la valida (es documental); la implementan el kit
-> (`tienda/catalogo.ts`) y la app (`app/src/main/tienda/catalogo.ts`).
->
-> **Cambios:** para cambiar esta spec abre un PR a `estandar/`. Quien produce
-> y quien verifica tienen que sacar los MISMOS bytes: el orden de las claves
-> es parte del contrato.
+# **Spec abierta v1 — el catálogo de productos de la Tienda.**
+# Referencia: `docs/TIENDA.md` §El catálogo, `tienda/catalogo.ts`.
+# CI `spec-lint` no la valida (es documental); la implementan el kit
+# (`tienda/catalogo.ts`) y la app (`app/src/main/tienda/catalogo.ts`).
+#
+# **Cambios:** para cambiar esta spec abre un PR a `estandar/`. Quien produce
+# y quien verifica tienen que sacar los MISMOS bytes: el orden de las claves
+# es parte del contrato.
 
 schema_version: 1
 artefacto: "catalogo.json"

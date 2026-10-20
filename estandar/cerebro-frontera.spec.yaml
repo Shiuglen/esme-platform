@@ -1,11 +1,11 @@
-> **Spec abierta v1 — la frontera entre el cerebro (Python) y la app (TypeScript).**
-> Referencia: `docs/TIENDA.md` §La mente, `app/src/main/mente/cliente.ts`.
-> CI `spec-lint` no la valida (es documental); la implementan el cerebro
-> (`daimon/server.py`) y la app (`app/src/main/mente/`).
->
-> **Cambios:** para cambiar esta spec abre un PR a `estandar/`. Quien produce
-> y quien verifica tienen que sacar los MISMOS bytes: el orden de las claves
-> es parte del contrato.
+# **Spec abierta v1 — la frontera entre el cerebro (Python) y la app (TypeScript).**
+# Referencia: `docs/TIENDA.md` §La mente, `app/src/main/mente/cliente.ts`.
+# CI `spec-lint` no la valida (es documental); la implementan el cerebro
+# (`daimon/server.py`) y la app (`app/src/main/mente/`).
+#
+# **Cambios:** para cambiar esta spec abre un PR a `estandar/`. Quien produce
+# y quien verifica tienen que sacar los MISMOS bytes: el orden de las claves
+# es parte del contrato.
 
 schema_version: 1
 artefacto: "la mente (daimon/server.py) y su puerta (app/src/main/mente/cliente.ts)"

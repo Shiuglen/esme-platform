@@ -1,14 +1,14 @@
-> **Spec abierta v1 — manifiesto de módulo.** Referencia: `docs/ARQUITECTURA.md` §3.
-> CI `spec-lint` valida cada `module.yaml` contra este fichero.
->
-> **Cambios:** para cambiar esta spec abre un PR a `estandar/`; el lint de specs
-> puede fallar y eso depende del contenido. El merge requiere 1 maintainer: el
-> creador (RACI lite, ver ARQUITECTURA §8).
->
-> Vamos a permitir: (1) `category` enum cerrado; (2) `permissions` declarativa y
-> consentimiento interactivo del usuario la primera vez; (3) firma aplicada a manifiesto
-> + artifact; (4) pruebe la Prueba 0 obligatorio para publicar en el índice.
->
+# **Spec abierta v1 — manifiesto de módulo.** Referencia: `docs/ARQUITECTURA.md` §3.
+# CI `spec-lint` valida cada `module.yaml` contra este fichero.
+#
+# **Cambios:** para cambiar esta spec abre un PR a `estandar/`; el lint de specs
+# puede fallar y eso depende del contenido. El merge requiere 1 maintainer: el
+# creador (RACI lite, ver ARQUITECTURA §8).
+#
+# Vamos a permitir: (1) `category` enum cerrado; (2) `permissions` declarativa y
+# consentimiento interactivo del usuario la primera vez; (3) firma aplicada a manifiesto
+# + artifact; (4) pruebe la Prueba 0 obligatorio para publicar en el índice.
+#
 
 schema_version: 1
 id: "esme.<autor>.<slug>"           # único, minúsculas, sin espacios

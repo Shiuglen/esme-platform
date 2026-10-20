@@ -51,14 +51,3 @@ export function validaModuloFile(
     manifest: res.manifest,
   };
 }
-
-/** El regla de la tienda: nulla en el index sin benchmarks y sin firma verificada. */
-export function baraModulos(modulosDir: string): DictamenModulo[] {
-  return [];
-}
-
-function issues(issue: { path: (string | number)[]; message: string }): string {
-  return issue.path.length
-    ? `${issue.path.join(".")}: ${issue.message}`
-    : issue.message;
-}

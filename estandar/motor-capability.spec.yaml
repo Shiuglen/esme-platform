@@ -1,7 +1,12 @@
-> **Spec abierta v1 — capacidad de motor.** Cada proveedor declara sus capacidades
-> y el core/módulos consultan esto en vez de adivinar. Referencia: ARQUITECTURA §8.
+# **Spec abierta v1 — capacidad de motor.** Cada proveedor declara sus capacidades
+# y el core/módulos consultan esto en vez de adivinar. Referencia: ARQUITECTURA §8.
+#
+# Un proveedor = un documento (separados por ---). El adaptador los carga TODOS
+# (yaml.loadAll): un solo motor no es el caso.
 
+---
 # Proveedor: claude-code
+schema_version: 1
 id: "claude-code"
 version: "1.0"
 capabilities:
@@ -15,7 +20,9 @@ dialecto_deteccion_herramientas: "locales castellano con su fichero u orden"
 adapter: "motores/acp-motores.ts"   # cuando usa el bucle por ACP
 health_endpoint: null
 
+---
 # Proveedor: opencode (por defecto al instalar)
+schema_version: 1
 id: "opencode"
 version: "1.0"
 capabilities:
@@ -28,7 +35,9 @@ capabilities:
 adapter: "motores/acp-motores.ts"
 health_endpoint: null
 
+---
 # Proveedor: local (llamacpp / ONNX dentro del cerebro)
+schema_version: 1
 id: "local"
 version: "1.0"
 capabilities:
