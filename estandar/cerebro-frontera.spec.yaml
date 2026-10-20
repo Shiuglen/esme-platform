@@ -86,6 +86,19 @@ contrato:
     ruta: "/ingest"
     cuerpo: "{ paths: string[] }"
     responde: "{ added: number, memories: number }"
+  ingerir_x:
+    metodo: POST
+    ruta: "/ingest-x"
+    cuerpo: "{ cosecha: string | object }  (la cosecha de X: FYP, guardados, búsquedas)"
+    responde: "{ added: number, memories: number }"
+    nota: >-
+      La mente absorbe tu X: una cosecha entra como recuerdos, con su fuente
+      (x:bookmarks, x:fyp…). Es lo que la Tienda llama «lo que guardaste».
+  equipo:
+    metodo: POST
+    ruta: "/equipo"
+    cuerpo: "{ ... }  (el veredicto del creador: lo que la mente aprende del equipo)"
+    responde: "{ ... }  (el informe de lo aprendido)"
   sueno:
     metodo: POST
     ruta: "/sueño"
@@ -131,6 +144,17 @@ contrato:
     metodo: "POST/GET (streamable-http)"
     ruta: "/mcp"
     nota: "la misma mente, con el protocolo de los agentes (Claude Code, OpenCode, Cursor…)"
+  agent_card:
+    metodo: GET
+    ruta: "/.well-known/agent-card.json"
+    nota: >-
+      La tarjeta del agente (el estándar de los agentes que se presentan).
+      /.well-known/agent.json es el mismo documento con el nombre viejo: los
+      dos existen, porque los dos se piden.
+  agent_card_legacy:
+    metodo: GET
+    ruta: "/.well-known/agent.json"
+    nota: "la misma tarjeta, con el nombre antiguo (compatibilidad)"
 
 quien_usa_que:
   app: "IPC → el proceso principal → la puerta → el cerebro"
