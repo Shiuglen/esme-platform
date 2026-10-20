@@ -31,6 +31,23 @@ export interface MenteAExportar {
 
 const sha256 = (s: string) => createHash("sha256").update(s).digest("base64");
 
+/** El hash de cognición: SHA256 canónico del estado, ordenado por id. */
+export function cognicionDe(recuerdos: RecuerdoPortatil[]): string {
+  const lineas = [...recuerdos]
+    .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+    .map(
+      (r) =>
+        canonical({
+          id: r.id,
+          texto: r.texto,
+          vector: r.vector,
+          fuente: r.fuente ?? null,
+          tipo: r.tipo ?? null,
+        })
+    );
+  return sha256(lineas.join("\n"));
+}
+
 /** Exporta. Devuelve la ruta de la mente y cuántos se excluyeron/redactaron. */
 export function escribeMind(
   rutaDestino: string,
@@ -66,7 +83,7 @@ export function escribeMind(
   const vectors = join(dir, "embeddings", "vectors.jsonl");
   writeFileSync(vectors, lineas.join("\n") + "\n");
 
-  const cognicion = sha256(lineas.join("\n"));
+  const cognicion = cognicionDe(dentro);
   writeFileSync(join(dir, "cognition.sig"), cognicion);
   writeFileSync(
     join(dir, "exclusion-list.json"),
@@ -102,7 +119,7 @@ export function leeMind(rutaMind: string): {
   const lineas = readFileSync(join(rutaMind, "embeddings", "vectors.jsonl"), "utf8")
     .split("\n")
     .filter(Boolean);
-  const cognicion = sha256(lineas.join("\n"));
+  const cognicion = cognicionDe(lineas.map((l) => JSON.parse(l) as RecuerdoPortatil));
   const sig = readFileSync(join(rutaMind, "cognition.sig"), "utf8");
   if (cognicion !== sig)
     throw new Error("cognición ALTERADA: el estado no coincide con cognition.sig");
