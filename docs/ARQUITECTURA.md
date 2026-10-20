@@ -1,5 +1,5 @@
 # ESPECIFICACIÓN DE ARQUITECTURA ESME/DAIMON
-## 14 decisiones para el runtime de la mente local
+## 15 decisiones para el runtime de la mente local
 
 ---
 
@@ -381,3 +381,25 @@ docs/
 8. **Nunca** diluir Tinta y Luz para "accesibilidad genérica". Accesibilidad SÍ, estética NO negociable.
 
 **Firma de la era:** `esme-runtime@1.0.0` — primera versión que pasa Prueba 0 completa (W13). Todo lo anterior es prólogo.
+
+---
+
+### 15. El Cerebro es Python, la App es TypeScript — Una Sola Puerta
+
+**Decisión:** Esme es un programa en dos lenguas, y la frontera entre ellas es un contrato escrito, no una costumbre.
+
+- **Python piensa** (`daimon/`): la Lente (embeddings: ONNX, model2vec, Ollama), el Tálamo (ranking, MMR, presupuesto), el Hipocampo (SQLite + vectores `.npy`), el Atlas (UMAP + KDE), el sueño, la voz (Whisper/Piper), la ingesta. Es el stack estándar de IA y no hay razón para inventar otro.
+- **TypeScript es el cuerpo** (`app/`, el kit): ventana, IPC, Tienda, Taller, contratos, formatos, firmas. Una sola lengua de punta a punta en todo lo que el usuario toca.
+- **Una sola puerta** (`app/src/main/mente/cliente.ts`): el proceso principal es el único que habla con el Python. La ventana pide por IPC; los agentes externos, por MCP. El token de la mente no sale del proceso principal.
+- **El contrato es spec abierta** (`estandar/cerebro-frontera.spec.yaml`): rutas, cuerpos, tiempos, errores. Entre dos lenguas solo sobrevive lo que está escrito.
+
+**Por qué no otras lenguas:**
+- **C++**: no se escribe. Está debajo (onnxruntime, tokenizers, llama.cpp): se usa, no se reescribe.
+- **Rust**: candidato real solo para el aislamiento del extension host (código de módulos ajenos). No para la mente: la mente no es un problema de memoria, es de modelo.
+- **Mojo**: sintaxis de Python a velocidad nativa. En medio de un cerebro que ya habla con numpy y ONNX, sería un tercer dialecto en el mismo proceso.
+- **R / Julia**: el examen (Prueba 0) y los benches son de análisis de datos en Python y TypeScript; R y Julia no aportan nada aquí.
+
+**Anti-Matrix (qué NUNCA se hace):**
+9. **Nunca** un segundo cliente del cerebro. Un contrato, un cliente, un test que lo hace imposible de romper (`app/src/main/frontera.test.ts`).
+10. **Nunca** el token de la mente en el renderer: la ventana es la parte menos de fiar de la casa.
+11. **Nunca** lógica de IA en TypeScript (embeddings, tensores, ONNX): si necesita numpy, va al Python.

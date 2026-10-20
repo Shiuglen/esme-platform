@@ -1,0 +1,137 @@
+> **Spec abierta v1 — la frontera entre el cerebro (Python) y la app (TypeScript).**
+> Referencia: `docs/TIENDA.md` §La mente, `app/src/main/mente/cliente.ts`.
+> CI `spec-lint` no la valida (es documental); la implementan el cerebro
+> (`daimon/server.py`) y la app (`app/src/main/mente/`).
+>
+> **Cambios:** para cambiar esta spec abre un PR a `estandar/`. Quien produce
+> y quien verifica tienen que sacar los MISMOS bytes: el orden de las claves
+> es parte del contrato.
+
+schema_version: 1
+artefacto: "la mente (daimon/server.py) y su puerta (app/src/main/mente/cliente.ts)"
+descripcion: >-
+  Esme es un programa en dos lenguas: el cerebro es Python (embeddings, rango,
+  memoria, sueño, voz) y la app es TypeScript (ventana, Tienda, Taller,
+  contratos). Entre dos lenguas solo sobrevive lo que está escrito: esta spec
+  es ese escrito. Lo que no está aquí se duplica, se contradice y se rompe
+  sin que nadie lo vea.
+
+la_puerta:
+  # UNA SOLA PUERTA. El proceso principal es el único que habla con el cerebro.
+  # La ventana (renderer) pide por IPC; los agentes externos, por MCP. Nadie
+  # más habla con el Python, y el token de la mente no sale del proceso principal.
+  donde: "app/src/main/mente/cliente.ts (el cliente) y app/src/main/mente/ipc.ts (el IPC)"
+  reglas:
+    - "Toda llamada al cerebro pasa por el cliente: rutas, token, reloj y error."
+    - "El renderer NUNCA hace fetch al cerebro: no tiene url ni token."
+    - "El token de la mente vive en el llavero del proceso principal (o en su
+      variable de entorno). La ventana solo sabe si la mente está viva."
+    - "El test `app/src/main/frontera.test.ts` lo comprueba: si alguien abre
+      otra puerta, el test se cae y dice por qué."
+  huella: >-
+    Un test hace imposible romper la regla: ninguna ruta del cerebro puede
+    aparecer fuera de la puerta, y el renderer no puede mencionarlas.
+
+transporte:
+  # HTTP en loopback + MCP. El mismo proceso sirve los dos (daimon/server.py).
+  loopback: "127.0.0.1, puerto fijo (47321) o uno libre si está ocupado"
+  auth: "Authorization: Bearer <token> (el token lo anuncia el cerebro al arrancar)"
+  origen: "solo los orígenes permitidos; el resto se rechaza"
+  instancia_unica: >-
+    El cerebro toma un candado (fcntl) sobre .cerebro.lock: una sola mente por
+    máquina. Si ya hay otra, sale con código 3 y la app no reintenta en bucle.
+  reloj: "toda llamada tiene timeout: 10 s (10 s la voz: 30 s)"
+
+contrato:
+  # Lo que el cerebro expone. Los nombres son de la spec, no de la implementación.
+  salud:
+    metodo: GET
+    ruta: "/health"
+    responde: "{ ok: boolean, memories: number }"
+  recuerdos:
+    metodo: GET
+    ruta: "/memories?q=&limit="
+    responde: "[{ id, text, source, kind, ts, trust, compartment, score? }]  (score: 0 si no hay búsqueda)"
+  recordar:
+    metodo: POST
+    ruta: "/recall"
+    cuerpo: "{ query: string, motor?: string, budget?: number, who?: string }"
+    responde: "{ context: string, tokens: number, ids: string[], abstained: boolean }"
+    nota: "budget 0 = el presupuesto de la mente; negativo = sin límite"
+  escribir:
+    metodo: POST
+    ruta: "/remember"
+    cuerpo: "{ text: string, kind?: string }"
+    responde: "{ id: string }  (400 si el cerebro rechaza el contenido)"
+  feedback:
+    metodo: POST
+    ruta: "/feedback"
+    cuerpo: "{ ids: string[], useful: boolean, query: string, motor?: string }"
+    responde: "{ result: string }"
+  memoria:
+    metodo: GET
+    ruta: "/memory/{id}"
+    responde: "{ id, text, source, kind, ts, trust, compartment }  (404 si no existe)"
+  olvidar:
+    metodo: POST
+    ruta: "/forget"
+    cuerpo: "{ id: string }"
+    responde: "{ forgotten: string[], sha256: string, ts: string }  (el certificado)"
+  ingerir:
+    metodo: POST
+    ruta: "/ingest"
+    cuerpo: "{ paths: string[] }"
+    responde: "{ added: number, memories: number }"
+  sueno:
+    metodo: POST
+    ruta: "/sueño"
+    responde: "{ ... }  (el informe de lo que destiló)"
+  orquestacion:
+    metodo: GET
+    ruta: "/orquesta"
+    responde: "{ ... }  (qué motor gana en qué)"
+  atlas:
+    metodo: GET
+    ruta: "/atlas"
+    responde: "{ points: [...], clusters: [...] }"
+  voz:
+    oir:
+      metodo: POST
+      ruta: "/voz/oir?idioma=es"
+      cuerpo: "PCM float32 mono a 16 kHz (crudo)"
+      responde: "{ texto: string }"
+    decir:
+      metodo: POST
+      ruta: "/voz/decir"
+      cuerpo: "{ texto: string }"
+      responde: "WAV (binario)"
+  eventos:
+    metodo: GET
+    ruta: "/events?token=<token>"
+    tipo: "SSE"
+    nota: >-
+      El proceso principal lee el flujo y lo reparte a la ventana por IPC: la
+      ventana no abre flujos ni lleva el token.
+  mcp:
+    metodo: "POST/GET (streamable-http)"
+    ruta: "/mcp"
+    nota: "la misma mente, con el protocolo de los agentes (Claude Code, OpenCode, Cursor…)"
+
+quien_usa_que:
+  app: "IPC → el proceso principal → la puerta → el cerebro"
+  ventana: "IPC al proceso principal. Sin token, sin url, sin fetch al Python."
+  agentes_externos: "MCP en /mcp con el token en la cabecera (o en la url, para el SSE)"
+  modulos_del_kit: >-
+    Reciben la MenteViva inyectada por el host; no hablan con el cerebro por su
+    cuenta. Un módulo de categoría memory sin mente inyectada no tiene a quién
+    preguntar, y el host lo dice en vez de fingir.
+
+garantías:
+  - "Lo que no trae una firma válida no se usa ni se guarda (ver la spec del
+    catálogo de productos y la del veredicto del juez)."
+  - "El token de la mente nunca viaja a la ventana: la ventana es la parte menos
+    de fiar de la casa."
+  - "Ninguna llamada se queda colgada: todo tiene reloj, y el fallo llega con
+    la misma forma (ok/dato u ok/error)."
+  - "Cambiar el contrato es cambiar esta spec, no el código: las dos lenguas
+    tienen que sacar los mismos bytes."
