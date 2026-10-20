@@ -3,7 +3,7 @@
   "firmado": null,
   "modulos": [
     {
-      "id": "esme.hola-mundo",
+      "id": "esme.nucleo.hola-mundo",
       "version": "0.1.0",
       "hash": null,
       "bench": null,

@@ -22,7 +22,7 @@ export function assertCoreOnly(feature: string): void { /* throw si feature ∉ 
 
 ### 2. Extension Host — Proceso Separado, V8 Isolate + WASM
 
-**Decisión:** Plugins corren en **child process** (Node `worker_threads` con `isolated-vm` o `vm2` legacy fallback) + **WASM** para código de confianza parcial. Sandbox por defecto: `deny-all` capability list. Permisos: `mind:read`, `mind:write`, `ipc:emit`, `fs:project`, `net:fetch`, `ui:render`. Cada permiso pide consentimiento interactivo la primera vez (modal Tinta y Luz). Plugins hablan con la mente vía **IPC tipado** (MessagePort + schema Zod), no RPC.
+**Decisión:** Plugins corren en **child process** (Node `worker_threads` con `isolated-vm`) + **WASM** para código de confianza parcial. `vm2` está descartado explícitamente: abandonado y con fugas de sandbox conocidas. Sandbox por defecto: `deny-all` capability list. Permisos: `mind:read`, `mind:write`, `ipc:emit`, `fs:project`, `net:fetch`, `ui:render`. Cada permiso pide consentimiento interactivo la primera vez (modal Tinta y Luz). Plugins hablan con la mente vía **IPC tipado** (MessagePort + schema Zod), no RPC.
 
 **Ruta exacta:** `core/extension-host/host.ts`, `core/extension-host/sandbox.ts`, `core/extension-host/permissions.ts`, `core/ipc/plugin-schema.ts`.
 
@@ -60,7 +60,7 @@ export const MindMethods = {
 ```yaml
 # modulos/ejemplo-hola-mundo/module.yaml
 schema_version: 1
-id: "esme.hola-mundo"
+id: "esme.nucleo.hola-mundo"
 name: "Hola Mundo"
 version: "0.1.0"
 category: "tool"  # tool | agent | theme | memory | integration | thinking
@@ -112,11 +112,11 @@ signatures:
   "schema": 1,
   "updated": "2026-10-19T12:00:00Z",
   "modules": {
-    "esme.hola-mundo": {
+    "esme.nucleo.hola-mundo": {
       "versions": {
         "0.1.0": {
           "manifest_url": "https://github.com/user/esme-hola-mundo/raw/v0.1.0/module.yaml",
-          "artifact_url": "https://github.com/user/esme-hola-mundo/releases/download/v0.1.0/esme.hola-mundo-0.1.0.tar.gz",
+          "artifact_url": "https://github.com/user/esme-hola-mundo/releases/download/v0.1.0/esme.nucleo.hola-mundo-0.1.0.tar.gz",
           "sha256": "a3f2...",
           "minisig": "RWQ...",
           "verified": true,
@@ -351,7 +351,7 @@ docs/
 | **W1** | `core/extension-host/` funcional: `pnpm dev` carga `modulos/plantilla-hola-mundo/` en sandbox, `mind:read` + `ui:render` works. **Prueba 0:** `tests/extension-host.test.ts` pasa. |
 | **W2** | `module.yaml` validator + minisign sign/verify. **Usuario real:** Creador instala módulo firmado localmente via `esme module install ./modulos/plantilla-hola-mundo`. |
 | **W3** | `.mind` export/import (ZIP + crs-delta v1→v2). **Prueba 0:** `tests/mind-portable.test.ts` roundtrip 2334 recuerdos = identical recall. |
-| **W4** | `tienda/` repo + `index.json` firmado + `core/store/client.ts` verify. **Usuario real:** `esme module add esme.hola-mundo@0.1.0` desde tienda local. |
+| **W4** | `tienda/` repo + `index.json` firmado + `core/store/client.ts` verify. **Usuario real:** `esme module add esme.nucleo.hola-mundo@0.1.0` desde tienda local. |
 | **W5** | Laya adapter integrado en Tálamo (routing motores + context packaging). **Prueba 0:** `tests/talamus-laya.test.ts` 100 queries → routing correcto >90%. |
 | **W6** | `estandar/` 3 specs publicadas + `spec-lint` CI + `compat-check` bot. **Usuario real:** Contribuyente externo abre PR a `estandar/` → merged en <1h. |
 | **W7** | `docs/` completa + `COLABORADOR-KIT/` + `pnpm create:modulo`. **Prueba 0:** Cronómetro: clone → PR merged en <10 min (bot auto-merge si pasa CI). |

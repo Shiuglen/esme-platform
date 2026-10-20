@@ -47,4 +47,4 @@ Cada entrada de `tienda/index.json` guarda: `id`, `version`, `hash`,
 `bench.json` (veredicto de la Prueba 0), `pubkey` minisign y fecha de firma.
 
 Pendiente ahora:
-- [ ] Primera firma del índice con `esme.hola-mundo@0.1.0`
+- [ ] Primera firma del índice con `esme.nucleo.hola-mundo@0.1.0`

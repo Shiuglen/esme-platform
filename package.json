@@ -1,0 +1,24 @@
+{
+  "name": "esme-platform",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "El runtime de la mente local: contratos, extension host y Laya",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "test": "vitest run",
+    "spec:lint": "tsx scripts/spec-lint.ts",
+    "build:ejemplo": "esbuild modulos/ejemplo-hola-mundo/src/index.ts --bundle --format=esm --outfile=modulos/ejemplo-hola-mundo/dist/index.js",
+    "create:modulo": "node scripts/create-modulo.mjs",
+    "lint": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.0.0",
+    "js-yaml": "^4.1.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0",
+    "zod": "^3.23.8"
+  }
+}

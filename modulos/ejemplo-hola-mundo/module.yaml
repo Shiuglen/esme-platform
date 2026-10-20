@@ -1,5 +1,5 @@
 schema_version: 1
-id: "esme.hola-mundo"
+id: "esme.nucleo.hola-mundo"
 name: "Hola Mundo"
 version: "0.1.0"
 category: "tool"
