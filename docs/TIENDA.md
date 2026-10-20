@@ -136,11 +136,26 @@ con claves ordenadas): un solo byte cambiado en el cuerpo invalida la firma.
 Claves: borna del mantenedor por env (`ESME_PRIV_KEY`), dev auto en `.keys/`
 (ignorada por git).
 
+**La raíz congelada manda.** El repo trae `tienda/raiz.pub.pem`: la clave
+pública que el consumidor fija de confianza (es pública; no hay nada que
+esconder). Todo lo que firma la tienda tiene que estar en su estirpe: el
+índice y los artefactos los firma la llave **viva**, y la cadena de
+rotaciones (`tienda/rotaciones.json`) demuestra que esa llave viene de la
+raíz. Por eso:
+
 ```bash
 npm run firma:index   # firma + verifica en un paso
+npm run rotar         # certifica una llave nueva: la vieja atestigua, la nueva firma
 ```
+
+- Una llave que la raíz **no** avala **no puede publicar**: `npm run bench`
+  mide y dice que no publica, y `npm run firma:index` se niega. Publicar sin
+  derecho no es publicar: es romper la confianza en silencio.
+- El firmante se **declara** dentro del cuerpo firmado (`indice.claves`): sin
+  esa declaración el consumidor no puede caminar hasta él.
 
 Estado actual:
 - [x] `tienda/index.json` firmado (v1, clave dev — pendiente la de release)
 - [x] verificación con tests de manipulación (`tests/tienda-firma.test.ts`)
+- [x] raíz congelada en el repo + estirpe de rotaciones (`tests/tienda-publicar.test.ts`)
 

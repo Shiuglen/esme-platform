@@ -27,8 +27,11 @@ jobs:
       - name: firma del índice (la clave de release solo vive en el env)
         env:
           ESME_PRIV_KEY: ${{ secrets.ESME_RELEASE_KEY_PEM }}
-        run: |
-          if [ -f "scripts/firmar-index.ts" ]; then npm run firma:index || echo "sin clave de release: índice quedará con firma dev"; fi
+        # sin `||`: si la clave de release no está en la estirpe de la raíz
+        # congelada, la release NO sale. Publicar sin derecho no es publicar.
+        run: npm run firma:index
+      - name: la tienda firmada se verifica (con la raíz congelada)
+        run: npm run verificar
       - name: paquete del core
         run: npm pack --pack-destination dist/ 2>/dev/null || mkdir -p dist && npm pack --pack-destination dist/
       - name: release en GitHub

@@ -101,6 +101,21 @@ export function firmarIndex(
   return { ...indice, signature: firmarBytes(bytes, privPem, signedBy) };
 }
 
+/**
+ * El índice declara SUS claves dentro del cuerpo firmado: el consumidor solo
+ * necesita fijar de confianza la raíz, y el resto (el firmante vivo, el que
+ * firmó los artefactos) sale de aquí. Sin esta declaración, el consumidor no
+ * puede caminar la estirpe: la clave que firmó no está donde buscarla.
+ */
+export function declaraClave(
+  indice: Record<string, unknown>,
+  pubPem: string,
+  huella: string
+): Record<string, unknown> {
+  const claves = (indice.claves as Record<string, string> | undefined) ?? {};
+  return { ...indice, claves: { ...claves, [huella]: pubPem } };
+}
+
 export type Veredicto =
   | { ok: true; hash: string }
   | { ok: false; razon: string };

@@ -45,7 +45,7 @@
   "signature": {
     "algorithm": "ed25519-sha512",
     "signature": "KdFdI35Q99/Q43JLIP0mVJ97TFwAGVU+pbrVVk+JT7cSU4BfMXMSk6wXN4YHEnlrUFrB8n5u6FQGkok00K1hDQ==",
-    "signed_at": "2026-10-20T17:19:58.576Z",
+    "signed_at": "2026-10-20T17:36:45.269Z",
     "signed_by": "adaaf79999a7296f",
     "hash": "uQiislhSAFhHlydkNH7dfAVxZjsU/B7D+XUW4XRhbgA="
   },

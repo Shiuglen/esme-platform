@@ -19,7 +19,7 @@ import { corre, armaBench, veredicto } from "../core/bench/runner.ts";
 import { validaCiclo, type BenchCiclo } from "../tienda/bench.ts";
 import { claveDeFirma, puedePublicar } from "../tienda/claves.ts";
 import { empaquetar } from "../tienda/empaque.ts";
-import { firmarIndex, firmarBytes } from "../tienda/firma.ts";
+import { firmarIndex, firmarBytes, declaraClave } from "../tienda/firma.ts";
 import { panelDe, render } from "../tienda/panel.ts";
 
 const raiz = resolve(import.meta.dirname, "..");
@@ -146,8 +146,8 @@ if (priv && publicable.ok) {
   }
   // el índice declara SUS claves dentro del cuerpo firmado: el consumidor
   // solo necesita fijar de confianza la raíz, el resto sale de aquí
-  indice.claves = { ...((indice.claves as Record<string, string>) ?? {}), [huella]: pubPem };
-  escribir(rutaIndice, firmarIndex(indice, priv, huella));
+  const conClaves = declaraClave(indice, pubPem, huella);
+  escribir(rutaIndice, firmarIndex(conClaves, priv, huella));
 }
 
 // ——— 4. PUBLICAR el panel ———

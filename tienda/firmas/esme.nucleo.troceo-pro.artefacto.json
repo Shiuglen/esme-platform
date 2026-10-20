@@ -7,7 +7,7 @@
   "firma": {
     "algorithm": "ed25519-sha512",
     "signature": "WcKA0mSNNV5fNfFTiEs7F6uNkieFNxEaTeEmMinAZWlZ724D8ospUsRJ0mWaYnoTFp/ADu2YQWuRiuWRi696DA==",
-    "signed_at": "2026-10-20T17:19:58.576Z",
+    "signed_at": "2026-10-20T17:36:45.268Z",
     "signed_by": "adaaf79999a7296f",
     "hash": "i0fyHDHPrippAP1bpwLBgAEVbq7mFg1OQP8iR2uOkHo="
   }

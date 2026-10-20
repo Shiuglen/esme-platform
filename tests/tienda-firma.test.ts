@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   canonical,
+  declaraClave,
   firmarIndex,
   generarPar,
   verificarIndex,
 } from "../tienda/firma.ts";
+import { huellaDePub } from "../tienda/rotacion.ts";
 
 const indiceBase = {
   schema_version: 1,
@@ -59,5 +61,20 @@ describe("firma del índice (la puerta de la tienda)", () => {
     const r = verificarIndex({ ...indiceBase }, "no-hace-falta");
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.razon).toContain("sin campo");
+  });
+
+  it("el firmante se declara en el cuerpo firmado (si no, el consumidor no puede caminar)", () => {
+    const { priv, pub } = generarPar();
+    const huella = huellaDePub(pub);
+    const conClave = declaraClave(indiceBase, pub, huella);
+    const claves = (conClave.claves ?? {}) as Record<string, string>;
+    expect(claves[huella]).toBe(pub);
+    // y la declaración va DENTRO de lo firmado: no se puede añadir después
+    const firmado = firmarIndex(conClave, priv, huella) as Record<string, unknown>;
+    expect((firmado.claves as Record<string, string>)[huella]).toBe(pub);
+    expect(verificarIndex(firmado, pub).ok).toBe(true);
+    // quitar la declaración rompe la firma (el cuerpo cambió)
+    const sinClave = { ...firmado, claves: {} };
+    expect(verificarIndex(sinClave, pub).ok).toBe(false);
   });
 });
