@@ -45,6 +45,16 @@ vez, con el modal de Tinta y Luz.
 
 Cada entrada de `tienda/index.json` guarda: `id`, `version`, `hash`,
 `bench.json` (veredicto de la Prueba 0), `pubkey` minisign y fecha de firma.
+El índice **entero** va firmado con Ed25519 (`tienda/firma.ts`, bytes canónicos
+con claves ordenadas): un solo byte cambiado en el cuerpo invalida la firma.
+Claves: borna del mantenedor por env (`ESME_PRIV_KEY`), dev auto en `.keys/`
+(ignorada por git).
 
-Pendiente ahora:
-- [ ] Primera firma del índice con `esme.nucleo.hola-mundo@0.1.0`
+```bash
+npm run firma:index   # firma + verifica en un paso
+```
+
+Estado actual:
+- [x] `tienda/index.json` firmado (v1, clave dev — pendiente la de release)
+- [x] verificación con tests de manipulación (`tests/tienda-firma.test.ts`)
+

@@ -1,0 +1,28 @@
+> **Spec abierta v1 — formato de mente portable `.mind`.**
+> Referencia: `docs/ARQUITECTURA.md` §7, `docs/SYNC.md`. CI `spec-lint` no la
+> valida (es documental); la valida `core/mind/portable-format.ts` en runtime.
+
+schema_version: 1
+format: "application/esme.mind+zip"   # o directorio `.mind/` sin comprimir
+structure:
+  embeddings/          # pesos del codificador (ONNX) + vectores binarios
+  metadata.json        # schema_version, created_at, motor, counts, redacción aplicada
+  cognition.sig        # firma Ed25519 del hash de cognición (detecta corrupción)
+  crs-delta/           # deltas entre versiones (recodificación parcial)
+  redaction-rules.json # patrones extra del usuario, además de los mínimos
+  exclusion-list.json  # rutas que NUNCA se exportan (mínimo: EXCLUSION_MINIMA)
+
+metadata.json:
+  required: [schema_version, created_at, motor, recall, counts]
+  schema_version: 1
+  motor: "EmbeddingGemma-300M int8"
+  exclusion_must_include: [work/**, company/**, .env*, *.pem, *.key]
+
+garantías:
+  - NINGÚN texto se exporta sin pasar por core/mind/redaction.ts (secretos bajo
+    [SECRET:<tipo>], sin contenido residual en el paquete).
+  - La lista de exclusión mínima es inviolable: puede añadirse, nunca quitarse.
+  - cognition.sig = hash semántico del estado, no del binario: misma mente
+    semántica con distinto cuantizado sigue verificando.
+  - crs-delta permite actualizar sin re-embedding completo (compat coseno 0,990
+    demostrado el 12-oct al cambiar el codificador).

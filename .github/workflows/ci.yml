@@ -1,0 +1,47 @@
+name: CI — el runtime de la mente local
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  core:
+    name: core — lint + tests + spec-lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run spec:lint
+      - name: offline — el router decide sin red
+        run: npm run test:offline
+
+  build:
+    name: módulo ejemplo — build + lint de manifiesto
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run build:ejemplo
+      - run: npm run spec:lint
+
+  firma:
+    name: tienda — el índice firmado se verifica
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: verificar índice (test de firma)
+        run: npx vitest run tests/tienda-firma.test.ts

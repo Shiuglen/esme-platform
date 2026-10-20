@@ -10,5 +10,12 @@
       "pubkey": null,
       "published_at": null
     }
-  ]
+  ],
+  "signature": {
+    "algorithm": "ed25519-sha512",
+    "signature": "To5UDZ+Y2WasL6ojd4jGQKAyAFBkAJiNnqyIBnDCypfYheUCkhPDvas51DXSklmzAGQWxxg26ye45tFIRdxJDQ==",
+    "signed_at": "2026-10-20T03:15:34.313Z",
+    "signed_by": "clave dev",
+    "hash": "H4vOtk+eRUAJ2QuYSpUo/SbLsnoaiZqO2naWsYBCgRQ="
+  }
 }
