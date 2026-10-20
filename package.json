@@ -43,6 +43,7 @@
     "bench": "tsx scripts/bench.ts",
     "verificar": "tsx scripts/verificar.ts",
     "instalar": "tsx scripts/instalar.ts",
+    "instalar:remoto": "tsx scripts/instalar-remoto.ts",
     "revocar": "tsx scripts/revocar.ts",
     "rotar": "tsx scripts/rotar.ts",
     "incidente": "tsx scripts/incidente.ts",

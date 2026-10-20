@@ -56,6 +56,14 @@ npm run bench            # mide (examen + ciclo), empaqueta, firma y publica
 npm run tienda           # bench + verificar (la tienda se comprueba)
 npm run panel            # el panel de la tienda, en markdown
 npm run skills:juzgar    # el juez de las skills: el veredicto medible de cada una
+npm run tienda:publicar-modulos -- --repo <ruta> --push   # el store de módulos, público
+```
+
+El store de módulos vive en `Shiuglen/esme-tienda` (ficheros firmados, nada
+más). Instalar desde fuera, con la raíz congelada:
+
+```bash
+npm run instalar -- --url https://raw.githubusercontent.com/Shiuglen/esme-tienda/main
 ```
 
 **La Prueba 0 de verdad** (el banco real, con los datos locales del usuario):
