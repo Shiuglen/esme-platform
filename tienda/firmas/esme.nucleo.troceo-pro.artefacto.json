@@ -7,8 +7,8 @@
   "firma": {
     "algorithm": "ed25519-sha512",
     "signature": "yHjbSGNjCMl9DvvNgXIVNagobHR1NxrSdYxKKEviWcAoKicCFsG2YRJAeWOm0bvTm+SRkZRu2GndS2ILC+z4CQ==",
-    "signed_at": "2026-10-20T04:08:09.932Z",
-    "signed_by": "esme@bench",
+    "signed_at": "2026-10-20T04:15:13.194Z",
+    "signed_by": "62304bfd9e441c73",
     "hash": "iY4mNtlodtEUbZO8XTzQDsypNKt2RZgjbGCMAI0rSFI="
   }
 }

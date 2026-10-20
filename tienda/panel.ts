@@ -12,6 +12,8 @@ export interface FilaPanel {
 
 export interface Panel {
   firmaVerifica: boolean | "sin-firma";
+  huella: string | null; // quién firmó el índice (16 hex)
+  claves: string[]; // las claves que el índice declara (huellas)
   filas: FilaPanel[];
 }
 
@@ -115,7 +117,15 @@ export function panelDe(
       });
     }
   }
-  return { firmaVerifica, filas };
+  return {
+    firmaVerifica,
+    huella:
+      indice.signature && typeof indice.signature === "object"
+        ? ((indice.signature as { signed_by?: string }).signed_by ?? null)
+        : null,
+    claves: Object.keys((indice.claves as Record<string, unknown>) ?? {}),
+    filas,
+  };
 }
 
 /** Render en texto para panel.md (lo que el mantenedor editorializa). */
@@ -123,7 +133,9 @@ export function render(p: Panel): string {
   const lineas: string[] = [];
   lineas.push(`# Panel de la tienda`);
   lineas.push("");
-  lineas.push(`Firma del índice: ${p.firmaVerifica === true ? "verificada" : p.firmaVerifica === false ? "FALLA" : "sin verificar (falta clave)"}`);
+  const estado = p.firmaVerifica === true ? "verificada" : p.firmaVerifica === false ? "FALLA" : "sin verificar (falta clave)";
+  const quien = p.huella ? ` (huella ${p.huella.slice(0, 8)}…, ${p.claves.length} clave(s) declaradas)` : "";
+  lineas.push(`Firma del índice: ${estado}${quien}`);
   lineas.push("");
   for (const f of p.filas) {
     lineas.push(`- ${f.entra ? "✓ ENTRA" : "✗ FUERA"} \`${f.id}\`` + (f.version ? ` @${f.version}` : "") + ` — ${f.causa}`);

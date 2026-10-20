@@ -9,6 +9,7 @@ import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import yaml from "js-yaml";
 import { verificarBytes, verificarIndex } from "./firma.ts";
+import { estaRevocada, rutaRevocaciones } from "./revocacion.ts";
 
 export interface Instalacion {
   id: string;
@@ -45,6 +46,10 @@ export function verificarPaquete(
   const indice = JSON.parse(readFileSync(rutaIndice, "utf8")) as Record<string, unknown>;
   const posturaIndice = verificarIndex(indice, pubPem);
   if (!posturaIndice.ok) return { ok: false, razon: `índice no confiable: ${posturaIndice.razon}` };
+
+  const huellaFirmante = (indice.signature as { signed_by?: string } | undefined)?.signed_by;
+  if (huellaFirmante && estaRevocada(huellaFirmante, rutaRevocaciones(raiz), pubPem))
+    return { ok: false, razon: `el firmante del índice (${huellaFirmante}) está revocado` };
 
   const entrada = (inicioModulos(indice).find((m) => m.id === id) ?? {}) as {
     version?: string;

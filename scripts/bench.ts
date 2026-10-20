@@ -7,7 +7,7 @@
 // (Ed25519), sube entradas al índice, firma el índice y redacta el panel.
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { resolve, join } from "node:path";
-import { createPublicKey } from "node:crypto";
+import { createHash, createPublicKey } from "node:crypto";
 import {
   candidatosBase,
   casosBase,
@@ -89,6 +89,10 @@ const paquetes = [
 // ——— 3. REGISTRAR Y FIRMAR: bench.json, artefacto.json, índice ———
 const priv = clavesPem();
 if (priv) {
+  // la huella real de la clave: el identificador que revoca o declara
+  const pubPem = createPublicKey(priv).export({ type: "spki", format: "pem" }).toString();
+  const huella = createHash("sha256").update(pubPem).digest("hex").slice(0, 16);
+
   escribir(join(raiz, "modulos", "ejemplo-hola-mundo", "bench.json"), benchHola);
   escribir(join(raiz, "modulos", "ejemplo-troceo-pro", "bench.json"), benchPro);
 
@@ -102,7 +106,7 @@ if (priv) {
       tar: p.sha256,
       bytes: p.bytes,
       firmado_en: new Date().toISOString().slice(0, 10),
-      firma: firmarBytes(readFileSync(p.ruta), priv, "esme@bench"),
+      firma: firmarBytes(readFileSync(p.ruta), priv, huella),
     };
     escribir(join(raiz, "tienda", "firmas", `${p.modulo}.artefacto.json`), artefacto);
   }
@@ -134,7 +138,10 @@ if (priv) {
     if (i >= 0) indice.modulos[i] = e as { id: string } & Record<string, unknown>;
     else indice.modulos.push(e as { id: string } & Record<string, unknown>);
   }
-  escribir(rutaIndice, firmarIndex(indice, priv, "esme@bench"));
+  // el índice declara SUS claves dentro del cuerpo firmado: el consumidor
+  // solo necesita fijar de confianza la raíz, el resto sale de aquí
+  indice.claves = { ...((indice.claves as Record<string, string>) ?? {}), [huella]: pubPem };
+  escribir(rutaIndice, firmarIndex(indice, priv, huella));
 }
 
 // ——— 4. PUBLICAR el panel ———

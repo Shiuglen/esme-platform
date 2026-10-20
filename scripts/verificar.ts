@@ -9,6 +9,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { createHash, createPublicKey } from "node:crypto";
 import { verificarIndex, verificarBytes, type FirmaBytes } from "../tienda/firma.ts";
+import { estaRevocada } from "../tienda/revocacion.ts";
 
 const raiz = resolve(import.meta.dirname, "..");
 const indice = JSON.parse(
@@ -37,6 +38,19 @@ const pubKey =
   })();
 
 let fallos = 0;
+
+// 0. el libro de revocaciones: si el firmante del índice está revocado,
+//    TODA la tienda cae — ni artefactos ni veredictos valen nada
+const firmaIndice = indice.signature as { signed_by?: string } | undefined;
+if (
+  pubKey &&
+  firmaIndice?.signed_by &&
+  estaRevocada(firmaIndice.signed_by, join(raiz, "tienda", "revocaciones.json"), pubKey)
+) {
+  console.log(`índice    : FALLIDO ✗ — la clave ${firmaIndice.signed_by} está REVOCADA`);
+  console.log("           ninguna entrada de esta tienda es confiable hasta rotar la clave y re-firmar todo.");
+  process.exit(1);
+}
 
 // 1. la firma del índice
 if (!pubKey) {
@@ -80,9 +94,13 @@ for (const m of indice.modulos) {
   const hashLocal = createHash("sha256").update(bytes).digest("hex");
   const cuadraEnIndice = art.tar === m.artefacto?.tar;
   const firmaVale = pubKey ? verificarBytes(bytes, art.firma, pubKey).ok : false;
-  const ok = firmaVale && cuadraEnIndice && hashLocal === art.tar;
+  const firmanteRevocado =
+    pubKey && art.firma.signed_by
+      ? estaRevocada(art.firma.signed_by, join(raiz, "tienda", "revocaciones.json"), pubKey)
+      : false;
+  const ok = firmaVale && cuadraEnIndice && hashLocal === art.tar && !firmanteRevocado;
   console.log(
-    `${m.id.padEnd(28)}: ${ok ? "artefacto verificado ✓" : "NO CUADRA ✗"} (${art.bytes} bytes, sha256 ${art.tar.slice(0, 12)}…)`
+    `${m.id.padEnd(28)}: ${ok ? "artefacto verificado ✓" : firmanteRevocado ? "FIRMANTE REVOCADO ✗" : "NO CUADRA ✗"} (${art.bytes} bytes, sha256 ${art.tar.slice(0, 12)}…)`
   );
   if (!ok) fallos++;
 }

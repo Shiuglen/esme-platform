@@ -44,9 +44,12 @@
   ],
   "signature": {
     "algorithm": "ed25519-sha512",
-    "signature": "N80tdxtj9FYMEVFPil+HytKugiIAOBukfQa7vXCnvJAg9+4urg3oAbTg665Y+lIEi1gxX0zbbNpRzV8ZKG/1Cg==",
-    "signed_at": "2026-10-20T04:08:09.933Z",
-    "signed_by": "esme@bench",
-    "hash": "c56K5jcR2n4TJdWCUS1McB6tLvA7d6wArWRYk//90ZU="
+    "signature": "8y+EWK+vnZrM5K7bYUgQq3IDqcAJAN88F/qJhqPCfxmsJMluZZ0tkcMKEuz9drVklbDFcKjHkX6Vj61CPS69BA==",
+    "signed_at": "2026-10-20T04:15:13.196Z",
+    "signed_by": "62304bfd9e441c73",
+    "hash": "kgCSFwi8DVktkdhMTlQhXYheOaiIVZ+ZxjGrd3ckwxM="
+  },
+  "claves": {
+    "62304bfd9e441c73": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAWMd+6VJIBCckRb2ZcjZ/oEAv/upjD5OWPxR6Gm97yEE=\n-----END PUBLIC KEY-----\n"
   }
 }
