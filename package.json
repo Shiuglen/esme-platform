@@ -12,6 +12,7 @@
     "firma:index": "tsx scripts/firmar-index.ts",
     "mind": "tsx scripts/mind-cli.ts",
     "panel": "tsx scripts/panel.ts",
+    "bench": "tsx scripts/bench.ts",
     "test:offline": "vitest run tests/offline.test.ts tests/tienda-firma.test.ts tests/redaction.test.ts tests/mind-format.test.ts",
     "lint": "tsc --noEmit"
   },

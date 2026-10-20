@@ -9,13 +9,30 @@
       "bench": null,
       "pubkey": null,
       "published_at": null
+    },
+    {
+      "id": "esme.nucleo.troceo-pro",
+      "version": "0.1.0",
+      "bench": {
+        "modulo": "esme.nucleo.troceo-pro",
+        "version": "0.1.0",
+        "fecha": "2026-10-20",
+        "casos": 12,
+        "recall_base": 0.25,
+        "recall_con": 1,
+        "tokens_base": 22.666666666666668,
+        "tokens_con": 37.083333333333336,
+        "semilla": 0
+      },
+      "firma_ok": true,
+      "published_at": "2026-10-20"
     }
   ],
   "signature": {
     "algorithm": "ed25519-sha512",
-    "signature": "To5UDZ+Y2WasL6ojd4jGQKAyAFBkAJiNnqyIBnDCypfYheUCkhPDvas51DXSklmzAGQWxxg26ye45tFIRdxJDQ==",
-    "signed_at": "2026-10-20T03:15:34.313Z",
-    "signed_by": "clave dev",
-    "hash": "H4vOtk+eRUAJ2QuYSpUo/SbLsnoaiZqO2naWsYBCgRQ="
+    "signature": "CX5iQTzuqH/dPUEgGt1y25n3XjA7CkU6J9q0EhSOJFX8BzRgF8JpdIMfmHynoCZV8RZ95BbgVJvyBBtnkhbiAQ==",
+    "signed_at": "2026-10-20T03:48:27.733Z",
+    "signed_by": "esme@bench",
+    "hash": "MfJSo6QrDnRq0RAVV/pjfQv4sdpVNknUfmnk2C8mAgk="
   }
 }

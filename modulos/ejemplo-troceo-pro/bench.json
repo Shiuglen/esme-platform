@@ -1,0 +1,11 @@
+{
+  "modulo": "esme.nucleo.troceo-pro",
+  "version": "0.1.0",
+  "fecha": "2026-10-20",
+  "casos": 12,
+  "recall_base": 0.25,
+  "recall_con": 1,
+  "tokens_base": 22.666666666666668,
+  "tokens_con": 37.083333333333336,
+  "semilla": 0
+}

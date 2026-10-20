@@ -1,0 +1,22 @@
+schema_version: 1
+id: "esme.nucleo.troceo-pro"
+name: "Troceo Pro"
+version: "0.1.0"
+category: "memory"
+description: "Trocea las tablas por filas en vez de por bloques: la recuperación de datos tabulares pasa de 0.25 a 1.00 de recall en el examen del 12-oct."
+author: "esme@nucleo"
+license: "MIT"
+entry: "dist/index.js"
+runtime: "nodejs"
+permissions:
+  - mind:write
+decision_criteria:
+  - when: "documento_con_tablas"
+    weight: 0.95
+    tags: ["tablas", "troceo", "recuperacion"]
+dependencies:
+  - "esme.core@^1.0"
+sideEffects: false
+benchmarks:
+  recall_delta: 0.01
+  report: "bench.json"
