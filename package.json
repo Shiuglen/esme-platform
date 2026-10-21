@@ -118,6 +118,7 @@
     "casa": "tsx scripts/casa.ts",
     "banco": "tsx scripts/banco.ts",
     "prueba0:real": "tsx scripts/prueba0-real.ts",
+    "prueba0:rea": "tsx scripts/prueba0-rea.ts",
     "test:offline": "vitest run tests/offline.test.ts tests/tienda-firma.test.ts tests/redaction.test.ts tests/mind-format.test.ts",
     "lint": "tsc --noEmit",
     "prepublishOnly": "npm run lint && npm test && npm run spec:lint && npm run build",

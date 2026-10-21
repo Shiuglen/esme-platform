@@ -39,6 +39,7 @@
 | `npm run modulos -- actualiza` | el plan de actualización (con `--sí`, se aplica) |
 | `npm run programas -- lista` | qué programas se pueden lanzar en esta casa (la puerta `proc:spawn`) |
 | `npm run programas -- concede rea --desc "…"` | la persona dice qué se puede lanzar |
+| `npm run prueba0:rea -- <programa>` | la mente con ojos, medida: REA mira, la mente aprende, y se pregunta |
 | `npm run rea -- catalogo` | qué sabe hacer REA en esta máquina, y qué capacidad pide cada operación |
 | `npm run rea -- analiza <ruta>` | REA mira dentro de un programa y escribe la evidencia |
 | `npm run verificar:skill -- <carpeta>` | juzga una skill en local (hechos, norecall) |

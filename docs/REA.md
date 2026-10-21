@@ -245,8 +245,27 @@ por separado.
 | Que zod no se arrastra al núcleo | `tests/consumible.test.ts` |
 | Que una evidencia se absorbe por la CLI | `tests/mind-cli.test.ts` |
 
-## 7. La otra mitad: el espejo
+## 6. La mejora, medida: la mente con ojos
 
+Una mejora que no se mide no entra (la regla de oro). La de REA se mide de
+punta a punta:
+
+```bash
+npm run prueba0:rea -- /ruta/de/una/app.asar
+```
+
+Qué pasa, en orden: REA mira el programa (por la puerta), el kit convierte lo
+que vio en hechos, la mente real se **copia** (la de la persona no se toca),
+se le da lo que vio, y se le pregunta qué vio. El veredicto dice si lo
+recuerda.
+
+Medido el 21-oct-2026 con el asar por defecto de Electron: 1.278 nodos → 47
+hechos → **la mente recuerda lo que vio** (1.945 tokens, 1.212 ms).
+
+El caso también queda en el banco (`npm run banco -- --rea <app>`), con su oro
+mecánico (lo que el análisis produjo). Ver [`docs/PRUEBA-0.md`](PRUEBA-0.md).
+
+## 7. La otra mitad: el espejo
 El cerebro (Python) tiene su propio espejo: `/rea/absorber`, `/rea/recuerdos`
 y `/rea/comparar`. Lee **la misma evidencia** y produce **la misma clase de
 conocimiento** (un informe en vez de unas filas, que es lo que la mente

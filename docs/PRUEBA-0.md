@@ -68,4 +68,31 @@ npm run banco -- --medir       # mide los dos mundos: el documento entero y el t
 - La puerta (`tests/prueba0.test.ts`) mide contra el benchmark **commiteado**:
   si el número empeora, el cambio no entra.
 
+## La prueba de REA: la mente con ojos, medida
+
+La puerta `proc:spawn` le da a la mente la capacidad de mirar dentro de un programa. Eso es una mejora, y las mejoras se miden. El caso de REA en el banco
+tiene su oro **mecánico** (es lo que el análisis produjo, no una suposición
+de un humano), y su medición va de punta a punta:
+
+```bash
+npm run banco -- --rea /ruta/de/una/app.asar   # el caso entra en el banco
+npm run prueba0:rea -- /ruta/de/una/app.asar    # la medición entera
+```
+
+Qué hace la medición, en orden:
+
+1. REA mira el programa (**por la puerta**: si no está en el libro de los
+   programas, no se lanza) y el kit convierte lo que vio en hechos;
+2. la mente real se **copia** (la de la persona no se toca jamás), se le da
+   lo que vio como un fichero, y la mente lo trocea y lo embebe;
+3. se le pregunta a la mente de verdad qué vio;
+4. el veredicto: ¿contestó lo que vio, o no?
+
+Medido el 21-oct-2026 con el asar por defecto de Electron: 1.278 nodos →
+47 hechos → **la mente recuerda lo que vio** (1.945 tokens, 1.212 ms).
+
+Lo que se mide aquí es el **recuerdo** de lo aprendido. La calidad de la
+evidencia se mide aparte (`tests/rea-real.test.ts`), y el contrato, en la
+frontera (`tests/frontera-rea.test.ts`).
+
 Fuentes completas de la Prueba 0 y Fase 1: `docs/superpowers/plans/` del repo vivo.

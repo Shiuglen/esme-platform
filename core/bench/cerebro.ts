@@ -89,3 +89,27 @@ export async function preguntaAlCerebro(
   const j = (await r.json()) as { context?: string; tokens?: number };
   return { context: j.context ?? "", tokens: j.tokens ?? 0 };
 }
+
+/**
+ * Le da unos ficheros a la mente (la ingesta de verdad: los trocea, los
+ * embebe y los guarda con su procedencia).
+ *
+ * Se usa para lo que la mente tiene que APRENDER antes de que se le pueda
+ * preguntar por ello — por ejemplo, lo que REA vio de un programa.
+ */
+export async function ingiereEnCerebro(
+  url: string,
+  token: string,
+  rutas: string[],
+  ms = 120_000
+): Promise<{ added: number; memories: number }> {
+  const r = await fetch(`${url}/ingest`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ paths: rutas }),
+    signal: AbortSignal.timeout(ms),
+  });
+  if (!r.ok) throw new Error(`la mente no ingirió: ${r.status}`);
+  const j = (await r.json()) as { added?: number; memories?: number };
+  return { added: j.added ?? 0, memories: j.memories ?? 0 };
+}
