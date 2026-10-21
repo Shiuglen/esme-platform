@@ -33,6 +33,7 @@
 | `npm run deseos -- <deseos.json>` | la lista de deseos de la tienda, y lo que pide la gente |
 | `npm run verificar:skill -- <carpeta>` | juzga una skill en local (hechos, norecall) |
 | `npm run cambios -- <antes> <despues>` | qué cambió entre dos versiones (Myers, con tope) |
+| `npm run ejecutar -- <módulo> "<consulta>"` | ejecuta un turno de verdad y lo mide |
 | `npm run piel:check -- <piel.json>` | juzga una piel (opciones cerradas y que se lea) |
 | `npm run agente:check -- <agente.json>` | juzga una receta de agente (motor real y presupuesto con techo) |
 | `npm run compat -- <carpeta>` | qué motores pueden alojar ese módulo, y por qué no los otros |

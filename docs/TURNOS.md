@@ -75,6 +75,35 @@ Y por eso **plegar es lo que mantiene el chat limpio**: un paso con 4 000
 caracteres de detalle no ensucia el chat, porque nadie lo lee hasta que lo
 pide.
 
+## Ejecutar un turno (aquí, en el kit)
+
+Los contratos no sólo se declaran: se EJECUTAN.
+
+```bash
+$ npm run ejecutar -- modulos/ejemplo-hola-mundo "¿qué se decidió sobre el Taller?"
+turno    : esme.nucleo.hola-mundo@0.1.0
+respuesta: {"id":"esme.nucleo.hola-mundo","respuesta":"recuerdo de ¿qué se decidió sobre el Taller?",...}
+tokens   : 47 (respuesta 30 · actividad 8)
+limpieza : 94%
+permisos : montados [mind:read, mind:write, ui:render]
+cambios  : nada
+```
+
+Lo que hace (`core/turnos/ejecuta.ts`):
+
+1. abre el módulo con su **cápsula** y su **puerta**;
+2. le pregunta por la **convención** (`ciclo(consulta)`, o `trocea(fuente, texto)`
+   si es de memoria);
+3. mide el turno: tokens, limpieza, permisos montados;
+4. y calcula **lo que tocó**, en el espacio de trabajo (no en la carpeta del
+   módulo: ésa es el código del agente).
+
+Y una regla que se respeta porque es de la casa: **lo concedido manda**. Un
+módulo que pide `mind:read` y no lo tiene concedido corre sin puerta (y el
+turno lo dice). La cápsula, además, cierra `node:fs`: un módulo que quiere
+escribir, escribe por la puerta (`fs:project`), y lo que cambia es el
+proyecto.
+
 ## De dónde viene la idea
 
 De las capturas de PandaCode (las de los marcadores de X): *«Tool steps fold

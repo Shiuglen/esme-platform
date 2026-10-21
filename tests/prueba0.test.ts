@@ -64,10 +64,10 @@ describe("la puerta de la Prueba 0 (el número no puede empeorar)", () => {
 
   it("el ciclo del módulo de herramienta sigue funcionando", async () => {
     const { ciclo } = await import("../modulos/ejemplo-hola-mundo/src/index.ts");
-    // mente vacía: el ciclo no explota
-    expect(ciclo(() => []).recuerdos).toEqual([]);
-    // mente poblada: el ciclo recuerda y devuelve lo recordado
-    expect(ciclo(() => [{ id: "m1" }, { id: "m2" }]).recuerdos).toHaveLength(2);
+    // sin puerta (en proceso no la hay): el ciclo no explota y lo dice
+    const r = await ciclo("¿qué se decidió sobre el Taller?");
+    expect(r.recuerdos).toEqual(0);
+    expect(r.respuesta).toContain("no hay puerta");
   });
 
   it("la base commiteada es la de verdad (números, no Theater)", () => {

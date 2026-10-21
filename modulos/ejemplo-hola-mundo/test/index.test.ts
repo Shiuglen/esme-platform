@@ -1,18 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { ciclo, MODULO_ID } from "../src/index.ts";
+import { ciclo, resumen, MODULO_ID } from "../src/index.ts";
 
 describe("módulo de referencia (el oro de la tienda)", () => {
   it("declara su id en el manifiesto", () => {
     expect(MODULO_ID).toBe("esme.nucleo.hola-mundo");
   });
 
-  it("el ciclo recall → saludo devuelve lo recordado", () => {
-    const r = ciclo((q) => [{ id: "m1" }, { id: "m2" }]);
-    expect(r.recuerdos).toHaveLength(2);
+  it("sin puerta, el ciclo lo dice (no finge que consultó)", async () => {
+    const r = await ciclo("¿qué se decidió sobre el Taller?");
     expect(r.id).toBe(MODULO_ID);
+    expect(r.recuerdos).toBe(0);
+    expect(r.escribio).toBe(false);
+    expect(r.respuesta).toContain("no hay puerta");
   });
 
-  it("con la mente vacía, el ciclo no explota", () => {
-    expect(ciclo(() => []).recuerdos).toEqual([]);
+  it("el resumen es pura (los datos cruzan el worker)", () => {
+    expect(resumen(["a", "b"]).total).toBe(2);
+    expect(resumen([]).primera).toBeNull();
   });
 });

@@ -280,9 +280,17 @@ export function diffLineas(
   return null; // demasiado grande: el número se queda sin saber
 }
 
-/** Las líneas de un texto (con los finales de línea fuera). */
+/**
+ * Las líneas de un texto (con los finales de línea fuera).
+ *
+ * El último salto de línea no cuenta como una línea más: un fichero que
+ * acaba en «\n» tiene N líneas, no N+1 (si no, cada fichero «contaría» una
+ * línea de más y los números del diff serían falsos).
+ */
 export function lineasDe(texto: string): string[] {
-  return texto.split("\n");
+  const lineas = texto.split("\n");
+  if (lineas.length > 1 && lineas[lineas.length - 1] === "") lineas.pop();
+  return lineas;
 }
 
 /**

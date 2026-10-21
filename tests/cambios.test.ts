@@ -127,10 +127,10 @@ describe("los cambios de un turno", () => {
       expect(porRuta["src/a.ts"].estado).toBe("modificado");
       expect(porRuta["src/a.ts"].anadidos).toBe(1);
       expect(porRuta["nuevo.txt"].estado).toBe("anadido");
-      expect(porRuta["nuevo.txt"].anadidos).toBe(2); // el fichero entero
+      expect(porRuta["nuevo.txt"].anadidos).toBe(1); // el fichero entero
       expect(porRuta["b.txt"].estado).toBe("borrado");
-      expect(porRuta["b.txt"].borrados).toBe(2); // se iba entero
-      expect(r.anadidos).toBe(3); // 1 del modificado + 2 del nuevo
+      expect(porRuta["b.txt"].borrados).toBe(1); // se iba entero
+      expect(r.anadidos).toBe(2); // 1 del modificado + 1 del nuevo
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

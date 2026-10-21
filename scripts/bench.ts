@@ -51,39 +51,49 @@ const benchPro = armaBench(
 );
 const veredictoPro = veredicto(benchPro);
 
-// el ciclo de hola-mundo ha de correr de verdad contra una mente de juguete
-const { ciclo, MODULO_ID: HOLA_ID } = await import(
-  "../modulos/ejemplo-hola-mundo/src/index.ts"
-);
-const escenarios: ((recordados: string[]) => { id: string }[])[] = [
-  // 1. mente vacía: el ciclo no explota
-  () => [],
-  // 2. mente poblada: el ciclo recuerda y devuelve lo recordado
-  () => [{ id: "m-saludo" }, { id: "m-otro" }],
-  // 3. mente con historia: devuelve lo primero que hay
-  (recordados) => (recordados.length ? [{ id: recordados[0] }] : []),
+// el ciclo de hola-mundo ha de correr de verdad contra una mente de juguete.
+// Ahora el módulo habla POR LA PUERTA (que es la convención de la casa), así
+// que se mide en su worker, como el de la puerta: in proceso no hay puerta.
+const HOLA_ID = "esme.nucleo.hola-mundo";
+const HOLA_PERMISOS = ["mind:read", "mind:write", "ui:render"];
+const menteHola = {
+  recall: async (q: string) => [{ id: "r1", texto: `recuerdo de ${q}` }],
+  remember: async () => ({ id: "m1" }),
+};
+const hostHola = abreHost(join(raiz, "modulos", "ejemplo-hola-mundo", "dist", "index.js"), {
+  permisos: HOLA_PERMISOS,
+  concedidas: HOLA_PERMISOS,
+  mente: menteHola,
+  id: HOLA_ID,
+  version: "0.1.0",
+});
+const consultasHola = [
+  "¿qué se decidió sobre el Taller?",
+  "¿qué sabe la mente del taller?",
+  "¿qué se dijo de la ventana?",
 ];
 let cicloOk = true;
 let tokensSum = 0;
-for (const responder of escenarios) {
+for (const consulta of consultasHola) {
   try {
-    let recordados: string[] = [];
-    for (let vuelta = 0; vuelta < 2; vuelta++) {
-      const r = ciclo(() => responder(recordados));
-      recordados = [...recordados, r.saludo];
-      tokensSum += Math.ceil(JSON.stringify(r).length / 4);
+    const r = await hostHola.call("ciclo", consulta);
+    if (!r) {
+      cicloOk = false;
+      continue;
     }
+    tokensSum += Math.ceil(JSON.stringify(r).length / 4);
   } catch {
     cicloOk = false;
   }
 }
+await hostHola.cerrar();
 const benchHola: BenchCiclo = {
   modulo: HOLA_ID,
   version: "0.1.0",
   fecha: new Date().toISOString().slice(0, 10),
-  casos: escenarios.length,
+  casos: consultasHola.length,
   ciclo_ok: cicloOk,
-  tokens_ciclo: tokensSum / (escenarios.length * 2),
+  tokens_ciclo: tokensSum / consultasHola.length,
 };
 const veredictoHola = validaCiclo(benchHola);
 

@@ -12,12 +12,12 @@
         "fecha": "2026-10-21",
         "casos": 3,
         "ciclo_ok": true,
-        "tokens_ciclo": 19.166666666666668
+        "tokens_ciclo": 29.666666666666668
       },
       "firma_ok": true,
       "artefacto": {
-        "tar": "bce2f8b9c8a4f6eeab063b1ea8a8dd26e95a9f8a4df746e1c9962d7f64845757",
-        "bytes": 1822
+        "tar": "00ee6987b38946bd423c6cd88356503cb27c6cbcccbecc46b248a01d6d1ecfc6",
+        "bytes": 2483
       },
       "publicado_por": "adaaf79999a7296f",
       "publicado_en": "2026-10-21"
@@ -68,10 +68,10 @@
   ],
   "signature": {
     "algorithm": "ed25519-sha512",
-    "signature": "ungUEJceg6rKSah0T4FhnxjTnyW7XWWMz/sFmv2gTlm4Fd1K4DxC5LAKx+OyOE3zVGs2nxwjvXO8YZa8h9c5Cg==",
-    "signed_at": "2026-10-21T05:18:41.622Z",
+    "signature": "Nic+JHVQmBj889ZwFg2mYHokAQVrpJ72TqLmO6kArt+7KsVpSQswWG3SvIeMyM+556Lhvm41sUUBUYljAWtzCQ==",
+    "signed_at": "2026-10-21T05:38:12.765Z",
     "signed_by": "adaaf79999a7296f",
-    "hash": "Ni0RX9O168aKDpFZi9V8M4YqkptEju7k3myCae0kZL8="
+    "hash": "ySMQpueDOtkeELn4eWKDortEG3XufSfZTei/KaOzWBA="
   },
   "claves": {
     "62304bfd9e441c73": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAWMd+6VJIBCckRb2ZcjZ/oEAv/upjD5OWPxR6Gm97yEE=\n-----END PUBLIC KEY-----\n",
