@@ -82,6 +82,7 @@ export function modulos(opts: OpcionesRuntime): RuntimeModulos {
     proyecto: opts.proyecto,
     dominios: opts.dominios,
     programas: opts.programas,
+    rutaLanzamientos: opts.rutaLanzamientos,
     onEvento: opts.onEvento,
     onVista: opts.onVista,
   });

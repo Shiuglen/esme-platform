@@ -14,7 +14,7 @@
  * (el contrato en disco), core/modulos/api.ts (el motor).
  */
 import { existsSync, readdirSync, rmSync, statSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { createPublicKey } from "node:crypto";
 import { instalarRemoto } from "./cliente.ts";
 import { leeManifiesto, rutaEntrada } from "./modulo-manifiesto.ts";
@@ -135,6 +135,8 @@ export function creaRuntimeTienda(
      * nada que lanzar.
      */
     programas?: EntradaProc[];
+    /** Dónde se anota cada lanzamiento (el registro de la casa). */
+    rutaLanzamientos?: string;
   }
 ): RuntimeModulos {
   const programas =
@@ -143,6 +145,8 @@ export function creaRuntimeTienda(
   return modulos({
     ...opts,
     programas,
+    // el registro va junto al de los permisos (la misma casa)
+    rutaLanzamientos: opts.rutaLanzamientos ?? join(dirname(opts.rutaPermisos), "lanzamientos.jsonl"),
     cargar: async () => instaladosEn(opts.dirModulos),
     instalar: async (id, io) =>
       instalaModulo(id, {

@@ -36,6 +36,16 @@ export interface EstadoDoctor {
   tienda: { ok: boolean; via?: string; motivo?: string };
   /** Los programas que esta casa permite lanzar (la puerta `proc:spawn`). */
   programas: Array<{ nombre: string; descripcion: string }>;
+  /** El rastro de los últimos programas lanzados. */
+  rastros: Array<{
+    modulo: string;
+    programa: string;
+    args: string[];
+    codigo: number | null;
+    ms: number;
+    truncado: boolean;
+    timeout: boolean;
+  }>;
   /** El veredicto: la casa está en pie. */
   enPie: boolean;
   /** Los avisos (lo que hay que mirar). */
@@ -54,6 +64,16 @@ export function doctorDeLaCasa(opts: {
   mideCambios?: (inst: Instalado, nueva: EnLaTienda) => { ficheros: unknown[] } | null;
   /** Los programas que esta casa permite lanzar (la puerta `proc:spawn`). */
   programas?: Array<{ nombre: string; descripcion: string }>;
+  /** El rastro de los últimos programas lanzados (qué hizo la casa). */
+  rastros?: Array<{
+    modulo: string;
+    programa: string;
+    args: string[];
+    codigo: number | null;
+    ms: number;
+    truncado: boolean;
+    timeout: boolean;
+  }>;
 }): EstadoDoctor {
   const avisos: string[] = [];
 
@@ -127,6 +147,7 @@ export function doctorDeLaCasa(opts: {
     memoria,
     tienda,
     programas,
+    rastros: opts.rastros ?? [],
     enPie,
     avisos,
   };
@@ -155,6 +176,15 @@ export function renderDoctor(e: EstadoDoctor): string {
       ? `programas : ${e.programas.map((p) => p.nombre).join(", ")} (la puerta de los programas)`
       : "programas : ninguno (la puerta de los programas está cerrada)"
   );
+  // y lo que se lanzó de verdad: el rastro de la capacidad más peligrosa
+  if (e.rastros.length) {
+    lineas.push("lanzados  :");
+    for (const r of e.rastros.slice(0, 5)) {
+      const como = r.args.length ? ` ${r.args.slice(0, 3).join(" ")}` : "";
+      const fin = r.timeout ? " (matado por tiempo)" : r.truncado ? " (salida cortada)" : ` (código ${r.codigo})`;
+      lineas.push(`  · ${r.programa}${como} — ${r.modulo} · ${r.ms} ms${fin}`);
+    }
+  }
   if (e.memoria.length) {
     lineas.push(`memoria   :`);
     for (const m of e.memoria.slice(0, 5)) {

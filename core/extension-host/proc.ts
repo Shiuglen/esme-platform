@@ -74,6 +74,29 @@ export interface PeticionProc {
   maxBytes?: number;
 }
 
+/**
+ * El rastro de un lanzamiento.
+ *
+ * Por qué existe. Una puerta que lanza programas y no deja rastro es una
+ * puerta que trabaja a ciegas: nadie puede decir después qué se lanzó, con
+ * qué argumentos ni cómo acabó. La trazabilidad no es un adorno: es lo que
+ * hace revisable la capacidad más peligrosa de la casa.
+ */
+export interface RastroProc {
+  /** El nombre lógico del programa. */
+  programa: string;
+  /** Los argumentos (tal cual los pidió el módulo). */
+  args: string[];
+  /** El código de salida (null si lo mataron o no arrancó). */
+  codigo: number | null;
+  /** Cuánto tardó (ms). */
+  ms: number;
+  /** Si la salida se cortó por el tope. */
+  truncado: boolean;
+  /** Si lo mataron por tiempo. */
+  timeout: boolean;
+}
+
 /** Lo que el módulo recibe. */
 export interface ResultadoProc {
   /** El código de salida (null si lo mató el tiempo o no arrancó). */

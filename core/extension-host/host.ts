@@ -21,7 +21,7 @@ import { MindMethods, CAPACIDAD_POR_METODO, type MindMethod, type MenteViva } fr
 import { BOOTSTRAP } from "./sandbox.ts";
 import { confinaRuta } from "../modulos/rutas.ts";
 import type { VistaModulo } from "./puerta.ts";
-import { ejecutaPrograma, type EntradaProc } from "./proc.ts";
+import { ejecutaPrograma, type EntradaProc, type RastroProc } from "./proc.ts";
 
 export interface Respuesta {
   nonce: string;
@@ -64,6 +64,13 @@ export interface OpcionesHost {
   programas?: EntradaProc[];
   /** Quién recibe los eventos que emite el módulo. */
   onEvento?: (evento: string, carga: unknown) => void;
+  /**
+   * Quién recibe el RASTRO de cada programa lanzado.
+   *
+   * Sin esto, la puerta de los programas trabaja a ciegas: nadie puede decir
+   * después qué se lanzó, con qué argumentos ni cómo acabó.
+   */
+  onPrograma?: (rastro: RastroProc) => void;
   /** Quién recibe las vistas que el módulo propone. */
   onVista?: (vista: VistaModulo) => void;
   /** El id y la versión del módulo (para la puerta y los eventos). */
@@ -381,7 +388,7 @@ export function abreHost(
             Object.entries(carga.env as Record<string, unknown>).map(([k, v]) => [k, String(v)])
           )
         : undefined;
-    return await ejecutaPrograma(
+    const r = await ejecutaPrograma(
       {
         programa,
         args,
@@ -395,6 +402,16 @@ export function abreHost(
         proyecto: opts.proyecto ?? null,
       }
     );
+    // el rastro: qué se lanzó, con qué y cómo acabó
+    opts.onPrograma?.({
+      programa,
+      args,
+      codigo: r.codigo,
+      ms: r.ms,
+      truncado: r.truncado,
+      timeout: r.timeout,
+    });
+    return r;
   };
 
   const listo = new Promise<void>((res, rej) => {

@@ -16,6 +16,7 @@ import { instaladosEn } from "../tienda/modulos.ts";
 import { planDeActualizacion } from "../core/modulos/actualiza.ts";
 import { Consentimientos } from "../core/modulos/consentimiento.ts";
 import { ProgramasPermitidos, rutaProgramasDe } from "../core/modulos/programas.ts";
+import { leeLanzamientos } from "../core/modulos/lanzamientos.ts";
 
 const raizKit = resolve(import.meta.dirname, "..");
 const dirModulos = process.env.ESME_MODULOS ?? join(process.env.HOME ?? "/root", ".esme", "modulos");
@@ -74,6 +75,8 @@ const estado = doctorDeLaCasa({
   rutaLedger: join(raizKit, "tienda", "rotaciones.json"),
   memoria,
   programas: programas.map((p) => ({ nombre: p.nombre, descripcion: p.descripcion })),
+  // el rastro: lo que la casa ha lanzado de verdad (el registro de la casa)
+  rastros: leeLanzamientos(join(dirModulos, "lanzamientos.jsonl")),
 });
 
 if (tiene("--json")) console.log(JSON.stringify(estado, null, 2));

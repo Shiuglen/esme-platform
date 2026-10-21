@@ -14,7 +14,8 @@
  */
 import { abreHost, type Host, type OpcionesHost } from "../extension-host/host.ts";
 import type { VistaModulo } from "../extension-host/puerta.ts";
-import type { EntradaProc } from "../extension-host/proc.ts";
+import type { EntradaProc, RastroProc } from "../extension-host/proc.ts";
+import { registraLanzamiento } from "./lanzamientos.ts";
 import type { Manifest } from "../ipc/module-schema.ts";
 import type { MenteViva } from "../ipc/mind-schema-types.ts";
 import { Consentimientos, type EstadoPermisos } from "./consentimiento.ts";
@@ -67,6 +68,13 @@ export interface OpcionesRegistro {
    * la lista de los permitidos. Quien concede decide también QUÉ se lanza.
    */
   programas?: EntradaProc[];
+  /**
+   * Dónde se anota cada lanzamiento (el registro de la casa).
+   *
+   * Sin esta ruta, el rastro vive sólo en memoria: sirve mientras el proceso
+   * aguanta, y no sirve para nada (la pregunta se hace después).
+   */
+  rutaLanzamientos?: string;
   /** Quién recibe los eventos. */
   onEvento?: (evento: string, carga: unknown) => void;
   /** Quién recibe las vistas. */
@@ -77,6 +85,8 @@ export class Registro {
   private readonly instalados = new Map<string, ModuloInstalado>();
   private readonly hosts = new Map<string, Host>();
   private readonly errores = new Map<string, string>();
+  /** El rastro de los programas lanzados (quién, qué y cómo acabó). */
+  private readonly rastrosDe: Array<RastroProc & { modulo: string; en: number }> = [];
   readonly permisos: Consentimientos;
 
   constructor(private readonly opts: OpcionesRegistro) {
@@ -109,6 +119,17 @@ export class Registro {
   /** Todos los módulos, con su estado. */
   lista(): ModuloVivo[] {
     return [...this.instalados.keys()].map((id) => this.vista(id));
+  }
+
+  /**
+   * El rastro de los programas lanzados (los últimos, del más nuevo al más
+   * viejo).
+   *
+   * Es el «qué hizo la casa» de la capacidad que más puede hacer daño: qué
+   * programa se lanzó, con qué argumentos y cómo acabó.
+   */
+  rastros(limite = 20): Array<RastroProc & { modulo: string; en: number }> {
+    return this.rastrosDe.slice(-limite).reverse();
   }
 
   /** La vista de un módulo: su estado y sus permisos. */
@@ -152,6 +173,15 @@ export class Registro {
       programas: this.opts.programas,
       onEvento: this.opts.onEvento,
       onVista: this.opts.onVista,
+      onPrograma: (r) => {
+        const rastro = { ...r, modulo: m.id, en: Date.now() };
+        this.rastrosDe.push(rastro);
+        // y al registro de la casa (si le dijeron dónde está): el rastro
+        // tiene que sobrevivir al proceso
+        if (this.opts.rutaLanzamientos) {
+          registraLanzamiento(this.opts.rutaLanzamientos, rastro);
+        }
+      },
       id: m.id,
       version: m.version,
     };
