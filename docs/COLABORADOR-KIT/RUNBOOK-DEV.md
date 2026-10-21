@@ -14,6 +14,7 @@
 | `npm run panel` | el panel de la tienda, en markdown |
 | `npm run firma:index` | firma el índice y lo verifica (en un paso) |
 | `npm run rotar` | certifica una llave nueva: la vieja atestigua, la nueva firma |
+| `npm run delegar -- <pub.pem>` | da derecho a publicar a otra llave (la tienda federada) |
 | `npm run skills:juzgar -- --medir` | el juez de las skills, con medición real |
 | `npm run mind -- <verbo>` | la mente portable (`absorber`, `exportar`, `zip`, `rumbo`…) |
 | `npm run instalar` | instala un módulo de la tienda (verifica antes) |

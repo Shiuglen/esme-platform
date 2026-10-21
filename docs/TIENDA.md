@@ -76,6 +76,32 @@ módulo (construir, medir, juzgar) antes de tocar el índice. Un módulo que el
 juez echa, no entra — ni aunque traiga la firma puesta, ni aunque lo traiga
 alguien de confianza.
 
+### La estirpe que delega (la tienda federada de verdad)
+
+Sin delegar, publicar un módulo de un tercero exige que el mantenedor firme
+CADA vez: la tienda sería suya, no de la casa. Con `npm run delegar`, la raíz
+(quien la tenga) le dice a otra llave «publicas en mi tienda»:
+
+```bash
+npm run delegar -- /ruta/al/otro.pub.pem --motivo "publicador de confianza"
+```
+
+Lo que pasa entonces:
+
+- esa llave firma su artefacto y **el índice**, con su propia firma;
+- quien instala desde la red lo verifica **igual que siempre**: la raíz lo
+  avala, transitivamente (la vía se llama «delegada»);
+- y la raíz **sigue siendo la raíz**: delegar no transfiere nada, y la
+  delegación se puede **revocar** (`npm run revocar`).
+
+La delegación va en el ledger público (`tienda/rotaciones.json`), con su
+motivo escrito, y es la firma de la mandante sobre ella. Una delegación mal
+firmada no vale (lo comprueba el consumidor, no la confianza).
+
+> Delegar el índice **es** delegar la tienda: por eso es un acto explícito,
+> queda escrito, y se puede revocar. No es un botón de «publicar sin
+> control».
+
 Y lo que nunca se negocia: quien no tiene derecho no publica. La llave que
 firma el índice tiene que estar en la estirpe de la raíz congelada
 (`tienda/rotacion.ts`); si no, el índice que sale no lo verifica nadie y la

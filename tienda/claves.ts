@@ -7,7 +7,13 @@ import { join, resolve } from "node:path";
 import { createHash, createPublicKey } from "node:crypto";
 import { generarPar } from "./firma.ts";
 import { leeRaiz } from "./raiz.ts";
-import { huellaDePub, leerLedger, llevaDeRaiz, rutaRotaciones } from "./rotacion.ts";
+import {
+  huellaDePub,
+  leerLedger,
+  llevaDeRaiz,
+  llevaDeRaizConDelegados,
+  rutaRotaciones,
+} from "./rotacion.ts";
 
 const raiz = resolve(import.meta.dirname, "..");
 
@@ -113,18 +119,25 @@ export function puedePublicar(
   const huellaRaiz = huellaDePub(pubRaiz);
   const huella = huellaDePub(clave.pub);
   if (huella === huellaRaiz) return { ok: true, razon: "esta llave es la raíz" };
-  const paseo = llevaDeRaiz(
+  const ledger = leerLedger(rutaRotaciones(raizRepo));
+  const paseo = llevaDeRaiz(huellaRaiz, huella, ledger.sucesiones, pubRaiz);
+  if (paseo.ok)
+    return { ok: true, razon: `la estirpe la avala (${paseo.pasos.join(" → ")})` };
+  // o la raíz (o su estirpe) le delegó el derecho a publicar
+  const delegada = llevaDeRaizConDelegados(
     huellaRaiz,
     huella,
-    leerLedger(rutaRotaciones(raizRepo)).sucesiones,
+    ledger.sucesiones,
+    (ledger.delegaciones ?? []).filter((d) => d.ambito === "publicar"),
     pubRaiz
   );
-  return paseo.ok
-    ? { ok: true, razon: `la estirpe la avala (${paseo.pasos.join(" → ")})` }
+  return delegada.ok
+    ? { ok: true, razon: `la raíz la delegó (${delegada.pasos.join(" → ")})` }
     : {
         ok: false,
         razon:
           `esta llave (${huella}) no está en la estirpe de la raíz congelada (${huellaRaiz}): ` +
-          "publica desde la máquina que tiene la llave de la raíz, o certifícala con `npm run rotar`",
+          "publica desde la máquina que tiene la llave de la raíz, o certifícala con `npm run rotar`" +
+          " (o pídele a quien la tenga que te delegue con `npm run delegar`)",
       };
 }

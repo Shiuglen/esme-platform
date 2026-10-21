@@ -89,6 +89,7 @@
     "modulos:juzgar": "tsx scripts/juzgar-modulos.ts",
     "revocar": "tsx scripts/revocar.ts",
     "rotar": "tsx scripts/rotar.ts",
+    "delegar": "tsx scripts/delegar.ts",
     "llave:release": "tsx scripts/llave-release.ts",
     "incidente": "tsx scripts/incidente.ts",
     "skills:juzgar": "tsx scripts/juzgar-skills.ts",
