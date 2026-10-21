@@ -43,7 +43,7 @@ describe("exclusión de rutas (empresa y terceros)", () => {
   });
 
   it("el proyecto de la empresa nombrado de otra forma también queda fuera", () => {
-    // la exclusión se没能 por segmento: ruta/*/secreto.md no pasa si la trucan
+    // la exclusión se hace por segmento: ruta/*/secreto.md no pasa si la trucan
     expect(excluido("otra/carpeta/server.key", EXCLUSION_MINIMA)).toBe(true);
   });
 

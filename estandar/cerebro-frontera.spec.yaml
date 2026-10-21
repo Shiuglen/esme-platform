@@ -94,6 +94,33 @@ contrato:
     nota: >-
       La mente absorbe tu X: una cosecha entra como recuerdos, con su fuente
       (x:bookmarks, x:fyp…). Es lo que la Tienda llama «lo que guardaste».
+  # ——— el espejo (REA): lo que la mente sabe de un PROGRAMA ———
+  # El REA mira un programa (su código) y lo que vio entra en la memoria de
+  # la mente. Lo que se sabe de un programa se pide aquí, en vez de adivinarlo.
+  rea_absorber:
+    metodo: POST
+    ruta: "/rea/absorber"
+    cuerpo: "{ ruta: string, motivo?: string }  (la ruta del programa)"
+    responde: "{ ok: boolean, ... }  (qué entró en la memoria)"
+    nota: >-
+      El espejo: mirar un programa y absorber lo que se vio. Lo que se sabe
+      de él queda en la mente, con su fuente (la ruta).
+  rea_recuerdos:
+    metodo: POST
+    ruta: "/rea/recuerdos"
+    cuerpo: "{ ruta: string }  (la ruta del programa)"
+    responde: "{ ok: boolean, fuente: string, recuerdos: string[] }"
+    nota: >-
+      La puerta del «recrear»: quien va a rehacer una pieza de un programa pide
+      aquí lo que de él se sabe, en vez de adivinarlo.
+  rea_comparar:
+    metodo: POST
+    ruta: "/rea/comparar"
+    cuerpo: "{ ruta: string, contra?: string }  (la ruta y, si se quiere, contra qué)"
+    responde: "{ ok: boolean, texto: string, ... }  (qué cambió entre dos versiones)"
+    nota: >-
+      Se compara lo guardado (sin volver a analizar): la diferencia entre la versión
+      de antes y la de ahora.
   equipo:
     metodo: POST
     ruta: "/equipo"
