@@ -28,7 +28,9 @@ permissions: []                     # mind:read | mind:write | ipc:emit | fs:pro
 # es cosa de la persona: ningún permiso de módulo permite cambiarlo.
 # `proc:spawn` deja lanzar PROGRAMAS por su nombre lógico (el anfitrión decide
 # cuáles; el módulo no ve rutas ni el entorno). Pide también `fs:project`: el
-# hijo nace dentro del proyecto y no ve las llaves de la persona.
+# hijo nace dentro del proyecto y no ve las llaves de la persona. Y necesita un
+# motor que vea herramientas: lo que el módulo lance en la máquina lo tiene que
+# poder ver alguien (docs/MOTORES.md).
 # Referencia: docs/REA.md, core/extension-host/proc.ts.
 
 # --- Decisión con Laya (opcional) ---

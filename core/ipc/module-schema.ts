@@ -101,6 +101,19 @@ export const ManifestSchema = z
         path: ["permissions"],
       });
     }
+    // Y lo mismo con los procesos: pedir proc: sin proc:spawn declarado → rechazo.
+    // Una capacidad que abre la puerta a lanzar programas no se pide con otro
+    // nombre (el enum la encierra; esta regla lo dice en voz alta).
+    const pideProcesoOculto = m.permissions.filter(
+      (p) => p.startsWith("proc:") && p !== "proc:spawn"
+    );
+    if (pideProcesoOculto.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `capacidades proc: no existentes fuera del enum cerrado (${pideProcesoOculto.join(", ")}); solo se declara proc:spawn`,
+        path: ["permissions"],
+      });
+    }
   });
 
 export type Manifest = z.infer<typeof ManifestSchema>;

@@ -48,8 +48,12 @@ motor, si puede alojarlo **y por qué**:
 2. **herramientas** — un módulo que emite eventos (`ipc:emit`) o pinta vistas
    (`ui:render`) necesita un motor con `tools: true`.
 3. **red** — un módulo que pide `net:fetch` necesita un motor con `net: true`.
-4. **declaración** — si el módulo declara con qué motores trabaja
-   (`engines:` en su manifiesto), esa declaración manda sobre las tres
+4. **procesos** — un módulo que pide `proc:spawn` también necesita `tools: true`:
+   sus efectos quedan **fuera de la cápsula**, y si el motor no ve
+   herramientas, lo que el módulo hizo en la máquina no lo ve nadie. El módulo
+   trabaja a ciegas.
+5. **declaración** — si el módulo declara con qué motores trabaja
+   (`engines:` en su manifiesto), esa declaración manda sobre las cuatro
    anteriores.
 
 Cada «no» lleva su motivo: una puerta cerrada sin llave no se puede

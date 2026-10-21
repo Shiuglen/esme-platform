@@ -15,6 +15,7 @@ import { cargaMotorCached, MOTORES_CONOCIDOS } from "../motores/laya-adapter.ts"
 import { juzgaPielDeModulo } from "./estandar/piel-check.ts";
 import { juzgaAgenteDeModulo } from "./estandar/agente-check.ts";
 import { compruebaConformidad } from "./estandar/conformidad.ts";
+import { EXCEPCIONES_ALCANCE, huerfanosDelNucleo } from "./estandar/alcance.ts";
 
 const raiz = resolve(import.meta.dirname, "..");
 const dir = join(raiz, "modulos");
@@ -134,6 +135,14 @@ for (const f of separaciones) {
   console.error(`✗ ${f.spec}: ${f.problema}`);
 }
 if (!separaciones.length) console.log("✓ specs y código: no se han separado");
+
+// 4. el alcance: ningún fichero del núcleo sin prueba que lo alcance
+const huerfanos = huerfanosDelNucleo(raiz, EXCEPCIONES_ALCANCE);
+for (const h of huerfanos) {
+  fallos++;
+  console.error(`✗ ${h}: está en el núcleo y ninguna prueba lo alcanza`);
+}
+if (!huerfanos.length) console.log("✓ núcleo: ningún fichero sin prueba");
 
 if (archivos.length === 0) console.error("no hay modulos en modulos/");
 process.exit(fallos > 0 ? 1 : 0);

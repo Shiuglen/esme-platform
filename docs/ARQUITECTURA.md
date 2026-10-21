@@ -30,7 +30,9 @@ export function assertCoreOnly(feature: string): void { /* throw si feature ∉ 
 
 ### 2. Extension Host — Proceso Separado, V8 Isolate + WASM
 
-**Decisión:** Plugins corren en **child process** (Node `worker_threads` con `isolated-vm`) + **WASM** para código de confianza parcial. `vm2` está descartado explícitamente: abandonado y con fugas de sandbox conocidas. Sandbox por defecto: `deny-all` capability list. Permisos: `mind:read`, `mind:write`, `ipc:emit`, `fs:project`, `net:fetch`, `ui:render`. Cada permiso pide consentimiento interactivo la primera vez (modal Tinta y Luz). Plugins hablan con la mente vía **IPC tipado** (MessagePort + schema Zod), no RPC.
+**Decisión:** Plugins corren en **child process** (Node `worker_threads` con `isolated-vm`) + **WASM** para código de confianza parcial. `vm2` está descartado explícitamente: abandonado y con fugas de sandbox conocidas. Sandbox por defecto: `deny-all` capability list. Permisos: `mind:read`, `mind:write`, `ipc:emit`, `fs:project`, `net:fetch`, `ui:render`, `proc:spawn`. Cada permiso pide consentimiento interactivo la primera vez (modal Tinta y Luz). Plugins hablan con la mente vía **IPC tipado** (MessagePort + schema Zod), no RPC.
+
+`proc:spawn` es la séptima pieza de la puerta (`esme.proc`): el módulo pide al **anfitrión** que lance un programa, por su nombre lógico, con argumentos en array, dentro del proyecto, sin las llaves de la persona y con topes de tiempo y de salida. El módulo no importa `child_process` nunca. Ver [`docs/REA.md`](REA.md).
 
 **Ruta exacta:** `core/extension-host/host.ts`, `core/extension-host/permissions.ts`, `core/ipc/mind-schema.ts` (el contrato), `core/ipc/sdk.ts` (lo que ve el módulo).
 
@@ -254,6 +256,9 @@ structure:
 - `estandar/RACI.md`
 - `.github/workflows/spec-lint.yml`
 - `scripts/estandar/compat-check.ts` (verifica módulo contra motor capability)
+- `scripts/estandar/conformidad.ts` (la spec y el código son la misma cosa)
+- `scripts/estandar/alcance.ts` (el código y las pruebas son la misma cosa: ningún
+  fichero del núcleo queda fuera del alcance de `tests/`)
 
 **Motor capability example:**
 ```yaml

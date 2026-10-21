@@ -97,6 +97,19 @@ describe("las reglas de alojo", () => {
     expect(r.motivo).toContain("red");
   });
 
+  it("los procesos: un módulo que lanza programas necesita que el motor vea herramientas", () => {
+    // `local` no ve herramientas: sus efectos (fuera de la cápsula) no los ve nadie
+    const r = compatDe({ runtime: "python", permisos: ["proc:spawn"] }, motor("local"));
+    expect(r.ok).toBe(false);
+    expect(r.motivo).toContain("proc:spawn");
+    expect(r.motivo).toContain("herramientas");
+  });
+
+  it("los procesos: con un motor que ve herramientas, se puede alojar", () => {
+    const r = compatDe({ runtime: "nodejs", permisos: ["proc:spawn"] }, motor("opencode"));
+    expect(r.ok).toBe(true);
+  });
+
   it("la declaración del módulo manda sobre las reglas", () => {
     const r = compatDe(
       { runtime: "nodejs", permisos: [], engines: ["ollama"] },

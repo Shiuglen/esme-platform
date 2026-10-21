@@ -12,8 +12,11 @@
  *   2. **herramientas**: un módulo que emite eventos o pinta vistas necesita un
  *      motor que vea herramientas.
  *   3. **red**: un módulo que pide `net:fetch` necesita un motor con red.
- *   4. **declaración**: si el módulo declara con qué motores trabaja
- *      (`engines:`), esa declaración manda sobre las tres reglas anteriores.
+ *   4. **procesos**: un módulo que pide `proc:spawn` también necesita que el
+ *      motor vea herramientas: sus efectos quedan fuera de la cápsula, y si
+ *      nadie los ve, el módulo trabaja a ciegas.
+ *   5. **declaración**: si el módulo declara con qué motores trabaja
+ *      (`engines:`), esa declaración manda sobre las cuatro reglas anteriores.
  *
  * Cada regla dice POR QUÉ, no sólo que no. Un "no" sin motivo es una puerta
  * cerrada sin llave; quien llega de fuera tiene que poder arreglarlo.
@@ -52,6 +55,18 @@ export const PERMISOS_CON_HERRAMIENTAS = ["ipc:emit", "ui:render"];
 export const PERMISO_CON_RED = "net:fetch";
 
 /**
+ * El permiso que necesita un motor que vea lo que el módulo hizo en la casa.
+ *
+ * Por qué éste con herramientas. Un módulo con `proc:spawn` lanza programas en
+ * la máquina de la persona: sus efectos quedan FUERA de la cápsula. Si el motor
+ * que lo aloja no ve herramientas, lo que el módulo hizo no lo ve nadie: el
+ * módulo trabaja a ciegas y su resultado no llega a la mente. Es el mismo
+ * motivo por el que `ipc:emit` necesita herramientas, aplicado al efecto más
+ * peligroso de los tres.
+ */
+export const PERMISO_CON_PROCESOS = "proc:spawn";
+
+/**
  * ¿Puede este motor alojar este módulo?
  *
  * El orden de las reglas es el orden de la importancia: si el runtime no está,
@@ -64,7 +79,7 @@ export function compatDe(
 ): Compatibilidad {
   const c = motor.capabilities;
 
-  // 4. la declaración del módulo manda: si dice con qué motores trabaja,
+  // 5. la declaración del módulo manda: si dice con qué motores trabaja,
   //    fuera los demás.
   if (requisito.engines && requisito.engines.length > 0) {
     if (!requisito.engines.includes(motor.id)) {
@@ -109,6 +124,19 @@ export function compatDe(
       motor: motor.id,
       ok: false,
       motivo: `${motor.id} no llega a la red y el módulo pide ${PERMISO_CON_RED}`,
+      instalado,
+    };
+  }
+
+  // 4. los procesos: un módulo que lanza programas hace efectos en la casa;
+  //    si el motor no ve herramientas, lo que el módulo hizo no lo ve nadie.
+  if (requisito.permisos.includes(PERMISO_CON_PROCESOS) && !c.tools) {
+    return {
+      motor: motor.id,
+      ok: false,
+      motivo:
+        `${motor.id} no ve herramientas y el módulo pide ${PERMISO_CON_PROCESOS}: ` +
+        `lo que el módulo lance en la máquina no lo vería nadie`,
       instalado,
     };
   }

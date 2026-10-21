@@ -5,9 +5,9 @@
 | Comando | Qué corre |
 |---|---|
 | `npm ci` | deps del kit |
-| `npm test` | la batería completa (209 tests) |
+| `npm test` | la batería completa (607 tests) |
 | `npm run lint` | `tsc --noEmit`: los tipos no mienten |
-| `npm run spec:lint` | cada `module.yaml` contra su spec |
+| `npm run spec:lint` | cada `module.yaml` contra su spec, la spec contra el código, y ningún fichero del núcleo sin prueba |
 | `npm run test:offline` | la garantía: funciona sin red |
 | `npm run bench` | mide (Prueba 0 + ciclo), empaqueta, firma y publica |
 | `npm run tienda` | bench + verificar: la tienda se comprueba |

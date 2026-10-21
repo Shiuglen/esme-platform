@@ -33,6 +33,12 @@ npm run spec:lint   # cada module.yaml contra su spec
 npm run build       # el paquete compila
 ```
 
+**Y una regla que no se negocia:** el código nuevo llega con su prueba en el
+mismo turno. `npm run spec:lint` lo comprueba: ningún fichero del núcleo puede
+quedarse fuera del alcance de `tests/` (`scripts/estandar/alcance.ts`). Si de
+veras no se puede probar ahí, se declara como excepción, con su motivo, en un
+solo sitio: `EXCEPCIONES_ALCANCE`.
+
 **Antes de nada:** Node `>=22.22.2` y npm `12.2.0` (el `packageManager` del
 `package.json` lo fija). Con npm 12 los scripts de instalación de las
 dependencias están bloqueados salvo los que el proyecto aprueba en
