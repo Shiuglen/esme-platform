@@ -1,5 +1,42 @@
 # Runbook de desarrollo
 
+## Cómo se publica una versión del kit
+
+La era abierta no es «el creador publica»: es **cualquiera publica**. El
+procedimiento está escrito para que no dependa de que nadie recuerde el
+orden.
+
+```bash
+npm run release:check     # el pre-vuelo: dice lo que falta (ver más abajo)
+git tag v0.2.0 && git push --tags   # y el workflow hace el resto
+```
+
+Qué comprueba el pre-vuelo (todo lo que se puede comprobar SIN la llave de
+release, que nunca vive en el repo):
+
+| # | Comprobación | Por qué |
+|---|---|---|
+| 1 | **la versión ha subido** | publicar un número repetido no es publicar |
+| 2 | **tipos, pruebas y specs en verde** | nada entra sin pasar |
+| 3 | **el paquete compila y lleva lo nuevo** | el contrato nuevo, la puerta nueva, su spec y su documento |
+| 4 | **la tienda verifica** (índice y artefactos) | no se publica una tienda rota |
+
+Y lo que hace el workflow (`.github/workflows/release.yml`), que es lo único
+que necesita la llave:
+
+1. vuelve a pasar la calidad (por si acaso);
+2. construye los módulos de ejemplo;
+3. **firma el índice** con la llave de release — y si esa llave no está en la
+   estirpe de la raíz congelada, **la release no sale** (publicar sin derecho
+   no es publicar; el workflow dice por qué);
+4. verifica la tienda firmada con la raíz congelada;
+5. arma el tarball (`npm pack`) y publica la release en GitHub;
+6. avisa al canal.
+
+Lo que **no** se hace: publicar sin la llave, publicar un número sin
+subirlo, publicar con los tests en rojo, ni tocar el índice firmado sin volver
+a firmarlo (si cambian sus bytes, su firma deja de valer).
+
 ## Comandos del kit (este repo)
 
 | Comando | Qué corre |
@@ -13,6 +50,7 @@
 | `npm run tienda` | bench + verificar: la tienda se comprueba |
 | `npm run panel` | el panel de la tienda, en markdown (con lo que pide cada módulo) |
 | `npm run tienda:permisos` | declara en el índice lo que pide cada módulo, y lo vuelve a firmar |
+| `npm run release:check` | el pre-vuelo de una publicación: qué falta antes de etiquetar |
 | `npm run firma:index` | firma el índice y lo verifica (en un paso) |
 | `npm run rotar` | certifica una llave nueva: la vieja atestigua, la nueva firma |
 | `npm run delegar -- <pub.pem>` | da derecho a publicar a otra llave (la tienda federada) |

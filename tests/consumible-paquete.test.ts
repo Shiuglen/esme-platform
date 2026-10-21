@@ -16,7 +16,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, symlinkSync, existsSync, rmSync } from "node:fs";
+import { mkdtempSync, mkdirSync, symlinkSync, existsSync, rmSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
@@ -34,7 +34,13 @@ function kitInstalado(): string {
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
   });
-  const tgz = join(trabajo, "esme-platform-0.1.0.tgz");
+  // el nombre del tarball lleva la versión (que cambia: por eso se lee del
+  // package.json y no se escribe aquí)
+  const pkg = JSON.parse(readFileSync(join(raizKit, "package.json"), "utf8")) as {
+    name: string;
+    version: string;
+  };
+  const tgz = join(trabajo, `${pkg.name}-${pkg.version}.tgz`);
   expect(existsSync(tgz), "npm pack no hizo el tarball").toBe(true);
 
   // 2. se abre (un .tgz es un tar)
