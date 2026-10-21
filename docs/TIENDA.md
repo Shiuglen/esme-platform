@@ -24,18 +24,30 @@ build → medir (bench) → empaquetar (tgz reproducible) → firmar (Ed25519)
    ≥ +0,01 o −10% tokens), los `tool` por el **ciclo de extremo a extremo**
    (`BenchCiclo`: ≥ 3 escenarios, tope 500 tokens/ciclo). `npm run bench`
    mide, registra, firma y publica el panel en un solo comando.
-3. **Empaque reproducible** (`tienda/empaque.ts`): tarball determinista —
-   misma carpeta → mismos bytes → mismo sha256. La firma vive FUERA del
-   paquete (`tienda/firmas/<id>.artefacto.json`), si no el paquete cambia en
-   cada firma y el sha nunca se estabiliza.
-4. **Firma:** Ed25519 vía `node:crypto` (cero dependencias). El manifiesto
+3. **Empaque reproducible** (`tienda/empaque.ts`, `tienda/tar.ts`, `tienda/gzip.ts`):
+   tarball determinista — misma carpeta → mismos bytes → mismo sha256. La firma
+   vive FUERA del paquete (`tienda/firmas/<id>.artefacto.json`), si no el
+   paquete cambia en cada firma y el sha nunca se estabiliza.
+   El tar y el gzip se escriben **aquí**, no se invocan del sistema: los flags
+   que hacen reproducible un tar son de GNU tar (en macOS y Windows no
+   existen) y la cabecera de gzip lleva el sistema operativo dentro (el mismo
+   módulo daba dos hashes según dónde se empaquetara). Los modos del paquete
+   son canónicos (0644/0755), no los del disco: dependen del `umask` de cada
+   máquina. Con eso, **los bytes son los mismos en Linux, macOS y Windows** —
+   y la CI lo comprueba en los tres.
+4. **Desempaquetado propio** (`tienda/untar.ts`): el paquete de un módulo es
+   un tar escrito por alguien de otra casa, así que el confine lo pone el
+   código, no la herramienta: un nombre con `..`, una ruta absoluta o un
+   enlace simbólico que apunte fuera se **rechazan** (no se limpian: se dice
+   que no).
+5. **Firma:** Ed25519 vía `node:crypto` (cero dependencias). El manifiesto
    declara la huella de la clave que firmó; el libro de `tienda/firmas/`
    guarda la firma de los bytes. El índice completo se re-firma cada ciclo.
-5. **Verificación del consumidor** (`scripts/verificar.ts`, `tienda/receptor.ts`):
+6. **Verificación del consumidor** (`scripts/verificar.ts`, `tienda/receptor.ts`):
    quien descarga no confía — verifica la firma del índice, el hash del
    índice contra el libro, los bytes del tar contra lo firmado, y solo
    entonces desempaqueta (`npm run verificar`, `npm run instalar <id>`).
-6. **Activación** (`scripts/instalar.ts`): el módulo corre en SU worker del
+7. **Activación** (`scripts/instalar.ts`): el módulo corre en SU worker del
    extension host con los permisos exactos del manifiesto; la mente nunca
    sale del core (`core/extension-host/host.ts`).
 

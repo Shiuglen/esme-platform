@@ -137,6 +137,17 @@ const benchPuerta: BenchCiclo = {
 };
 const veredictoPuerta = validaCiclo(benchPuerta);
 
+// ——— 1bis. REGISTRAR LA MEDIDA: el informe se escribe ANTES de empaquetar ———
+// El paquete tiene que llevar el informe con el que se midió. Si se
+// empaqueta antes de escribirlo, el artefacto publicado lleva el informe de
+// la corrida ANTERIOR: lo que se firma no es lo que se midió.
+escribir(join(raiz, "modulos", "ejemplo-hola-mundo", "bench.json"), benchHola);
+escribir(join(raiz, "modulos", "ejemplo-troceo-pro", "bench.json"), benchPro);
+escribir(join(raiz, "modulos", "ejemplo-puerta", "bench.json"), {
+  ...benchPuerta,
+  sondas: [{ fn: "demuestra", args: ["¿qué se decidió sobre el Taller?", "el módulo de la puerta escribe esto"] }],
+});
+
 // ——— 2. EMPAQUETAR: tarball reproducible por módulo ———
 // si esta llave no puede publicar, los paquetes se montan en un directorio de
 // trabajo: la tienda publicada (tarballs firmados) no se toca de lejos.
@@ -155,13 +166,6 @@ if (priv && publicable.ok) {
   // la huella real de la clave: el identificador que revoca o declara
   const pubPem = clave.pub;
   const huella = clave.huella;
-
-  escribir(join(raiz, "modulos", "ejemplo-hola-mundo", "bench.json"), benchHola);
-  escribir(join(raiz, "modulos", "ejemplo-troceo-pro", "bench.json"), benchPro);
-  escribir(join(raiz, "modulos", "ejemplo-puerta", "bench.json"), {
-    ...benchPuerta,
-    sondas: [{ fn: "demuestra", args: ["¿qué se decidió sobre el Taller?", "el módulo de la puerta escribe esto"] }],
-  });
 
   for (const p of paquetes) {
     mkdirSync(join(raiz, "tienda", "firmas"), { recursive: true });

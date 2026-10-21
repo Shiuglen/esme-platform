@@ -3,15 +3,16 @@
 // lo firmado (firma de artefacto + hash del índice + firma del índice),
 // desempaqueta en su jardín de instalaciones y deja el módulo listo para el
 // extension host. Si algo no cuadra, NO se instala: el veredicto es la puerta.
-import { execFileSync } from "node:child_process";
 import { createHash, createPublicKey } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
+import { gunzipSync } from "node:zlib";
 import { join, resolve } from "node:path";
 import * as yaml from "js-yaml";
 import { verificarBytes } from "./firma.ts";
 import { estaRevocada, rutaRevocaciones } from "./revocacion.ts";
 import { confiaIndexChain, huellaDePub } from "./rotacion.ts";
 import { leeRaiz } from "./raiz.ts";
+import { desempaceta } from "./untar.ts";
 
 export interface Instalacion {
   id: string;
@@ -127,7 +128,10 @@ export function instalar(
   );
   const dir = join(destino, id.replace(/\./g, "__"));
   mkdirSync(dir, { recursive: true });
-  execFileSync("tar", ["-xzf", rutaTar, "-C", dir]);
+  // el desempaquetado es nuestro (tienda/untar.ts): el confine de las rutas
+  // lo pone el código, no el tar del sistema, y así funciona en cualquier
+  // máquina (Windows included).
+  desempaceta(gunzipSync(readFileSync(rutaTar)), dir);
 
   // el módulo desempaquetado ha de ser el que decía el manifiesto
   const manifiesto = yaml.load(

@@ -1,7 +1,7 @@
 {
   "modulo": "esme.nucleo.troceo-pro",
   "version": "0.1.0",
-  "fecha": "2026-10-20",
+  "fecha": "2026-10-21",
   "casos": 12,
   "recall_base": 0.25,
   "recall_con": 1,

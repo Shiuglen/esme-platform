@@ -2,12 +2,19 @@
 // Misma carpeta → mismos bytes → mismo sha256. Nada de fechas de compresión
 // ni propietarios del tar: si el artefacto no se reproduce byte a byte, no
 // hay firma que valga.
-import { execFileSync } from "node:child_process";
-import { gzipSync } from "node:zlib";
+//
+// El tar y el gzip se escriben aquí (tienda/tar.ts, tienda/gzip.ts), no se
+// invocan del sistema: los flags que hacen reproducible un tar son de GNU
+// tar (no existen en macOS ni en Windows) y la cabecera de gzip lleva el
+// sistema operativo dentro (el mismo módulo daba dos hashes distintos según
+// dónde se empaquetara). Los bytes que salen son los MISMOS que los que la
+// casa ya publicó y firmó.
 import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import * as yaml from "js-yaml";
+import { entradasDe, tarDeterminista } from "./tar.ts";
+import { gzipDeterminista } from "./gzip.ts";
 
 export interface Paquete {
   ruta: string;
@@ -28,23 +35,13 @@ export function empaquetar(dirModulo: string, dirDestino: string, nombreTar?: st
   const ruta = `${dirDestino}/${nombre}`;
 
   // tar estable: orden canónico, propietarios numéricos cero, mtime fijo.
-  const tarBytes = execFileSync(
-    "tar",
-    [
-      "--sort=name",
-      "--owner=0",
-      "--group=0",
-      "--numeric-owner",
-      "--mtime=@0",
-      "-cf",
-      "-",
-      "-C",
-      dirModulo,
-      ".",
-    ],
-    { maxBuffer: 64e6 }
-  );
-  const gz = gzipSync(tarBytes, { level: 9 });
+  const entradas = entradasDe(dirModulo);
+  for (const e of entradas) {
+    if (!e.esDir && !e.enlace) {
+      e.contenido = readFileSync(join(dirModulo, e.nombre.replace(/^\.\//, "")));
+    }
+  }
+  const gz = gzipDeterminista(tarDeterminista(entradas));
   writeFileSync(ruta, gz);
   return {
     ruta,

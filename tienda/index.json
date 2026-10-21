@@ -9,15 +9,15 @@
       "bench_ciclo": {
         "modulo": "esme.nucleo.hola-mundo",
         "version": "0.1.0",
-        "fecha": "2026-10-20",
+        "fecha": "2026-10-21",
         "casos": 3,
         "ciclo_ok": true,
         "tokens_ciclo": 19.166666666666668
       },
       "firma_ok": true,
       "artefacto": {
-        "tar": "f953948a94d7e5db55c2c7b0ae75c8019a1198c583b24c9b545d8179f84cc190",
-        "bytes": 1832
+        "tar": "bce2f8b9c8a4f6eeab063b1ea8a8dd26e95a9f8a4df746e1c9962d7f64845757",
+        "bytes": 1822
       }
     },
     {
@@ -27,7 +27,7 @@
       "bench": {
         "modulo": "esme.nucleo.troceo-pro",
         "version": "0.1.0",
-        "fecha": "2026-10-20",
+        "fecha": "2026-10-21",
         "casos": 12,
         "recall_base": 0.25,
         "recall_con": 1,
@@ -37,8 +37,8 @@
       },
       "firma_ok": true,
       "artefacto": {
-        "tar": "08a7e1766481e5bf4870d61f033b3b50744fe0daa08a16c835ae19932ef7d0e1",
-        "bytes": 2555
+        "tar": "fc40c107efa7aa1a3875991dddb7fa78700adbccfe516d0477886e3b45bda681",
+        "bytes": 2488
       }
     },
     {
@@ -48,24 +48,24 @@
       "bench_ciclo": {
         "modulo": "esme.nucleo.puerta",
         "version": "0.1.0",
-        "fecha": "2026-10-20",
+        "fecha": "2026-10-21",
         "casos": 3,
         "ciclo_ok": true,
         "tokens_ciclo": 53
       },
       "firma_ok": true,
       "artefacto": {
-        "tar": "4535f5cadfdc64ccb7eb5a83b8f3549f7556811eb29a1aa0ca6d1e4a51cd1d2b",
-        "bytes": 2405
+        "tar": "6d27878594d6ea017a4a5b52556d90f802363c2f5f942e51fbfe434ff425775c",
+        "bytes": 2390
       }
     }
   ],
   "signature": {
     "algorithm": "ed25519-sha512",
-    "signature": "yy3asTong2UuBWSuK1UCtZiCsL1HEbgPqA8MZfjW9QjHDKwJPYq6+yNC4GLRAvNPTxdVhn3pumsTng25bIA+BA==",
-    "signed_at": "2026-10-20T20:25:33.324Z",
+    "signature": "tiql3YNMeHlWVQcWDbliz29Klgo1riWaFMPi/z5A9OlwlXyARJrYtIxfjL+hPT3xE12DxEVLls7bJ39yJFeMDQ==",
+    "signed_at": "2026-10-21T03:40:27.784Z",
     "signed_by": "adaaf79999a7296f",
-    "hash": "cO4LBolreV6NE0Q/QBcaIbkF901+KhLQbC0gv85M26Q="
+    "hash": "2APpvI1gC+GyqK+MaN6fO8Cfc7HtEJYuJfVMemDV+TE="
   },
   "claves": {
     "62304bfd9e441c73": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAWMd+6VJIBCckRb2ZcjZ/oEAv/upjD5OWPxR6Gm97yEE=\n-----END PUBLIC KEY-----\n",
