@@ -14,6 +14,7 @@ import { licenciasPresentes, nivelDe } from "../core/licensing.ts";
 import { cargaMotorCached, MOTORES_CONOCIDOS } from "../motores/laya-adapter.ts";
 import { juzgaPielDeModulo } from "./estandar/piel-check.ts";
 import { juzgaAgenteDeModulo } from "./estandar/agente-check.ts";
+import { compruebaConformidad } from "./estandar/conformidad.ts";
 
 const raiz = resolve(import.meta.dirname, "..");
 const dir = join(raiz, "modulos");
@@ -125,6 +126,14 @@ for (const d of archivos) {
     }
   }
 }
+
+// 3. la conformidad: las specs y el código son la misma cosa
+const separaciones = compruebaConformidad();
+for (const f of separaciones) {
+  fallos++;
+  console.error(`✗ ${f.spec}: ${f.problema}`);
+}
+if (!separaciones.length) console.log("✓ specs y código: no se han separado");
 
 if (archivos.length === 0) console.error("no hay modulos en modulos/");
 process.exit(fallos > 0 ? 1 : 0);

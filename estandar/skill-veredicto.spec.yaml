@@ -67,6 +67,13 @@ medir:
   # el fichero de verdad: si se lee, cuánto ocupa y si dice lo que dice.
   fichero: "https://raw.githubusercontent.com/<repo>/<commit>/<ruta>/SKILL.md"
   tokens: "caracteres / 4 (la misma cuenta que hace la app en la vista previa)"
+  # Los TOPES del juez (los que el veredicto aplica): por encima de ellos, la
+  # skill entra AVISADA, no fuera. Los números son parte del contrato: si
+  # cambian, cambian aquí y en el juez (y hay un test que lo comprueba).
+  topes:
+    bytes: 1048576        # 1 MiB (el árbol entero)
+    ficheros: 40
+    tokens: 12000         # el SKILL.md que se carga en cada turno
   por_que: >-
     El catálogo es lo que alguien escribió; la medida es del fichero que el
     usuario va a leer. Y como la medida va dentro del veredicto firmado, la app
