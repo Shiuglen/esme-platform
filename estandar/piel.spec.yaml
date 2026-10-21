@@ -1,0 +1,124 @@
+# **Spec abierta v1 — la piel.** Un documento de datos que decide todo lo que se ve.
+# Referencia: docs/ARQUITECTURA.md §12 (gobernanza: la identidad no se skinnea),
+# app/src/renderer/tinta/piel.ts (la casa), docs/TIENDA.md (la tienda).
+#
+# QUÉ ES UNA PIEL: un tema de Esme es un DOCUMENTO, nunca código. Dice el color,
+# la letra, la forma, la densidad, el movimiento y el fondo. La ventana la viste;
+# el kit la juzga; esta spec es el contrato entre las dos.
+#
+# POR QUÉ ESTÁ ESCRITA: «entre dos lenguas solo sobrevive lo que está escrito».
+# La ventana validaba la piel al Ponérsela (tarde y en casa de quien la<viste>);
+# con esta spec, la TIENDA la juzga ANTES de publicarla: una piel que no se lee,
+# o que trae una opción que no existe, no entra en la tienda.
+#
+# Lo que esta spec NO decide: el valor de cada color. Eso lo dice quien escribe
+# la piel; lo que decide es la FORMA (qué opciones existen) y la LECTURA (que
+# tiene que verse).
+
+schema_version: 1
+
+# ——— la forma ———
+forma:
+  version: 1
+  nombre: "texto (máx. 60)"
+  color:
+    tipo: "estilo | gustos | libre"
+    estilo: "uno de `estilos` (no puede ser `propio`: ese es de la casa)"
+    gustos: { tono: "0..360", papel: "0..100", fuerza: "0..100" }
+    libre:
+      noche: { fondo: "#hex", superficie: "#hex", texto: "#hex", acento: "#hex", atencion: "#hex?", peligro: "#hex?", exito: "#hex?" }
+      dia:   { fondo: "#hex", superficie: "#hex", texto: "#hex", acento: "#hex", atencion: "#hex?", peligro: "#hex?", exito: "#hex?" }
+  letra:
+    titulos: "una de `letras`"
+    texto: "una de `letras`"
+    escala: "0.85..1.2"
+  forma:
+    radio: "0..2.5"
+    sombra: "una de `sombras`"
+  densidad: "una de `densidades`"
+  movimiento: "una de `movimientos`"
+  caracter: "una de `caracteres`"
+  fondo: "una de `fondos`"
+  navegacion: "una de `navegaciones`"
+  portada: "una de `portadas`"
+  escena: "una de `escenas`"
+  presencia: "una de `presencias`"
+  piezas: "hueco → variante (ver `piezas`)"
+
+# ——— las opciones que existen ———
+opciones:
+  letras: [funnel, inter, geist, instrument, dmsans, manrope, sora, grotesk, fraunces, newsreader, bodoni, mono]
+  estilos: [esmeralda, quartz, lime, grabado]
+  sombras: [plana, suave, honda]
+  densidades: [compacta, comoda, amplia]
+  movimientos: [nada, sutil, vivo]
+  fondos: [liso, aurora, papel]
+  navegaciones: [leyenda, riel, muelle]
+  portadas: [mando, mente]
+  presencias: [orbe, orbe-voz, cara, ninguna]
+  caracteres: [preciso, pesado, magnetico, elastico, lanzado]
+  escenas: [ninguna, velo, eter, aurora-suave, aurora, seda, iridiscencia, galaxia, prisma, plasma, hilos, rayos, haces]
+
+# ——— las piezas (la capa fina: cada detalle es un hueco) ———
+piezas:
+  superficie: [vidrio, esmerilado, papel, neon, clay, brutal, tinta]
+  saludo: [enfoque, descifrar, brillo, degradado, glitch, fijo]
+  pulsar: [nada, chispas]
+  sonido: [nada, avisos, completo]
+  trabajo: [electrico, estrella, brillo, nada]
+
+# ——— las reglas que no se negocian ———
+reglas:
+  # 1. una piel se LEE: el texto tiene que contrastar con el fondo y con la
+  #    superficie, de día y de noche (WCAG AA para texto normal).
+  legibilidad:
+    minimo: 4.5
+    pares: [["texto", "fondo"], ["texto", "superficie"]]
+    modos: ["noche", "dia"]
+  # 2. una piel se COMPLETA: lo que no trae, se hereda de la base. Por eso
+  #    una piel puede ser sólo un color.
+  completada: "con la piel base"
+  # 3. una piel no inventa: una opción que no está en la lista de arriba no
+  #    existe (ni se «aproxima»).
+  cerrada: true
+
+# ——— la piel de la casa (Tinta y Luz) ———
+# La base: de aquí sale todo lo que una piel no dice. Tinta azul profunda,
+# texto color papel y luz bioluminiscente sólo en lo vivo.
+base:
+  version: 1
+  nombre: "Tinta y Luz"
+  color:
+    tipo: "libre"
+    noche:
+      fondo: "#070b14"
+      superficie: "#0d1424"
+      texto: "#ece6d8"
+      acento: "#4fe3c1"
+      atencion: "#f2b45b"
+      peligro: "#ff7a6b"
+      exito: "#7ee0a1"
+    dia:
+      fondo: "#eeebe3"
+      superficie: "#fbfaf6"
+      texto: "#141821"
+      acento: "#08705e"
+      atencion: "#9a5b00"
+      peligro: "#b42318"
+      exito: "#1f7a3f"
+  letra: { titulos: bodoni, texto: geist, escala: 1 }
+  forma: { radio: 1, sombra: plana }
+  densidad: comoda
+  movimiento: sutil
+  caracter: preciso
+  fondo: liso
+  navegacion: leyenda
+  portada: mando
+  escena: ninguna
+  presencia: orbe
+  piezas:
+    superficie: tinta
+    saludo: enfoque
+    pulsar: nada
+    sonido: avisos
+    trabajo: brillo

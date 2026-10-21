@@ -31,6 +31,7 @@ import { empaquetar } from "../tienda/empaque.ts";
 import { firmarBytes, type FirmaBytes } from "../tienda/firma.ts";
 import { leeManifiesto } from "../tienda/modulo-manifiesto.ts";
 import { mideCicloModulo, menteDePrueba } from "../core/bench/ciclo.ts";
+import { juzgaPielDeModulo } from "./estandar/piel-check.ts";
 import { mideModulo } from "../core/bench/modulos.ts";
 import { juzgaModulo, type VeredictoModulo, type InformeModulo } from "../core/modulos/veredicto.ts";
 import { construyeModulo } from "./construir-modulos.ts";
@@ -171,6 +172,23 @@ export async function verificaModulo(
     };
   }
   const manifiesto = dictamen.manifest;
+
+  // 1bis. el guard de la identidad: un módulo de tema trae una piel, y la
+  //      piel tiene que ser válida (y se tiene que LEER). La estética es el
+  //      producto: por eso hay un juez, y por eso está en la puerta.
+  const piel = juzgaPielDeModulo(dir, manifiesto.category);
+  if (!piel.ok) {
+    return {
+      manifiestoOk: true,
+      errores: [],
+      avisos: dictamen.avisos ?? [],
+      veredicto: null,
+      informe: null,
+      paquete: null,
+      firma: null,
+      pasos: piel.errores,
+    };
+  }
 
   // 3. medir de verdad (el ciclo de la puerta) y 4. el informe medido.
   //    La misma mente de juguete para las dos medidas: si el módulo no tiene

@@ -84,6 +84,15 @@ tienda se queda sin confianza en silencio.
 El camino entero, escrito como prueba: `tests/tienda-publicar-modulo.test.ts`
 (crear → verificar → publicar → instalar, con una tienda de mentira).
 
+## Las pieles (el tema también se juzga)
+
+Un tema es un módulo de categoría `theme` que trae su piel en `piel.json`. La
+piel es un **documento** (nunca código) y tiene reglas escritas: las opciones
+están en una lista cerrada y el texto tiene que leerse (WCAG AA, de día y de
+noche). La tienda las juzga antes de publicarlas — porque si el juez viviera
+sólo en la ventana, quien publica una piel rota se entera cuando alguien se
+la pone. Todo en [`docs/PIELES.md`](PIELES.md).
+
 ## El catálogo de productos (la Tienda, firmado)
 
 La Tienda vende productos: pieles, herramientas, agentes, apps. Van en un solo

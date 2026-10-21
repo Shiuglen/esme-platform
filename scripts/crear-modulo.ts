@@ -25,6 +25,7 @@ import { resolve, join } from "node:path";
 import { CATEGORIES, type Category } from "../core/ipc/module-schema.ts";
 import { CAPABILITIES, type Capability } from "../core/extension-host/capability.ts";
 import { verificaModulo, renderVerificacion } from "./verificar-modulo.ts";
+import { cargaSpecPiel, pielBase } from "../tienda/piel.ts";
 
 export interface OpcionesCrear {
   /** El id: `esme.<autor>.<slug>`. */
@@ -110,6 +111,17 @@ export function paqueteDe(o: OpcionesCrear): string {
     null,
     2
   ) + "\n";
+}
+
+/**
+ * La piel de un módulo de tema.
+ *
+ * Un tema ES una piel (un documento de datos, nunca código): el módulo la
+ * trae en `piel.json` y el juez la lee antes de que entre. Para partir, la
+ * de la casa (Tinta y Luz): lo que no digas, se hereda.
+ */
+export function pielDe(base: unknown): string {
+  return JSON.stringify(base, null, 2) + "\n";
 }
 
 /**
@@ -247,6 +259,11 @@ export async function creaModulo(
   writeFileSync(join(dir, "src", "index.ts"), fuenteDe(o));
   writeFileSync(join(dir, "test", "index.test.ts"), pruebaDe(o));
   writeFileSync(join(dir, "README.md"), readmeDe({ ...o, dir: join("modulos", slugDe(o.id)) }));
+  // un tema trae su piel: el documento que decide cómo se ve
+  if ((o.categoria ?? "tool") === "theme") {
+    const spec = cargaSpecPiel(join(raizKit, "estandar", "piel.spec.yaml"));
+    writeFileSync(join(dir, "piel.json"), pielDe(pielBase(spec)));
+  }
 
   return { dir, creado: true, veredicto: null };
 }

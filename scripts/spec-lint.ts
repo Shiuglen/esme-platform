@@ -12,6 +12,7 @@ import * as yaml from "js-yaml";
 import { validaModuloFile } from "../modulos/nucleo/manifest-validator.ts";
 import { licenciasPresentes, nivelDe } from "../core/licensing.ts";
 import { cargaMotorCached, MOTORES_CONOCIDOS } from "../motores/laya-adapter.ts";
+import { juzgaPielDeModulo } from "./estandar/piel-check.ts";
 
 const raiz = resolve(import.meta.dirname, "..");
 const dir = join(raiz, "modulos");
@@ -55,6 +56,18 @@ for (const d of archivos) {
   if (r.ok) {
     console.log(`✓ ${d}: ${r.id} v${r.manifest?.version} (${nivel})`);
     for (const a of r.avisos) console.log(`  ⚠ ${a}`);
+    // el guard de la identidad: un módulo de tema trae una piel, y la piel
+    // tiene que ser válida (y se tiene que LEER). La estética es el
+    // producto: no es skinneable, y el juez está antes de la puerta.
+    if (r.manifest?.category === "theme") {
+      const piel = juzgaPielDeModulo(join(dir, d), "theme");
+      if (piel.ok) console.log(`  ✓ piel: válida y se lee`);
+      else {
+        fallos++;
+        console.error(`✗ ${d}: la piel no vale`);
+        for (const e of piel.errores) console.error(`  ✗ ${e}`);
+      }
+    }
   } else {
     fallos++;
     console.error(`✗ ${d} (${r.id})`);

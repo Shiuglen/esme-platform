@@ -70,6 +70,7 @@
     "test": "vitest run",
     "spec:lint": "tsx scripts/spec-lint.ts",
     "compat": "tsx scripts/estandar/compat-check.ts",
+    "piel:check": "tsx scripts/estandar/piel-check.ts",
     "build": "tsc -p tsconfig.build.json",
     "build:ejemplo": "tsx scripts/construir-modulos.ts",
     "build:modulos": "tsx scripts/construir-modulos.ts --todos",
