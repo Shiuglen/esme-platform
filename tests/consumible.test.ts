@@ -87,6 +87,29 @@ describe("el kit se puede consumir", () => {
     expect(Object.keys(pkg.dependencies ?? {}).sort()).toEqual(["js-yaml", "zod"]);
   });
 
+  it("los nombres que se exportan son ASCII (el kit se publica: la API no lleva tildes)", () => {
+    // Por qué. El kit es un paquete npm: su API se escribe desde consolas,
+    // shells y editores de otra gente. Un identificador con tilde funciona en
+    // JavaScript, pero se rompe en scripts shells, en algunas herramientas y
+    // en la cabeza de quien lo usa. El castellano va en los COMENTARIOS y en
+    // las cadenas; los nombres son ASCII.
+    const carpetas = ["core", "tienda", "motores", "scripts"];
+    const exportado = /^\s*export\s+(?:async\s+)?(?:function|const|let|class|interface|type|enum)\s+([^\s(=:{]+)/gm;
+    const malos: string[] = [];
+    for (const carpeta of carpetas) {
+      for (const f of ficheros(join(raiz, carpeta))) {
+        const texto = readFileSync(f, "utf8");
+        for (const m of texto.matchAll(exportado)) {
+          const nombre = m[1] as string;
+          if (!/^[\x20-\x7E]+$/.test(nombre)) {
+            malos.push(`${f.replace(raiz + "/", "")}: ${nombre}`);
+          }
+        }
+      }
+    }
+    expect(malos, `nombres exportados con acentos: ${malos.join(", ")}`).toEqual([]);
+  });
+
   it("los tipos del contrato NO arrastran zod (quien importa los tipos no carga el validador)", () => {
     const texto = readFileSync(join(raiz, "core", "ipc", "mind-schema-types.ts"), "utf8");
     expect(texto).not.toMatch(/from\s+["']zod["']/);

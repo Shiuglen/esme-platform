@@ -119,6 +119,36 @@ captura pantallas. Lo que promete es que la persona lo ha concedido, y que el
 resto de efectos que declara REA (red, UI) se piden por sus capacidades
 normales.
 
+### El libro de los programas: quién decide qué se puede lanzar
+
+La puerta sólo lanza lo que está en la **lista de programas** que el anfitrión
+tiene concedida. Esa lista no vive en el código (si viviera en el código, la
+puerta estaría cerrada para siempre): vive en el **libro de la casa**, en
+`~/.esme/programas.json`, en texto plano, para que se pueda leer y corregir a
+mano.
+
+```bash
+npm run programas -- lista
+npm run programas -- concede rea --desc "el motor de ingeniería inversa"
+npm run programas -- revoca rea
+```
+
+Dos decisiones, y no se confunden:
+
+| | Qué decide | Dónde vive |
+|---|---|---|
+| **El libro de los programas** | qué se puede lanzar en esta casa | `~/.esme/programas.json` |
+| **El libro de los permisos** | qué puede hacer cada módulo | `~/.esme/consentimientos.json` |
+
+Un módulo puede tener `proc:spawn` concedido y que no haya ningún programa
+permitido: entonces la puerta existe y no abre nada. Al revés también: que el
+programa esté en el libro **no** da permiso a ningún módulo — el permiso sigue
+siendo del módulo, y lo concede la persona.
+
+Dos reglas del libro: el nombre es un **nombre de ejecutable** (no una ruta:
+«rea», no «/usr/bin/rea») y la **descripción es obligatoria** — es lo que se le
+enseña a quien concede, y un programa sin explicación no se concede.
+
 ```ts
 // en el anfitrión: qué programas se pueden lanzar
 abreHost(manifiesto, {
@@ -207,6 +237,7 @@ por separado.
 | La forma de la evidencia y del catálogo | `tests/rea.test.ts` |
 | Los hechos, lo que no se vio y el presupuesto | `tests/rea.test.ts` |
 | Las cuatro guardas de `proc:spawn` | `tests/rea.test.ts` (la puerta) y `tests/capsula.test.ts` (el anfitrión entero) |
+| El libro de los programas y la cadena entera | `tests/programas.test.ts` (libro → runtime → anfitrión → hijo real) |
 | Que la spec y el código son la misma cosa | `tests/specs-codigo.test.ts` (check 11) |
 | Que zod no se arrastra al núcleo | `tests/consumible.test.ts` |
 | Que una evidencia se absorbe por la CLI | `tests/mind-cli.test.ts` |

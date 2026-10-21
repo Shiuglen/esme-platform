@@ -19,6 +19,8 @@ import { createPublicKey } from "node:crypto";
 import { instalarRemoto } from "./cliente.ts";
 import { leeManifiesto, rutaEntrada } from "./modulo-manifiesto.ts";
 import { modulos, type OpcionesRuntime, type RuntimeModulos } from "../core/modulos/api.ts";
+import { ProgramasPermitidos, rutaProgramasDe } from "../core/modulos/programas.ts";
+import type { EntradaProc } from "../core/extension-host/proc.ts";
 import type { ModuloInstalado } from "../core/modulos/registro.ts";
 
 /** La URL por defecto de la Tienda pública (la que el kit publica). */
@@ -124,10 +126,22 @@ export function creaRuntimeTienda(
     dirModulos: string;
     /** La Tienda de la que se baja (por defecto, la pública). */
     baseUrl?: string;
+    /**
+     * Los programas que se pueden lanzar (por nombre lógico).
+     *
+     * Por defecto: los del LIBRO de la casa (`~/.esme/programas.json`), que
+     * es donde la persona dice qué se puede lanzar. Sin ese libro, la puerta
+     * de los programas está cerrada: se puede pedir el permiso, pero no hay
+     * nada que lanzar.
+     */
+    programas?: EntradaProc[];
   }
 ): RuntimeModulos {
+  const programas =
+    opts.programas ?? new ProgramasPermitidos(rutaProgramasDe(opts.dirModulos)).lista();
   return modulos({
     ...opts,
+    programas,
     cargar: async () => instaladosEn(opts.dirModulos),
     instalar: async (id, io) =>
       instalaModulo(id, {

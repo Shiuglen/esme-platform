@@ -55,4 +55,21 @@ describe("Tálamo (el discover del 12-oct: solo semántica pura fallaba tablas)"
     expect(veredicto(r("x", 0.44, 1))).toBe("marginal");
     expect(veredicto(r("x", 0.1, 1))).toBe("ruido");
   });
+
+  it("el paquete lleva su recibo (qué pregunta, cuántos recuerdos, qué costó)", () => {
+    const p = selectMemoriesForPack("¿qué se decidió del Taller?", [
+      r("a", 0.9, 100),
+      r("b", 0.8, 50),
+    ], 1000);
+    expect(p.traza.q).toBe("¿qué se decidió del Taller?");
+    expect(p.traza.n).toBe(2);
+    expect(p.traza.gasto).toBe(p.tokens_gastados);
+  });
+
+  it("el recibo no lleva la pregunta entera (sin datos personales en el registro)", () => {
+    const larga = "x".repeat(300);
+    const p = selectMemoriesForPack(larga, [r("a", 0.9, 10)], 1000);
+    expect(p.traza.q.length).toBe(64);
+    expect(p.traza.q).toBe(larga.slice(0, 64));
+  });
 });

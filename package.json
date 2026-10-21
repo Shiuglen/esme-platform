@@ -101,6 +101,8 @@
     "verificar": "tsx scripts/verificar.ts",
     "instalar": "tsx scripts/instalar.ts",
     "instalar:remoto": "tsx scripts/instalar-remoto.ts",
+    "programas": "tsx scripts/programas.ts",
+    "rea": "tsx scripts/rea.ts",
     "modulos": "tsx scripts/modulos.ts",
     "modulos:juzgar": "tsx scripts/juzgar-modulos.ts",
     "revocar": "tsx scripts/revocar.ts",

@@ -26,6 +26,25 @@ export interface Paquete {
    * recorte que no se puede revisar no se puede corregir.
    */
   fuera?: Array<{ id: string; tokens: number; motivo: "ruido" | "marginal" | "no-cabe" }>;
+  /**
+   * El recibo del paquete: qué pregunta lo pidió, cuántos recuerdos llevaba y
+   * qué costó.
+   *
+   * Viaja CON el paquete, no aparte: un recibo que hay que ir a buscar a otro
+   * fichero no es un recibo. Y no lleva datos personales: la pregunta se
+   * recorta a 64 caracteres (es la traza que va al registro, 180 días).
+   */
+  traza: TrazaPaquete;
+}
+
+/** El recibo del paquete (lo que se registra de cada ejecución). */
+export interface TrazaPaquete {
+  /** La pregunta, recortada (sin datos personales). */
+  q: string;
+  /** Cuántos recuerdos entraron. */
+  n: number;
+  /** Cuántos tokens costó. */
+  gasto: number;
 }
 
 /** Umbral del Tálamo: lo que la Lente pone bajo esto y con etiqueta ruidosa, no entra. */
@@ -105,15 +124,22 @@ export function selectMemoriesForPack(
     gastados += r.tokens;
   }
   // traza para laya.jsonl (180 días, sin datos personales): el query se recorta
-  return {
+  const paquete: Paquete = {
     seleccionados,
     tokens_gastados: gastados,
     veredictos,
     ...(detalle ? { fuera } : {}),
+    traza: { q: query.slice(0, 64), n: seleccionados.length, gasto: gastados },
   };
+  return paquete;
 }
 
-/** QR del pack: quién decidió qué y con qué evidencia (para el Reglamento de la OPA). */
-export function traceDeDecisión(p: Paquete, query: string) {
+/**
+ * QR del pack: quién decidió qué y con qué evidencia (para el Reglamento de la OPA).
+ *
+ * El mismo recibo que viaja en el paquete (`p.traza`), pero para quien ya
+ * tiene el paquete y quiere el QR suelto.
+ */
+export function traceDeDecision(p: Paquete, query: string): TrazaPaquete {
   return { q: query.slice(0, 64), n: p.seleccionados.length, gasto: p.tokens_gastados };
 }

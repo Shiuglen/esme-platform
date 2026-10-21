@@ -37,6 +37,10 @@
 | `npm run publicar:recursos` | firma el catálogo de piezas (la oferta) y muestra el emparejamiento |
 | `npm run doctor` | cómo está esta máquina: módulos, permisos, tienda y memoria |
 | `npm run modulos -- actualiza` | el plan de actualización (con `--sí`, se aplica) |
+| `npm run programas -- lista` | qué programas se pueden lanzar en esta casa (la puerta `proc:spawn`) |
+| `npm run programas -- concede rea --desc "…"` | la persona dice qué se puede lanzar |
+| `npm run rea -- catalogo` | qué sabe hacer REA en esta máquina, y qué capacidad pide cada operación |
+| `npm run rea -- analiza <ruta>` | REA mira dentro de un programa y escribe la evidencia |
 | `npm run verificar:skill -- <carpeta>` | juzga una skill en local (hechos, norecall) |
 | `npm run arena -- cata --tarea "..." --modulo <dir> --modulo <dir>` | la cata a ciegas: mide, reparte y deja el documento ciego con su compromiso |
 | `npm run arena -- revelar --ciega <f> --clave <f> --elige A` | revela el mapa y comprueba que el compromiso sigue verificando |

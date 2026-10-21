@@ -22,7 +22,7 @@ import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { leeEvidenciaRea, leeEvidenciaReaJson, leeCatalogoRea } from "../core/rea/forma.ts";
-import { capacidadesExigidas, operaciónPermitida, resumenCatalogo } from "../core/rea/capacidades.ts";
+import { capacidadesExigidas, operacionPermitida, resumenCatalogo } from "../core/rea/capacidades.ts";
 import { conocimientoDe } from "../core/rea/conocimiento.ts";
 import { absorbeEvidencia } from "../core/rea/absorbe.ts";
 import { importaRea } from "../core/mind/importers/rea.ts";
@@ -250,10 +250,10 @@ describe("el catálogo de REA: lo que cuesta cada operación", () => {
     const lectura = leeCatalogoRea(catalogoCrudo());
     expect(lectura.ok).toBe(true);
     if (!lectura.ok) return;
-    const v = operaciónPermitida(lectura.catalogo, "analizar-app", ["fs:project"]);
+    const v = operacionPermitida(lectura.catalogo, "analizar-app", ["fs:project"]);
     expect(v.ok).toBe(false);
     expect(v.faltan).toEqual(["proc:spawn"]);
-    const bien = operaciónPermitida(lectura.catalogo, "analizar-app", ["fs:project", "proc:spawn"]);
+    const bien = operacionPermitida(lectura.catalogo, "analizar-app", ["fs:project", "proc:spawn"]);
     expect(bien.ok).toBe(true);
   });
 

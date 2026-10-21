@@ -170,7 +170,7 @@ export function capacidadesExigidas(cat: CatalogoRea, operacion: string): Exigen
 }
 
 /** ¿Se puede usar esta operación con lo que hay concedido? */
-export function operaciónPermitida(
+export function operacionPermitida(
   cat: CatalogoRea,
   operacion: string,
   concedidas: readonly string[]
