@@ -21,6 +21,18 @@ puntos (tope 2048 MiB)
 Un punto por proceso: el motor, el PID, la memoria residente y la CPU, **leídos
 del sistema operativo**. Nada estimado.
 
+Y con `--todos`, la máquina entera (no sólo los motores), porque la pregunta
+de la RAM no es «cuánto usa el agente» sino «**qué se está comiendo la
+máquina**»:
+
+```
+$ npm run puntos -- --todos --tope 500
+  ! ?            4002821  2987 MiB 108.6%  electron
+  ! ?            4002834   720 MiB     0%  python3
+  ! ?               5098   671 MiB   9.9%  gnome-shell
+    opencode     4003544   416 MiB   3.3%  opencode
+```
+
 ## El contrato
 
 [`estandar/puntos.spec.yaml`](../estandar/puntos.spec.yaml) es el escrito

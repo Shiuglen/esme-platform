@@ -1,11 +1,14 @@
 /**
  * puntos — el estado de tu PC, medido.
- *   npm run puntos [-- --json] [--motor opencode] [--pid 1234] [--tope 2048]
+ *   npm run puntos [-- --json] [--motor opencode] [--pid 1234] [--tope 2048] [--todos]
  *
  * La pregunta de todos los días: «¿qué se está comiendo la memoria ahora
  * mismo?». Aquí se responde con números: un punto por proceso, con su
  * memoria residente y su CPU, MEDIDOS por el sistema operativo (no
  * estimados).
+ *
+ * Con `--todos`, la máquina entera (no sólo los motores): la pregunta de la
+ * RAM no es «cuánto usa el agente», es «qué se está comiendo la máquina».
  *
  * Por qué la casa lo trae (y no la app): la era es local. Cada persona tiene
  * SU PC con SUS agentes, y el estado de esa PC es un CONTRATO (estandar/
@@ -33,6 +36,7 @@ if (import.meta.url === new URL(`file://${process.argv[1]}`).href) {
   const lista = puntos({
     ...(motores ? { motores: motores.split(",").map((m) => m.trim()) } : {}),
     ...(pid ? { pids: [Number(pid)] } : {}),
+    ...(tiene("--todos") ? { todos: true } : {}),
     tope_mb: Number.isFinite(tope) ? tope : TOPE_MB,
   });
 

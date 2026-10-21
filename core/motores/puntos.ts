@@ -54,6 +54,14 @@ export interface OpcionesPuntos {
   pids?: number[];
   /** El tope de memoria por punto. */
   tope_mb?: number;
+  /**
+   * TODOS los procesos, no sólo los motores.
+   *
+   * La pregunta de la RAM no es «cuánto usa el agente» sino «qué se está
+   * comiendo la máquina». Esto es lo segundo: la lista completa, ordenada
+   * por memoria. (Lo primero es un caso particular.)
+   */
+  todos?: boolean;
 }
 
 /** El motor al que pertenece un proceso (por su binario), si se sabe. */
@@ -215,6 +223,8 @@ export function puntos(opts: OpcionesPuntos = {}): Punto[] {
       if (!pids.has(l.pid)) continue;
     } else if (motores) {
       if (!motor || !motores.includes(motor)) continue;
+    } else if (opts.todos) {
+      // todos los procesos: la máquina entera, ordenada por memoria
     } else {
       // sin filtros: sólo los procesos de los motores que la casa conoce
       if (!motor) continue;
