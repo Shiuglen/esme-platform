@@ -72,7 +72,7 @@ en cada PR, porque una puerta que no se prueba se pudre.
 
 ```bash
 npm ci
-npm test                 # la batería completa (331 tests)
+npm test                 # la batería completa (el número lo dice al terminar)
 npm run lint             # tsc --noEmit: los tipos no mienten
 npm run spec:lint        # cada module.yaml contra su spec
 npm run test:offline     # la garantía: funciona sin red
