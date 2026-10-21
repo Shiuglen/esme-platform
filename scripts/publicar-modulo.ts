@@ -75,7 +75,8 @@ export function entradaDe(
   informe: InformeModulo | null,
   tar: string,
   bytes: number,
-  firmaOk: boolean
+  firmaOk: boolean,
+  procedencia?: { por?: string; en?: string }
 ): Record<string, unknown> {
   const forma = informe?.ciclo_ok !== undefined ? "ciclo" : "memoria";
   return {
@@ -85,6 +86,10 @@ export function entradaDe(
     ...(forma === "ciclo" ? { bench_ciclo: informe } : { bench: informe }),
     firma_ok: firmaOk,
     artefacto: { tar, bytes },
+    // la procedencia: QUIÉN lo publicó y CUÁNDO (la huella, no un nombre:
+    // el nombre identifica a la persona, la huella al firmante).
+    ...(procedencia?.por ? { publicado_por: procedencia.por } : {}),
+    ...(procedencia?.en ? { publicado_en: procedencia.en } : {}),
   };
 }
 
@@ -146,7 +151,11 @@ export async function publicaModulo(
     verificado.informe,
     verificado.paquete.sha256,
     verificado.paquete.bytes,
-    v.entra
+    v.entra,
+    {
+      por: artefacto.firma.signed_by,
+      en: new Date().toISOString().slice(0, 10),
+    }
   );
 
   // el paquete va a la tienda con el nombre que el receptor busca

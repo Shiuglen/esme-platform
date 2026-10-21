@@ -194,6 +194,8 @@ if (priv && publicable.ok) {
       bench_ciclo: benchHola,
       firma_ok: veredictoHola.entra,
       artefacto: { tar: paquetes[0].sha256, bytes: paquetes[0].bytes },
+      publicado_por: huella,
+      publicado_en: new Date().toISOString().slice(0, 10),
     },
     {
       id: benchPro.modulo,
@@ -202,6 +204,8 @@ if (priv && publicable.ok) {
       bench: benchPro,
       firma_ok: veredictoPro.entra,
       artefacto: { tar: paquetes[1].sha256, bytes: paquetes[1].bytes },
+      publicado_por: huella,
+      publicado_en: new Date().toISOString().slice(0, 10),
     },
     {
       id: benchPuerta.modulo,
@@ -210,6 +214,8 @@ if (priv && publicable.ok) {
       bench_ciclo: benchPuerta,
       firma_ok: veredictoPuerta.entra,
       artefacto: { tar: paquetes[2].sha256, bytes: paquetes[2].bytes },
+      publicado_por: huella,
+      publicado_en: new Date().toISOString().slice(0, 10),
     },
   ];
   for (const e of entradas) {

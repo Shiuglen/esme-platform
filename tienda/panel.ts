@@ -8,6 +8,10 @@ export interface FilaPanel {
   version: string | null;
   entra: boolean;
   causa: string;
+  /** Quién lo publicó (la huella del firmante, 16 hex) — si se sabe. */
+  publicado_por: string | null;
+  /** Cuándo lo publicó. */
+  publicado_en: string | null;
 }
 
 export interface Panel {
@@ -24,6 +28,8 @@ interface EntradaIndice {
   bench?: unknown;
   bench_ciclo?: unknown;
   firma_ok?: unknown;
+  publicado_por?: unknown;
+  publicado_en?: unknown;
 }
 
 interface BenchIndice {
@@ -59,6 +65,11 @@ export function panelDe(
 
   const filas: FilaPanel[] = [];
   const modulos = Array.isArray(indice.modulos) ? (indice.modulos as EntradaIndice[]) : [];
+  // la procedencia de cada entrada: quién lo publicó y cuándo
+  const procedencia = (m: EntradaIndice): { publicado_por: string | null; publicado_en: string | null } => ({
+    publicado_por: typeof m.publicado_por === "string" ? m.publicado_por : null,
+    publicado_en: typeof m.publicado_en === "string" ? m.publicado_en : null,
+  });
   for (const m of modulos) {
     const id = typeof m.id === "string" ? m.id : "<sin id>";
     const version = typeof m.version === "string" ? m.version : null;
@@ -68,7 +79,7 @@ export function panelDe(
     if (herramienta || (!m.bench && m.bench_ciclo)) {
       const c = m.bench_ciclo as BenchCicloIndice | undefined;
       if (!c) {
-        filas.push({ id, version, entra: false, causa: "sin bench de ciclo: el índice no publica eso" });
+        filas.push({ id, version, entra: false, causa: "sin bench de ciclo: el índice no publica eso", ...procedencia(m) });
         continue;
       }
       const tokens = Math.round((c.tokens_ciclo ?? 0) * 10) / 10;
@@ -78,6 +89,7 @@ export function panelDe(
           version,
           entra: true,
           causa: `el ciclo funciona: ${c.casos} escenarios, ${tokens} tokens por ciclo`,
+          ...procedencia(m),
         });
       } else {
         filas.push({
@@ -85,13 +97,14 @@ export function panelDe(
           version,
           entra: false,
           causa: `el ciclo de la herramienta no pasa (ciclo_ok=${String(c.ciclo_ok)}, ${c.casos ?? 0} escenarios, ${tokens} tokens)`,
+          ...procedencia(m),
         });
       }
       continue;
     }
 
     if (!m.bench) {
-      filas.push({ id, version, entra: false, causa: "sin bench de la Prueba 0: el índice no publica eso" });
+      filas.push({ id, version, entra: false, causa: "sin bench de la Prueba 0: el índice no publica eso", ...procedencia(m) });
       continue;
     }
     const b = m.bench as BenchIndice;
@@ -107,6 +120,7 @@ export function panelDe(
           recallDelta >= 0.01
             ? `la Prueba 0 lo avala: +${recallDelta.toFixed(3)} recall en ${b.casos} casos`
             : `gasta ${(tokensMejora * 100).toFixed(1)}% menos tokens`,
+        ...procedencia(m),
       });
     } else {
       filas.push({
@@ -114,6 +128,7 @@ export function panelDe(
         version,
         entra: false,
         causa: `la Prueba 0 no lo avala (guardó ${recallDelta.toFixed(3)}, tokens −${(tokensMejora * 100).toFixed(1)}%, ${b.casos ?? 0} casos)`,
+        ...procedencia(m),
       });
     }
   }
@@ -138,7 +153,14 @@ export function render(p: Panel): string {
   lineas.push(`Firma del índice: ${estado}${quien}`);
   lineas.push("");
   for (const f of p.filas) {
-    lineas.push(`- ${f.entra ? "✓ ENTRA" : "✗ FUERA"} \`${f.id}\`` + (f.version ? ` @${f.version}` : "") + ` — ${f.causa}`);
+    const quien = f.publicado_por
+      ? ` — publicado por ${f.publicado_por.slice(0, 8)}…${f.publicado_en ? ` el ${f.publicado_en}` : ""}`
+      : "";
+    lineas.push(
+      `- ${f.entra ? "✓ ENTRA" : "✗ FUERA"} \`${f.id}\`` +
+        (f.version ? ` @${f.version}` : "") +
+        ` — ${f.causa}${quien}`
+    );
   }
   lineas.push("");
   return lineas.join("\n");
