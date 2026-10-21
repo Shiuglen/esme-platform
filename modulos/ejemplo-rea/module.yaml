@@ -1,0 +1,22 @@
+schema_version: 1
+id: "esme.nucleo.rea"
+name: "REA"
+version: "0.1.0"
+category: "tool"
+description: "Mira dentro de un programa con REA, por la puerta: qué sabe hacer el motor y qué NO vio del programa."
+author: "esme@nucleo"
+license: "MIT"
+entry: "dist/index.js"
+runtime: "nodejs"
+permissions:
+  - proc:spawn
+decision_criteria:
+  - when: "reverse_engineering"
+    weight: 0.9
+    tags: ["analisis", "programa", "rea"]
+dependencies:
+  - "esme.core@^1.0"
+sideEffects: false
+benchmarks:
+  recall_delta: 0.01
+  report: "bench.json"

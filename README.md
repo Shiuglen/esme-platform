@@ -62,7 +62,7 @@ en cada PR, porque una puerta que no se prueba se pudre.
 | `core/ipc/` | Los contratos: la mente (`mind-schema.ts`), el módulo (`module-schema.ts`) y el SDK (`sdk.ts`). |
 | `core/modulos/` | El runtime de los módulos: el libro de permisos, el registro y el juez. |
 | `core/bench/` | La maquinaria de medición: el examen, el ciclo y la medida de los módulos. |
-| `modulos/` | Módulos de ejemplo (`ejemplo-hola-mundo`, `ejemplo-troceo-pro`, `ejemplo-puerta`). |
+| `modulos/` | Módulos de ejemplo (`ejemplo-hola-mundo`, `ejemplo-troceo-pro`, `ejemplo-puerta`, `ejemplo-rea`). |
 | `tienda/` | El índice público firmado, los paquetes, las firmas y la raíz congelada. |
 | `motores/` | El adaptador de Laya (las decisiones locales, sin nube). |
 

@@ -15,15 +15,14 @@
  * Referencia: core/modulos/programas.ts, core/extension-host/proc.ts, docs/REA.md.
  */
 import { describe, expect, it } from "vitest";
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { ProgramasPermitidos, rutaProgramasDe } from "../core/modulos/programas.ts";
 import { modulos } from "../core/modulos/api.ts";
 import { leeModulo } from "../tienda/modulos.ts";
 import { mideCicloModulo } from "../core/bench/ciclo.ts";
-import { resolve } from "node:path";
 
 const raizKit = resolve(import.meta.dirname, "..");
 
@@ -263,6 +262,43 @@ benchmarks:
     expect(abierto.error).toBeUndefined();
     expect(abierto.informe.ciclo_ok).toBe(true);
     expect(abierto.usadas).toContain("proc:spawn");
+  });
+});
+
+describe("el módulo de ejemplo de REA (la puerta, en un módulo de verdad)", () => {
+  const dirEjemplo = resolve(raizKit, "modulos", "ejemplo-rea");
+
+  it("con la puerta pero sin programas en el libro, lo dice (no se estrella)", async () => {
+    const leido = leeModulo(dirEjemplo);
+    expect(leido.ok).toBe(true);
+    const runtime = modulos({
+      rutaPermisos: join(mkdtempSync(join(tmpdir(), "esme-rea-mod-")), "consentimientos.json"),
+      programas: [],
+    });
+    runtime.registro.registra(leido.modulo!);
+    runtime.concede("esme.nucleo.rea", ["proc:spawn"]);
+    await runtime.activa("esme.nucleo.rea");
+    const r = (await runtime.llama("esme.nucleo.rea", "ciclo", "¿qué?")) as { respuesta: string };
+    // la puerta existe, pero el libro está vacío: el módulo lo dice, no revienta
+    expect(r.respuesta).toContain("programa no permitido");
+    await runtime.cierra();
+  });
+
+  // con REA de verdad: el módulo habla con el programa por la puerta
+  const tieneRea = existsSync(join(dirname(process.execPath), "rea")) ||
+    existsSync(join(process.env.HOME ?? "", ".local", "bin", "rea"));
+  it.skipIf(!tieneRea)("con REA en el libro, el módulo habla con el motor de verdad", async () => {
+    const leido = leeModulo(dirEjemplo);
+    const runtime = modulos({
+      rutaPermisos: join(mkdtempSync(join(tmpdir(), "esme-rea-mod-")), "consentimientos.json"),
+      programas: [{ nombre: "rea", descripcion: "el motor de ingeniería inversa" }],
+    });
+    runtime.registro.registra(leido.modulo!);
+    runtime.concede("esme.nucleo.rea", ["proc:spawn"]);
+    await runtime.activa("esme.nucleo.rea");
+    const r = (await runtime.llama("esme.nucleo.rea", "ciclo", "¿qué?")) as { respuesta: string };
+    expect(r.respuesta).toContain("REA declara");
+    await runtime.cierra();
   });
 });
 

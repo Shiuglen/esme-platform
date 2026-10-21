@@ -23,6 +23,8 @@ esme/
 │   └── mind-format.spec.yaml     # a redactar (ARQUITECTURA §7 tiene el extracto)
 ├── modulos/
 │   ├── ejemplo-hola-mundo/       # el módulo vivo de referencia
+│   ├── ejemplo-puerta/           # la puerta entera, pieza por pieza
+│   ├── ejemplo-rea/              # la puerta de los programas, con REA de verdad
 │   └── nucleo/                   # módulos del core (MIT, sí entran)
 ├── tienda/index.json             # índice público firmado
 ├── core/                         # MIT: mente, Tálamo, extension host, IPC
