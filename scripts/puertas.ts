@@ -414,6 +414,18 @@ await puerta("tienda:busca (lo que hay, ordenado por lo que mejora)", async () =
   return `${lista.length} módulos, el primero ${lista[0].id}`;
 });
 
+await puerta("modo-motor (el presupuesto lo pone quien responde)", async () => {
+  const { modoParaMotor } = await import("../core/talamus/modo-motor.ts");
+  const { cargaMotorCached } = await import("../motores/laya-adapter.ts");
+  const motores = cargaMotorCached(join(raizKit, "estandar", "motor-capability.spec.yaml"));
+  const local = motores.find((m) => m.id === "local");
+  const nube = motores.find((m) => m.id === "opencode");
+  if (!local || !nube) throw new Error("faltan motores");
+  if (modoParaMotor(local) !== "ahorrador") throw new Error("el local debería ir en ahorrador");
+  if (modoParaMotor(nube) !== "estandar") throw new Error("la nube debería ir en estándar");
+  return "local → ahorrador · nube → estándar";
+});
+
 await puerta("puntos (el estado de tu PC, medido)", async () => {
   const lista = puntos({ pids: [process.pid] });
   if (!lista.length) throw new Error("no se midió nada");
