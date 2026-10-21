@@ -25,6 +25,7 @@
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { homedir } from "node:os";
 import type { EntradaProc } from "../extension-host/proc.ts";
 
 /** Un programa que esta casa permite lanzar (la misma forma que la puerta). */
@@ -137,6 +138,17 @@ export class ProgramasPermitidos {
   static rutaPorDefecto(casa = "~/.esme"): string {
     return `${casa.replace(/^~(?=$|\/)/, process.env.HOME ?? "")}/programas.json`;
   }
+}
+
+/**
+ * Los programas que esta casa permite lanzar.
+ *
+ * Es el atajo para quien está en la máquina de la persona: el juez, el banco
+ * y el turno leen el libro de la casa sin que nadie se lo pase a mano.
+ */
+export function programasDeLaCasa(ruta?: string): ProgramaPermitido[] {
+  const donde = ruta ?? join(homedir(), ".esme", "programas.json");
+  return new ProgramasPermitidos(donde).lista();
 }
 
 /**

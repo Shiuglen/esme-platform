@@ -23,6 +23,7 @@
  * Referencia: core/modulos/veredicto.ts, core/bench/modulos.ts, docs/ENTRADA.md.
  */
 import { abreHost } from "../extension-host/host.ts";
+import type { EntradaProc } from "../extension-host/proc.ts";
 import type { MenteViva } from "../ipc/mind-schema-types.ts";
 import type { Manifest } from "../ipc/module-schema.ts";
 import type { InformeModulo } from "../modulos/veredicto.ts";
@@ -55,6 +56,13 @@ export interface OpcionesCiclo {
   proyecto?: string;
   /** Los dominios que `net:fetch` puede tocar. */
   dominios?: string[];
+  /**
+   * Los programas que `proc:spawn` puede lanzar (los del libro de la casa).
+   *
+   * Sin esta lista la puerta de los programas está cerrada durante la
+   * medida: un módulo que lanza programas se mediría sin poder trabajar.
+   */
+  programas?: EntradaProc[];
 }
 
 export interface MedidaCiclo {
@@ -138,6 +146,7 @@ export async function mideCicloModulo(
     mente,
     proyecto: opts.proyecto,
     dominios: opts.dominios,
+    programas: opts.programas,
     id: manifiesto.id,
     version: manifiesto.version,
   });

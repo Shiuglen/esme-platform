@@ -22,6 +22,7 @@ import type { MenteViva } from "../ipc/mind-schema-types.ts";
 import type { Manifest } from "../ipc/module-schema.ts";
 import type { MedidasModulo, InformeModulo, Sonda } from "../modulos/veredicto.ts";
 import { confinaEntrada } from "../modulos/rutas.ts";
+import type { EntradaProc } from "../extension-host/proc.ts";
 
 export type { InformeModulo, Sonda } from "../modulos/veredicto.ts";
 
@@ -32,6 +33,14 @@ export interface OpcionesMedida {
   proyecto?: string;
   /** Los dominios que `net:fetch` puede tocar. */
   dominios?: string[];
+  /**
+   * Los programas que `proc:spawn` puede lanzar.
+   *
+   * Sin esta lista, la puerta de los programas está CERRADA durante la
+   * medida: un módulo que lanza programas se mediría con la puerta cerrada,
+   * que no es medirlo: es medir que no puede trabajar.
+   */
+  programas?: EntradaProc[];
   /** Sondas extra (además de las que declara el informe). */
   sondas?: Sonda[];
 }
@@ -72,6 +81,7 @@ export async function mideModulo(
     mente: opts.mente,
     proyecto: opts.proyecto,
     dominios: opts.dominios,
+    programas: opts.programas,
     id: manifiesto.id,
     version: manifiesto.version,
   });

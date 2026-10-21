@@ -21,6 +21,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { mideModulo } from "../core/bench/modulos.ts";
+import { programasDeLaCasa } from "../core/modulos/programas.ts";
 import { juzgaModulo } from "../core/modulos/veredicto.ts";
 import { claveDeFirma } from "../tienda/claves.ts";
 import { arbolSha256 } from "../tienda/empaque.ts";
@@ -84,7 +85,9 @@ for (const entrada of catalogo) {
     if (!leido.ok || !leido.modulo) {
       throw new Error(leido.errores.join("; ") || "el módulo no se puede leer");
     }
-    const { manifiesto, medidas } = await mideModulo(instalacion.dir, leido.modulo.manifiesto);
+    const { manifiesto, medidas } = await mideModulo(instalacion.dir, leido.modulo.manifiesto, {
+      programas: programasDeLaCasa(),
+    });
     const v = juzgaModulo(manifiesto, medidas);
     mediciones.set(id, { ...v, arbolSha256: arbolSha256(instalacion.dir) });
     const marca = v.entra ? (v.nivel === "ok" ? "✓" : "⚠") : "✗";

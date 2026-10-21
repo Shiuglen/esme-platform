@@ -20,6 +20,7 @@ import { creaRuntimeTienda, leeModulo, instaladosEn, TIENDA_PUBLICA } from "../t
 import { planDeActualizacion } from "../core/modulos/actualiza.ts";
 import { bajar } from "../tienda/servidor.ts";
 import { mideModulo } from "../core/bench/modulos.ts";
+import { programasDeLaCasa } from "../core/modulos/programas.ts";
 import { juzgaModulo } from "../core/modulos/veredicto.ts";
 import { leeRaiz } from "../tienda/raiz.ts";
 
@@ -204,7 +205,9 @@ switch (comando) {
         console.error(`✗ ${d}: ${leido.errores.join("; ")}`);
         continue;
       }
-      const { manifiesto, medidas } = await mideModulo(d, leido.modulo.manifiesto);
+      const { manifiesto, medidas } = await mideModulo(d, leido.modulo.manifiesto, {
+        programas: programasDeLaCasa(),
+      });
       const v = juzgaModulo(manifiesto, medidas);
       const marca = v.entra ? (v.nivel === "ok" ? "✓" : "⚠") : "✗";
       console.log(`${marca} ${v.id} v${v.version} — ${v.nivel}: ${v.causa}`);

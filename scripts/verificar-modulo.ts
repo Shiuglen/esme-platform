@@ -35,6 +35,7 @@ import { mideMemoriaModulo } from "../core/bench/memoria.ts";
 import { juzgaPielDeModulo } from "./estandar/piel-check.ts";
 import { juzgaAgenteDeModulo } from "./estandar/agente-check.ts";
 import { mideModulo } from "../core/bench/modulos.ts";
+import { programasDeLaCasa } from "../core/modulos/programas.ts";
 import { juzgaModulo, type VeredictoModulo, type InformeModulo } from "../core/modulos/veredicto.ts";
 import { construyeModulo } from "./construir-modulos.ts";
 
@@ -203,7 +204,7 @@ export async function verificaModulo(
   const medida =
     manifiesto.category === "memory"
       ? await mideMemoriaModulo(dir, manifiesto)
-      : await mideCicloModulo(dir, manifiesto, { mente });
+      : await mideCicloModulo(dir, manifiesto, { mente, programas: programasDeLaCasa() });
   if (opts.escribirInforme !== false) {
     const nombre = manifiesto.benchmarks?.report ?? "bench.json";
     writeFileSync(join(dir, nombre), JSON.stringify(medida.informe, null, 2) + "\n");
@@ -211,7 +212,7 @@ export async function verificaModulo(
 
   // 5. la medida canónica (la que el juez conoce): se relee el informe y se
   //    ejercita el módulo con sus sondas, para saber qué capacidades tocó.
-  const medidas = await mideModulo(dir, manifiesto, { mente });
+  const medidas = await mideModulo(dir, manifiesto, { mente, programas: programasDeLaCasa() });
   const veredicto = juzgaModulo(manifiesto, medidas.medidas);
 
   // 6. empaquetar (y firmar si esta máquina tiene derecho).

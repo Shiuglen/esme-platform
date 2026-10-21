@@ -11,6 +11,7 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { ejecutaTurno } from "../core/turnos/ejecuta.ts";
+import { programasDeLaCasa } from "../core/modulos/programas.ts";
 import type { ModoContexto } from "../core/talamus/modos.ts";
 
 // ——— la línea de comandos ———
@@ -41,6 +42,7 @@ if (import.meta.url === new URL(`file://${process.argv[1]}`).href) {
     consulta,
     motor: arg("--motor") ?? undefined,
     modo: (arg("--modo") as ModoContexto) ?? undefined,
+    programas: programasDeLaCasa(),
   });
 
   if (tiene("--json")) {

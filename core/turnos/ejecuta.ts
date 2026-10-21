@@ -25,6 +25,7 @@ import { menteDePrueba, tokensDe } from "../bench/ciclo.ts";
 import type { MenteViva } from "../ipc/mind-schema-types.ts";
 import { leeManifiesto } from "../../tienda/modulo-manifiesto.ts";
 import { Consentimientos } from "../modulos/consentimiento.ts";
+import type { EntradaProc } from "../extension-host/proc.ts";
 import { FN_TROCEA } from "../bench/memoria.ts";
 import { armaTurno, limpiezaDelTurno, type Turno } from "./turno.ts";
 import { compara, instantanea, type ResultadoCambios } from "./cambios.ts";
@@ -46,6 +47,14 @@ export interface OpcionesEjecutar {
   mente?: MenteViva;
   /** El libro de permisos (si no, se concede lo declarado: es una ejecución de prueba). */
   consentimientos?: Consentimientos;
+  /**
+   * Los programas que `proc:spawn` puede lanzar (los del libro de la casa).
+   *
+   * Sin esta lista, la puerta de los programas está cerrada: un módulo que
+   * lanza programas en un turno no puede trabajar, y el turno se mediría
+   * como si el módulo no sirviera.
+   */
+  programas?: EntradaProc[];
   /** La función que se llama en el módulo. */
   fn?: string;
   /**
@@ -121,6 +130,7 @@ export async function ejecutaTurno(opts: OpcionesEjecutar): Promise<ResultadoEje
     concedidas,
     mente,
     ...(concedidas.includes("fs:project") ? { proyecto: espacio } : {}),
+    ...(concedidas.includes("proc:spawn") ? { programas: opts.programas ?? [] } : {}),
     id: manifiesto.id,
     version: manifiesto.version,
   });

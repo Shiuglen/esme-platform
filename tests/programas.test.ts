@@ -22,6 +22,7 @@ import { join } from "node:path";
 import { ProgramasPermitidos, rutaProgramasDe } from "../core/modulos/programas.ts";
 import { modulos } from "../core/modulos/api.ts";
 import { leeModulo } from "../tienda/modulos.ts";
+import { mideCicloModulo } from "../core/bench/ciclo.ts";
 import { resolve } from "node:path";
 
 const raizKit = resolve(import.meta.dirname, "..");
@@ -210,8 +211,62 @@ describe("el módulo de ejemplo del kit sigue funcionando", () => {
   });
 });
 
-describe("la herramienta de REA no esquiva la puerta", () => {
-  it("sin REA en el libro, la herramienta se niega (y dice cómo abrirla)", () => {
+describe("el juez puede medir un módulo que lanza programas", () => {
+  it("con la lista de programas, el módulo trabaja de verdad (sin ella, no)", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "esme-juez-"));
+    const carpeta = join(dir, "modulo");
+    mkdirSync(carpeta, { recursive: true });
+    writeFileSync(
+      join(carpeta, "modulo.mjs"),
+      `export async function ciclo(consulta) {
+         const r = await globalThis.esme.proc.ejecutar({ programa: "node", args: ["-e", "process.stdout.write('x')"] });
+         return { ok: true, salida: r.stdout, consulta };
+       }`,
+      "utf8"
+    );
+    writeFileSync(
+      join(carpeta, "module.yaml"),
+      `schema_version: 1
+id: "esme.prueba.juez"
+name: "Juez"
+version: "0.1.0"
+category: "tool"
+description: "Un módulo que usa la puerta de los programas."
+author: "esme@prueba"
+license: "MIT"
+entry: "modulo.mjs"
+runtime: "nodejs"
+permissions:
+  - proc:spawn
+benchmarks:
+  recall_delta: 0.01
+  report: "bench.json"
+`,
+      "utf8"
+    );
+
+    const leido = leeModulo(carpeta);
+    expect(leido.ok).toBe(true);
+    const manifiesto = leido.modulo!.manifiesto;
+
+    // SIN la lista: la puerta está cerrada y el módulo no puede trabajar.
+    // (medirlo así sería medir que no puede: por eso la lista se pasa)
+    const cerrado = await mideCicloModulo(carpeta, manifiesto, { programas: [] });
+    expect(cerrado.error).toContain("programa no permitido");
+    expect(cerrado.informe.ciclo_ok).toBe(false);
+    expect(cerrado.usadas).toContain("proc:spawn");
+
+    // CON la lista: el módulo trabaja y el juez lo mide.
+    const abierto = await mideCicloModulo(carpeta, manifiesto, {
+      programas: [{ nombre: "node", descripcion: "node, para la prueba" }],
+    });
+    expect(abierto.error).toBeUndefined();
+    expect(abierto.informe.ciclo_ok).toBe(true);
+    expect(abierto.usadas).toContain("proc:spawn");
+  });
+});
+
+describe("la herramienta de REA no esquiva la puerta", () => {  it("sin REA en el libro, la herramienta se niega (y dice cómo abrirla)", () => {
     const dir = mkdtempSync(join(tmpdir(), "esme-rea-"));
     const libroVacio = join(dir, "programas.json");
     writeFileSync(libroVacio, JSON.stringify({ version: 1, programas: [] }), "utf8");
