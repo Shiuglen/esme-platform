@@ -5,6 +5,7 @@
  */
 import { describe, expect, it, vi, afterEach } from "vitest";
 import { layaRoute, type CognitionMotor } from "../motores/laya-adapter.ts";
+import { ejecutaPrograma } from "../core/extension-host/proc.ts";
 
 const capa = (id: string, pricing: "api" | "local" | "gratuito" = "gratuito"): CognitionMotor => ({
   id,
@@ -48,5 +49,18 @@ describe("offline: el router nunca depende de nada que pueda fallar", () => {
     });
     expect(fetchSpy).toHaveBeenCalledTimes(1);
     expect(d.route).toBe("opencode"); // gratuito primero: la regla del router
+  });
+});
+
+describe("offline: la puerta de los programas es local de verdad", () => {
+  it("lanzar un programa no toca la red (ni la mira)", async () => {
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+    const r = await ejecutaPrograma(
+      { programa: "node", args: ["-e", "process.stdout.write('hola')"] },
+      { permitidos: [{ nombre: "node", descripcion: "node, para la prueba" }] }
+    );
+    expect(r.stdout).toBe("hola");
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 });
