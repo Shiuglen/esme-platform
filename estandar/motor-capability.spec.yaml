@@ -22,6 +22,9 @@
 #   - `pricing`: api | local | gratuito.
 #   - `cancel_support`: si se puede CANCELAR la ejecución (un motor que no se
 #     puede parar, para).
+#   - `mcp`: si el motor puede conectarse a la memoria de la casa por MCP
+#     (los que no, no pueden prometer la memoria: un agente con memoria es
+#     una receta, y la receta no puede mentir).
 #   - `source` + `verificado_en`: DE DÓNDE sale el número. Un número sin
 #     fuente es una opinión; aquí la fuente es un hecho que se puede revisar.
 #   - `adapter`: el fichero que sabe cómo se habla con este motor.
@@ -41,6 +44,7 @@ capabilities:
   local_only: false
   pricing: "api"
   cancel_support: true
+  mcp: true
   runtimes: ["nodejs", "wasm", "python"]
   net: true
 dialecto_deteccion_herramientas: "locales castellano con su fichero u orden"
@@ -61,6 +65,7 @@ capabilities:
   local_only: false
   pricing: "gratuito"
   cancel_support: true
+  mcp: true
   runtimes: ["nodejs", "wasm", "python"]
   net: true
 adapter: "motores/acp-motores.ts"
@@ -82,6 +87,7 @@ capabilities:
   local_only: false
   pricing: "api"
   cancel_support: true
+  mcp: false
   runtimes: ["nodejs", "wasm", "python"]
   net: true
 adapter: "motores/acp-motores.ts"
@@ -101,6 +107,7 @@ capabilities:
   local_only: false
   pricing: "api"
   cancel_support: true
+  mcp: false
   runtimes: ["nodejs", "wasm", "python"]
   net: true
 adapter: "motores/acp-motores.ts"
@@ -121,6 +128,7 @@ capabilities:
   local_only: true
   pricing: "gratuito"
   cancel_support: true
+  mcp: false
   runtimes: ["nodejs", "wasm", "python"]
   # el shell no sale a la red por su cuenta: la red es de la puerta
   net: false
@@ -143,6 +151,7 @@ capabilities:
   local_only: true
   pricing: "local"
   cancel_support: true
+  mcp: false
   # ollama es un servidor de modelos: aloja herramientas, no módulos
   runtimes: []
   net: false
@@ -163,6 +172,7 @@ capabilities:
   local_only: true
   pricing: "local"
   cancel_support: true
+  mcp: false
   # el cerebro es Python: lo que habla con él es python o wasm
   runtimes: ["python", "wasm"]
   net: false

@@ -1,0 +1,55 @@
+# **Spec abierta v1 — el agente.** Una receta, no un programa.
+# Referencia: docs/TIENDA.md (los productos), docs/MOTORES.md (los motores),
+# app/src/main/agents.ts (la casa).
+#
+# QUÉ ES UN AGENTE: un motor (claude-code, opencode, codex, gemini, shell,
+# ollama, local) con un encargo, un presupuesto y, si puede, la memoria de la
+# casa conectada por MCP. Es un DOCUMENTO: el agente corre SIN MODIFICAR en la
+# terminal de la persona; lo que se publica es su receta.
+#
+# POR QUÉ ESTÁ ESCRITA: la Tienda vende cuatro productos (pieles,
+# herramientas, agentes y apps) y cada uno tiene su forma. Una piel es un
+# documento de datos (estandar/piel.spec.yaml); una herramienta es un módulo;
+# un agente es una receta; una app es una integración. Sin esta spec, un
+# «agente» publicado sería una promesa sin forma, y la tienda no podría
+# juzgarla.
+#
+# Lo que el agente NO es: un motor. Los motores son de la casa (o de su
+# proveedor) y se declaran en motor-capability.spec.yaml. Un agente es la
+# manera de USAR un motor: con qué encargo, con qué presupuesto y con qué
+# memoria.
+
+schema_version: 1
+
+# ——— la forma ———
+agente:
+  version: 1
+  id: "esme.<autor>.<slug>"
+  nombre: "lo que ve la persona"
+  motor: "el id del motor (motor-capability.spec.yaml)"
+  descripcion: "qué hace este agente, en una frase"
+  # la memoria de la casa (el cerebro) por MCP: los que pueden, la tienen
+  memoria: true
+  # los módulos que este agente puede usar (herramientas)
+  herramientas: ["esme.nucleo.hola-mundo"]
+  # el presupuesto: los límites que el agente NO puede pasar (nadie va a
+  # vigilar un agente sin techo)
+  presupuesto:
+    tokens: 200000
+    segundos: 900
+  # el encargo: qué se le pide (el prompt base). Es texto, no código.
+  encargo: "qué tiene que hacer, en una frase"
+
+# ——— las reglas ———
+reglas:
+  # 1. el motor tiene que existir: un agente con un motor inventado no
+  #    arranca, y el que lo publica se entera aquí, no en casa de quien lo
+  #    instala.
+  motor_real: true
+  # 2. presupuesto con techo: un agente sin límite es un agujero de tokens.
+  presupuesto_con_techo: true
+  # 3. la memoria es un sí o un no: los motores que no hablan MCP no la
+  #    tienen (y no se les puede prometer).
+  memoria_por_motor: true
+  # 4. el encargo es texto: un agente es una receta, no un programa.
+  encargo_texto: true

@@ -21,6 +21,7 @@ const capa = (
     cancel_support: true,
     runtimes: ["nodejs"],
     net: false,
+    mcp: false,
   },
   adapter: null,
 });

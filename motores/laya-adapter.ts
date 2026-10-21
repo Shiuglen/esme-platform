@@ -50,6 +50,8 @@ export interface CognitionMotor {
     runtimes: string[];
     /** Si el motor llega a la red. */
     net: boolean;
+    /** Si el motor puede conectarse a la memoria de la casa por MCP. */
+    mcp: boolean;
   };
   /** El fichero que sabe cómo se habla con este motor. */
   adapter: string | null;
@@ -166,6 +168,7 @@ export function cargaMotorCached(ruta: string): CognitionMotor[] {
         cancel_support: !!d.capabilities.cancel_support,
         runtimes: Array.isArray(d.capabilities.runtimes) ? d.capabilities.runtimes.map(String) : [],
         net: !!d.capabilities.net,
+        mcp: !!d.capabilities.mcp,
       },
       adapter: d.adapter ? String(d.adapter) : null,
       source: d.source ? String(d.source) : undefined,

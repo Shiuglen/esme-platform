@@ -26,6 +26,7 @@ import { CATEGORIES, type Category } from "../core/ipc/module-schema.ts";
 import { CAPABILITIES, type Capability } from "../core/extension-host/capability.ts";
 import { verificaModulo, renderVerificacion } from "./verificar-modulo.ts";
 import { cargaSpecPiel, pielBase } from "../tienda/piel.ts";
+import { recetaBase } from "../tienda/agente.ts";
 
 export interface OpcionesCrear {
   /** El id: `esme.<autor>.<slug>`. */
@@ -126,6 +127,17 @@ export function paqueteDe(o: OpcionesCrear): string {
  * de la casa (Tinta y Luz): lo que no digas, se hereda.
  */
 export function pielDe(base: unknown): string {
+  return JSON.stringify(base, null, 2) + "\n";
+}
+
+/**
+ * La receta de un módulo de AGENTE.
+ *
+ * Un agente es un motor con un encargo, un presupuesto y (si el motor habla
+ * MCP) la memoria de la casa. Se publica la RECETA, no un programa: el motor
+ * corre sin modificar en la terminal de la persona.
+ */
+export function recetaDe(o: OpcionesCrear, base: unknown): string {
   return JSON.stringify(base, null, 2) + "\n";
 }
 
@@ -399,6 +411,11 @@ export async function creaModulo(
   if ((o.categoria ?? "tool") === "theme") {
     const spec = cargaSpecPiel(join(raizKit, "estandar", "piel.spec.yaml"));
     writeFileSync(join(dir, "piel.json"), pielDe(pielBase(spec)));
+  }
+  // un agente trae su receta: el motor, el encargo y el presupuesto
+  if ((o.categoria ?? "tool") === "agent") {
+    const receta = recetaBase(o.id, o.nombre);
+    writeFileSync(join(dir, "agente.json"), recetaDe(o, receta));
   }
 
   return { dir, creado: true, veredicto: null };

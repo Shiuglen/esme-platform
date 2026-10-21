@@ -13,6 +13,7 @@ import { validaModuloFile } from "../modulos/nucleo/manifest-validator.ts";
 import { licenciasPresentes, nivelDe } from "../core/licensing.ts";
 import { cargaMotorCached, MOTORES_CONOCIDOS } from "../motores/laya-adapter.ts";
 import { juzgaPielDeModulo } from "./estandar/piel-check.ts";
+import { juzgaAgenteDeModulo } from "./estandar/agente-check.ts";
 
 const raiz = resolve(import.meta.dirname, "..");
 const dir = join(raiz, "modulos");
@@ -59,6 +60,15 @@ for (const d of archivos) {
     // el guard de la identidad: un módulo de tema trae una piel, y la piel
     // tiene que ser válida (y se tiene que LEER). La estética es el
     // producto: no es skinneable, y el juez está antes de la puerta.
+    if (r.manifest?.category === "agent") {
+      const agente = juzgaAgenteDeModulo(join(dir, d), "agent");
+      if (agente.ok) console.log(`  ✓ receta: ${agente.agente?.motor} con techo de ${agente.agente?.presupuesto.tokens} tokens`);
+      else {
+        fallos++;
+        console.error(`✗ ${d}: la receta del agente no vale`);
+        for (const e of agente.errores) console.error(`  ✗ ${e}`);
+      }
+    }
     if (r.manifest?.category === "theme") {
       const piel = juzgaPielDeModulo(join(dir, d), "theme");
       if (piel.ok) console.log(`  ✓ piel: válida y se lee`);

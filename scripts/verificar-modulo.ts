@@ -33,6 +33,7 @@ import { leeManifiesto } from "../tienda/modulo-manifiesto.ts";
 import { mideCicloModulo, menteDePrueba } from "../core/bench/ciclo.ts";
 import { mideMemoriaModulo } from "../core/bench/memoria.ts";
 import { juzgaPielDeModulo } from "./estandar/piel-check.ts";
+import { juzgaAgenteDeModulo } from "./estandar/agente-check.ts";
 import { mideModulo } from "../core/bench/modulos.ts";
 import { juzgaModulo, type VeredictoModulo, type InformeModulo } from "../core/modulos/veredicto.ts";
 import { construyeModulo } from "./construir-modulos.ts";
@@ -178,7 +179,8 @@ export async function verificaModulo(
   //      piel tiene que ser válida (y se tiene que LEER). La estética es el
   //      producto: por eso hay un juez, y por eso está en la puerta.
   const piel = juzgaPielDeModulo(dir, manifiesto.category);
-  if (!piel.ok) {
+  const agente = juzgaAgenteDeModulo(dir, manifiesto.category);
+  if (!piel.ok || !agente.ok) {
     return {
       manifiestoOk: true,
       errores: [],
@@ -187,7 +189,7 @@ export async function verificaModulo(
       informe: null,
       paquete: null,
       firma: null,
-      pasos: piel.errores,
+      pasos: [...piel.errores, ...agente.errores],
     };
   }
 

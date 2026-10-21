@@ -144,6 +144,25 @@ la app no pueden separarse sin que se caiga el test.
 La llave de las licencias es otra: una llave que firma licencias no firma la
 Tienda. La app tiene las suyas en `app/src/main/claves.ts`.
 
+### Los cuatro productos, cada uno con su forma
+
+El catálogo declara cuatro tipos de producto. Los cuatro tienen ahora una
+forma escrita (y un juez):
+
+| Producto | Qué es | Su forma | Su juez |
+|---|---|---|---|
+| **piel** | un tema | un documento de datos (`piel.json`) | `estandar/piel.spec.yaml` → `npm run piel:check` |
+| **herramienta** | un módulo | un programa medido (el ciclo o el troceo) | `core/modulos/veredicto.ts` → `npm run verificar:modulo` |
+| **agente** | un motor con encargo | una receta (`agente.json`) | `estandar/agente.spec.yaml` → `npm run agente:check` |
+| **app** | una integración | un módulo `category: integration` (con sus permisos y sus dominios) | el mismo juez que las herramientas |
+
+Lo que NO hay todavía: un judge propio para las apps (usan el de las
+herramientas, que es el que corresponde: una app es un módulo que se conecta
+a algo de fuera).
+
+Y lo que un producto NO es: una promesa. Los cuatro se juzgan antes de
+entrar.
+
 ## El juez de las skills
 
 Los módulos de la tienda se miden contra la Prueba 0. Las **skills** no: una

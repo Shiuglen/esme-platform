@@ -17,6 +17,7 @@ const capa = (id: string, pricing: "api" | "local" | "gratuito" = "gratuito"): C
     cancel_support: true,
     runtimes: ["nodejs"],
     net: false,
+    mcp: false,
   },
   adapter: null,
 });
