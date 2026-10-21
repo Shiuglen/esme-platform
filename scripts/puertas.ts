@@ -403,6 +403,17 @@ await puerta("emparejar (qué recursos iluminan cada deseo)", async () => {
   return `${pares[0].recursos[0].nombre} (${pares[0].recursos[0].porque})`;
 });
 
+await puerta("tienda:busca (lo que hay, ordenado por lo que mejora)", async () => {
+  const { buscaEnTienda } = await import("../tienda/busca.ts");
+  const { readFileSync } = await import("node:fs");
+  const indice = JSON.parse(
+    readFileSync(join(raizKit, "tienda", "index.json"), "utf8")
+  );
+  const lista = buscaEnTienda(indice);
+  if (!lista.length) throw new Error("la tienda no devuelve nada");
+  return `${lista.length} módulos, el primero ${lista[0].id}`;
+});
+
 await puerta("puntos (el estado de tu PC, medido)", async () => {
   const lista = puntos({ pids: [process.pid] });
   if (!lista.length) throw new Error("no se midió nada");

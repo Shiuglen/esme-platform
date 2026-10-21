@@ -22,6 +22,11 @@ import { ROLES } from "../../core/equipo.ts";
 import { MODOS } from "../../core/talamus/modos.ts";
 import { CANALES } from "../../core/bot.ts";
 import { ESTADOS_DESEO } from "../../core/tienda/deseos.ts";
+import { TIPOS_RECURSO, VEREDICTOS_RECURSO } from "../../core/tienda/recursos.ts";
+import { CLAVES_RECETA_AGENTE } from "../../tienda/agente.ts";
+import { CLAVES_TURNO } from "../../core/turnos/turno.ts";
+import { CLAVES_PUNTO } from "../../core/motores/puntos.ts";
+import { CLAVES_DECISION } from "../../core/router/aprende.ts";
 import { CAPABILITIES } from "../../core/extension-host/capability.ts";
 import { CATEGORIES, RUNTIMES } from "../../core/ipc/module-schema.ts";
 import { LICENCIAS_PERMITIDAS, TOPE_BYTES, TOPE_FICHEROS, TOPE_TOKENS } from "../../tienda/skills.ts";
@@ -171,5 +176,45 @@ export function compruebaConformidad(): FalloConformidad[] {
   const piezas = (piel.piezas ?? {}) as Record<string, string[]>;
   if (!Object.keys(piezas).length) anota("piel.spec.yaml", "no declara las piezas");
 
+  // 9. los recursos: el tipo y el veredicto son los del código
+  const recurso = leeSpec("recurso.spec.yaml");
+  const reglasRecurso = (recurso.reglas ?? {}) as Record<string, unknown>;
+  const cerrados = (reglasRecurso.cerrados as { tipo?: string[]; veredicto?: string[] }) ?? {};
+  if ((cerrados.tipo ?? []).join(",") !== [...TIPOS_RECURSO].join(",")) {
+    anota(
+      "recurso.spec.yaml",
+      `los tipos no cuadran: spec [${(cerrados.tipo ?? []).join(", ")}] · código [${TIPOS_RECURSO.join(", ")}]`
+    );
+  }
+  if ((cerrados.veredicto ?? []).join(",") !== [...VEREDICTOS_RECURSO].join(",")) {
+    anota(
+      "recurso.spec.yaml",
+      `los veredictos no cuadran: spec [${(cerrados.veredicto ?? []).join(", ")}] · código [${VEREDICTOS_RECURSO.join(", ")}]`
+    );
+  }
+
+  // 10. las formas: los campos de la spec son los del código
+  const formas: Array<[string, string, readonly string[]]> = [
+    ["agente.spec.yaml", "agente", CLAVES_RECETA_AGENTE],
+    ["turno.spec.yaml", "turno", CLAVES_TURNO],
+    ["puntos.spec.yaml", "punto", CLAVES_PUNTO],
+    ["router.spec.yaml", "decision", CLAVES_DECISION],
+  ];
+  for (const [fichero, seccion, claves] of formas) {
+    const spec = leeSpec(fichero);
+    const forma = (spec[seccion] ?? {}) as Record<string, unknown>;
+    const declarados = Object.keys(forma);
+    if (!declarados.length) {
+      anota(fichero, `no declara la forma «${seccion}»`);
+      continue;
+    }
+    for (const d of declarados) {
+      if (!claves.includes(d)) {
+        anota(fichero, `${seccion}.${d}: la spec lo declara y el código no lo tiene`);
+      }
+    }
+  }
+
   return fallos;
 }
+

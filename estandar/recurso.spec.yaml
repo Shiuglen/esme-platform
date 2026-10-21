@@ -34,7 +34,9 @@ recurso:
 reglas:
   # 1. el tipo es cerrado y el veredicto también (son tres estados, no
   #    «casi mirado»).
-  cerrados: true
+  cerrados:
+    tipo: ["repo", "paquete", "servicio", "patron"]
+    veredicto: ["probado", "mirado", "sin-mirar"]
   # 2. la licencia se puede no saber; lo que no se puede es inventarla.
   licencia_se_puede_ignorar: true
   # 3. el emparejamiento con los deseos es de palabras y etiquetas, y

@@ -21,6 +21,20 @@ import { execFileSync } from "node:child_process";
 import { platform } from "node:os";
 import { MOTORES_ACP } from "../../motores/acp-motores.ts";
 
+/** Las claves del punto (la forma que declara estandar/puntos.spec.yaml). */
+export const CLAVES_PUNTO = [
+  "id",
+  "motor",
+  "proceso",
+  "pid",
+  "estado",
+  "memoria_mb",
+  "cpu_pct",
+  "desde",
+  "pasado",
+  "carga",
+] as const;
+
 /** Un proceso, medido. */
 export interface Punto {
   /** Un id estable: motor + pid + arranque. */
@@ -41,6 +55,19 @@ export interface Punto {
   desde: number | null;
   /** ¿Se pasa del tope de memoria? */
   pasado: boolean;
+  /**
+   * El desglose de la memoria (si el proceso lo sabe).
+   *
+   * No es un adorno: «pesos» y «caché» se comportan distinto (la caché se
+   * puede soltar; los pesos, no). Pero el sistema operativo NO lo dice: lo
+   * sabe quien tiene el modelo en la memoria (el cerebro, la app). Así que
+   * aquí va a null cuando no se sabe — y lo que no se sabe, no se inventa.
+   */
+  carga?: {
+    pesos_mb: number | null;
+    cache_mb: number | null;
+    libre_mb: number | null;
+  };
 }
 
 /** El tope por defecto: el que se pasa, se ve. */
@@ -240,6 +267,9 @@ export function puntos(opts: OpcionesPuntos = {}): Punto[] {
       cpu_pct: l.cpu_pct,
       desde: l.desde,
       pasado: memoria !== null && memoria > tope,
+      // el desglose (pesos/caché/libre) no lo sabe el sistema operativo:
+      // lo completa quien tiene el modelo en la memoria
+      carga: { pesos_mb: null, cache_mb: null, libre_mb: null },
     });
   }
   return salida.sort((a, b) => (b.memoria_mb ?? -1) - (a.memoria_mb ?? -1));

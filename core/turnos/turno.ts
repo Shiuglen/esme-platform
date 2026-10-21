@@ -49,6 +49,20 @@ export interface CambioTurno {
   borrados: number | null;
 }
 
+/** Las claves del turno (la forma que declara estandar/turno.spec.yaml). */
+export const CLAVES_TURNO = [
+  "id",
+  "motor",
+  "modo",
+  "pregunta",
+  "respuesta",
+  "actividad",
+  "cambios",
+  "tokens",
+  "coste_usd",
+  "presupuesto",
+] as const;
+
 /** El turno: lo que pasó. */
 export interface Turno {
   /** El id estable. */

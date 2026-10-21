@@ -6,6 +6,13 @@
       "id": "esme.nucleo.hola-mundo",
       "version": "0.1.0",
       "category": "tool",
+      "descripcion": "Saluda al usuario y demuestra el ciclo completo recall-inject de la mente.",
+      "etiquetas": [
+        "saludo",
+        "onboarding",
+        "memoria",
+        "recall"
+      ],
       "bench_ciclo": {
         "modulo": "esme.nucleo.hola-mundo",
         "version": "0.1.0",
@@ -26,6 +33,14 @@
       "id": "esme.nucleo.troceo-pro",
       "version": "0.1.0",
       "category": "memory",
+      "descripcion": "El troceo por filas de tabla: la tabla entera no cabe y las preguntas se quedan sin respuesta.",
+      "etiquetas": [
+        "troceo",
+        "tabla",
+        "memoria",
+        "recall",
+        "contexto"
+      ],
       "bench": {
         "modulo": "esme.nucleo.troceo-pro",
         "version": "0.1.0",
@@ -49,6 +64,13 @@
       "id": "esme.nucleo.puerta",
       "version": "0.1.0",
       "category": "tool",
+      "descripcion": "El módulo que demuestra la puerta entera: la mente, el disco, los eventos y la UI.",
+      "etiquetas": [
+        "puerta",
+        "permisos",
+        "memoria",
+        "interfaz"
+      ],
       "bench_ciclo": {
         "modulo": "esme.nucleo.puerta",
         "version": "0.1.0",
@@ -68,10 +90,10 @@
   ],
   "signature": {
     "algorithm": "ed25519-sha512",
-    "signature": "Nic+JHVQmBj889ZwFg2mYHokAQVrpJ72TqLmO6kArt+7KsVpSQswWG3SvIeMyM+556Lhvm41sUUBUYljAWtzCQ==",
-    "signed_at": "2026-10-21T06:53:01.027Z",
+    "signature": "jibE+zZYnLkRp/rKimqWP/I3a25ehjpxUUZIy2fXDcOercHlqLR7rUSdv30c0NDsbaWY4KlH80tuBip6FH30CA==",
+    "signed_at": "2026-10-21T07:07:42.059Z",
     "signed_by": "adaaf79999a7296f",
-    "hash": "ySMQpueDOtkeELn4eWKDortEG3XufSfZTei/KaOzWBA="
+    "hash": "4CISs3pXoO0vbU7GyZpX3Oo1/Jda3d6ZeFxJV6t7BGY="
   },
   "claves": {
     "62304bfd9e441c73": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAWMd+6VJIBCckRb2ZcjZ/oEAv/upjD5OWPxR6Gm97yEE=\n-----END PUBLIC KEY-----\n",

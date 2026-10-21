@@ -20,6 +20,25 @@
 import { cargaMotorCached, type CognitionMotor } from "../motores/laya-adapter.ts";
 
 /** La receta de un agente. */
+/**
+ * Las claves de la receta (la forma que declara estandar/agente.spec.yaml).
+ *
+ * Se declaran a mano porque los tipos no existen en runtime, y la conformidad
+ * (scripts/estandar/conformidad.ts) las compara con la spec: si una de las
+ * dos se mueve, se nota.
+ */
+export const CLAVES_RECETA_AGENTE = [
+  "version",
+  "id",
+  "nombre",
+  "motor",
+  "descripcion",
+  "memoria",
+  "herramientas",
+  "presupuesto",
+  "encargo",
+] as const;
+
 export interface RecetaAgente {
   version: number;
   id: string;

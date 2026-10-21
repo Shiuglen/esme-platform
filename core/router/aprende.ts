@@ -30,6 +30,17 @@ import { createHash } from "node:crypto";
 /** Lo que la persona dijo de una decisión. */
 export type VeredictoRuta = "aprobado" | "corregido" | "rechazado";
 
+/** Las claves de la decisión (la forma que declara estandar/router.spec.yaml). */
+export const CLAVES_DECISION = [
+  "ts",
+  "tarea",
+  "ruta",
+  "confianza",
+  "razonamiento",
+  "veredicto",
+  "ruta_correcta",
+] as const;
+
 /** Una decisión del router, registrada. */
 export interface DecisionRuta {
   /** Cuándo (epoch ms). */

@@ -79,6 +79,7 @@
     "deseos": "tsx scripts/deseos.ts",
     "publicar:deseos": "tsx scripts/publicar-deseos.ts",
     "publicar:recursos": "tsx scripts/publicar-recursos.ts",
+    "tienda:busca": "tsx scripts/tienda-busca.ts",
     "verificar:skill": "tsx scripts/verificar-skill.ts",
     "cambios": "tsx scripts/cambios.ts",
     "ejecutar": "tsx scripts/ejecutar.ts",

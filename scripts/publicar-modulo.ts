@@ -72,6 +72,8 @@ export function entradaDe(
   id: string,
   version: string,
   categoria: string,
+  descripcion: string | null,
+  etiquetas: string[],
   informe: InformeModulo | null,
   tar: string,
   bytes: number,
@@ -83,6 +85,8 @@ export function entradaDe(
     id,
     version,
     category: categoria,
+    ...(descripcion ? { descripcion } : {}),
+    ...(etiquetas.length ? { etiquetas } : {}),
     ...(forma === "ciclo" ? { bench_ciclo: informe } : { bench: informe }),
     firma_ok: firmaOk,
     artefacto: { tar, bytes },
@@ -148,6 +152,8 @@ export async function publicaModulo(
     v.id,
     v.version,
     categoriaDe(dir),
+    descripcionDe(dir),
+    etiquetasDe(dir),
     verificado.informe,
     verificado.paquete.sha256,
     verificado.paquete.bytes,
@@ -209,6 +215,19 @@ export async function publicaModulo(
     firmante: artefacto.firma.signed_by,
     ...(derecho.ok ? {} : { razon: `publicado, pero tu llave no está en la estirpe: ${derecho.razon}` }),
   };
+}
+
+/** La descripción del módulo (la lee de su manifiesto: sin ella no se puede buscar). */
+function descripcionDe(dir: string): string | null {
+  const d = leeManifiesto(dir, { exigirEntrada: false });
+  return d.manifest?.description ?? null;
+}
+
+/** Las etiquetas del módulo (su vocabulario semántico: lo que el módulo dice que es). */
+function etiquetasDe(dir: string): string[] {
+  const d = leeManifiesto(dir, { exigirEntrada: false });
+  const criterios = d.manifest?.decision_criteria ?? [];
+  return [...new Set(criterios.flatMap((c) => c.tags))].filter(Boolean);
 }
 
 /** La categoría del módulo (la lee de su manifiesto). */
