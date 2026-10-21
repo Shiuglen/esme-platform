@@ -45,7 +45,7 @@ resuelve exactamente este problema. Lo que se trajo:
 
 | De PandaCode | En el kit |
 |---|---|
-| instantánea por **hash de contenido** (no por fecha) | `core/turno/cambios.ts` |
+| instantánea por **hash de contenido** (no por fecha) | `core/turnos/cambios.ts` |
 | diff de **Myers** (O(ND)) con tope de 512 ediciones | igual, en TS |
 | `additions: Option` — un número que no se sabe es **null**, no 0 | igual |
 | escaneo con **plazo** (un recorrido infinito es peor que ninguno) | `PLAZO_MS` |

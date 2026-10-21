@@ -12,7 +12,7 @@
  *      información: la lista va vacía, no inventada);
  *   5. el presupuesto se respeta o se dice que no.
  *
- * Referencia: core/turno.ts, estandar/turno.spec.yaml.
+ * Referencia: core/turnos/turno.ts, estandar/turno.spec.yaml.
  */
 import { describe, expect, it } from "vitest";
 import {
@@ -26,7 +26,7 @@ import {
   tokensDe,
   LIMPIEZA_MINIMA,
   type Turno,
-} from "../core/turno.ts";
+} from "../core/turnos/turno.ts";
 
 /** Un turno normal: respuesta corta, tres pasos. */
 const turnoNormal = (): Turno =>

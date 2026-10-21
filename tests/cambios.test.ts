@@ -12,7 +12,7 @@
  *   6. y si la instantánea de antes no era completa, no se puede afirmar
  *      nada: el resultado va truncado.
  *
- * Referencia: core/turno/cambios.ts (la idea viene de la ingeniería inversa
+ * Referencia: core/turnos/cambios.ts (la idea viene de la ingeniería inversa
  * de PandaCode: `src-tauri/src/turn_changes.rs`).
  */
 import { describe, expect, it } from "vitest";
@@ -26,7 +26,7 @@ import {
   esBinario,
   mide,
   TOPE_EDICIONES,
-} from "../core/turno/cambios.ts";
+} from "../core/turnos/cambios.ts";
 
 const arbol = (): string => {
   const dir = mkdtempSync(join(tmpdir(), "esme-cambios-"));

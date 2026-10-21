@@ -8,7 +8,7 @@
  *
  * Con un listón: por debajo del 60 %, el chat se ensució.
  *
- * Referencia: core/turno.ts, estandar/turno.spec.yaml.
+ * Referencia: core/turnos/turno.ts, estandar/turno.spec.yaml.
  */
 import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
@@ -20,7 +20,7 @@ import {
   turnoLimpio,
   LIMPIEZA_MINIMA,
   type Turno,
-} from "../core/turno.ts";
+} from "../core/turnos/turno.ts";
 
 // ——— la línea de comandos ———
 if (import.meta.url === new URL(`file://${process.argv[1]}`).href) {

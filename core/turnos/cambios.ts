@@ -21,7 +21,7 @@
  * que resuelve exactamente este problema para sus turnos (`turn_changes.rs`).
  * Aquí está en el kit, en el lenguaje de la casa, con las mismas reglas.
  *
- * Referencia: core/turno.ts, estandar/turno.spec.yaml.
+ * Referencia: core/turnos/turno.ts, estandar/turno.spec.yaml.
  */
 import { createHash } from "node:crypto";
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";

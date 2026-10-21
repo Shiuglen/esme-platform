@@ -21,7 +21,7 @@
  *   4. **los roles son cerrados**: arquitecto, trabajador, crítico. Un rol
  *      inventado no se puede medir ni repartir.
  *
- * Referencia: estandar/equipo.spec.yaml, core/turno.ts.
+ * Referencia: estandar/equipo.spec.yaml, core/turnos/turno.ts.
  */
 import type { ModoContexto } from "./talamus/modos.ts";
 

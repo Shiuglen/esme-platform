@@ -6,12 +6,12 @@
  * de Myers con tope y los números que NO se saben se quedan en null (un
  * binario no tiene líneas; un diff enorme tampoco).
  *
- * Referencia: core/turno/cambios.ts, core/turno.ts.
+ * Referencia: core/turnos/cambios.ts, core/turnos/turno.ts.
  */
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
-import { instantanea, compara } from "../core/turno/cambios.ts";
-import { cambiosDe } from "../core/turno.ts";
+import { instantanea, compara } from "../core/turnos/cambios.ts";
+import { cambiosDe } from "../core/turnos/turno.ts";
 
 // ——— la línea de comandos ———
 if (import.meta.url === new URL(`file://${process.argv[1]}`).href) {

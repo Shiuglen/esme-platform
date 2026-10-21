@@ -20,8 +20,8 @@
  *
  * Referencia: estandar/turno.spec.yaml, core/talamus/modos.ts.
  */
-import type { ModoContexto } from "./talamus/modos.ts";
-import type { ResultadoCambios } from "./turno/cambios.ts";
+import type { ModoContexto } from "../talamus/modos.ts";
+import type { ResultadoCambios } from "./cambios.ts";
 
 /** Un paso de herramienta. */
 export interface PasoTurno {
