@@ -38,14 +38,22 @@ const arg = (flag: string): string | null => {
 const permitidos = new ProgramasPermitidos(rutaLibro).lista();
 
 /** Lanza REA por la puerta (o explica por qué no se puede). */
-async function lanzaRea(args: string[], cwd?: string): Promise<string> {
+async function lanzaRea(
+  args: string[],
+  cwd?: string
+): Promise<{ texto: string; truncado: boolean; ms: number }> {
   const r = await ejecutaPrograma(
     { programa: "rea", args },
-    { permitidos, proyecto: cwd ?? null, timeoutPorDefecto: 900_000, maxBytesPorDefecto: 512 * 1_048_576 }
+    {
+      permitidos,
+      proyecto: cwd ?? null,
+      timeoutPorDefecto: 900_000,
+      maxBytesPorDefecto: 512 * 1_048_576,
+    }
   );
   if (r.timeout) throw new Error("REA tardó demasiado y lo mataron (¿una app de 100 MB?)");
   if (r.codigo !== 0) throw new Error(`REA salió con código ${r.codigo}: ${r.stderr.slice(0, 300)}`);
-  return r.stdout;
+  return { texto: r.stdout, truncado: r.truncado, ms: r.ms };
 }
 
 /** Lo que hace falta para que REA esté en la puerta. */
@@ -65,7 +73,7 @@ if (import.meta.url === new URL(`file://${process.argv[1]}`).href) {
   switch (verbo) {
     case "catalogo": {
       const salida = await lanzaRea(["capabilities", "--format", "json"]);
-      const lectura = leeCatalogoRea(JSON.parse(salida));
+      const lectura = leeCatalogoRea(JSON.parse(salida.texto));
       if (!lectura.ok) {
         console.error("✗ el catálogo de REA no encaja en la forma del kit:");
         for (const e of lectura.errores) console.error(`  · ${e}`);
@@ -99,14 +107,22 @@ if (import.meta.url === new URL(`file://${process.argv[1]}`).href) {
       const destino = arg("--salida") ?? "evidencia.json";
       console.log(`analizando ${ruta} (esto tarda: una app de 100 MB son minutos)…`);
       const salida = await lanzaRea(["analyze", ruta, "--format", "json"], dirname(ruta));
-      const lectura = leeEvidenciaReaJson(salida);
+      if (salida.truncado) {
+        // una evidencia cortada no es una evidencia: es un JSON que no se lee.
+        // Se dice POR QUÉ, con el número, en vez de reventar al parsear.
+        console.error("✗ la salida de REA llegó CORTADA (el tope de bytes de la puerta)");
+        console.error(`  el análisis produjo más de lo que la puerta deja pasar`);
+        console.error("  el módulo puede pedir un tope mayor con `maxBytes`; el análisis grande necesita otro camino");
+        process.exit(1);
+      }
+      const lectura = leeEvidenciaReaJson(salida.texto);
       if (!lectura.ok) {
         console.error("✗ REA no devolvió una evidencia que encaje:");
         for (const e of lectura.errores.slice(0, 10)) console.error(`  · ${e}`);
         process.exit(1);
       }
       mkdirSync(dirname(destino), { recursive: true });
-      writeFileSync(destino, salida, "utf8");
+      writeFileSync(destino, salida.texto, "utf8");
       const ev = lectura.evidencia;
       console.log(`✓ evidencia de «${ev.subject.name}»`);
       console.log(`  nodos: ${ev.nodes.length} · relaciones: ${ev.relations.length} · desconocidos: ${ev.unknowns.length}`);

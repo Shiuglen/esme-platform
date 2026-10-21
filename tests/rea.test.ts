@@ -26,7 +26,7 @@ import { capacidadesExigidas, operacionPermitida, resumenCatalogo } from "../cor
 import { conocimientoDe } from "../core/rea/conocimiento.ts";
 import { absorbeEvidencia } from "../core/rea/absorbe.ts";
 import { importaRea } from "../core/mind/importers/rea.ts";
-import { ejecutaPrograma, entornoHijo, resuelveEjecutable } from "../core/extension-host/proc.ts";
+import { ejecutaPrograma, entornoHijo, resuelveEjecutable, MAX_BYTES_POR_DEFECTO, MAX_BYTES_TECHO } from "../core/extension-host/proc.ts";
 
 /* ------------------------------------------------------------------ *
  * Un documento de REA de mentira, pero con la forma buena.             *
@@ -509,5 +509,14 @@ describe("la puerta de los programas: las cuatro guardas", () => {
     );
     expect(r.timeout).toBe(true);
     expect(r.codigo).toBeNull();
+  });
+
+  it("el techo de la salida es el MEDIDO (la evidencia de una app de 27 MB pesa 209 MB)", () => {
+    // Si el techo bajara de 209 MB, la evidencia de una app real llegaría
+    // cortada, y una evidencia cortada no se puede leer.
+    expect(MAX_BYTES_TECHO).toBeGreaterThanOrEqual(256 * 1_048_576);
+    // y el tope por defecto sigue siendo pequeño: un módulo normal no llena
+    // la memoria de nadie
+    expect(MAX_BYTES_POR_DEFECTO).toBe(1_048_576);
   });
 });

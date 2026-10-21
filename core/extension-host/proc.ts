@@ -94,6 +94,21 @@ export const TIMEOUT_POR_DEFECTO = 30_000;
 export const MAX_BYTES_POR_DEFECTO = 1_048_576;
 
 /**
+ * El techo duro de la salida de un hijo.
+ *
+ * Por qué 512 MB y no 64. MEDIDO, no estimado: la evidencia de REA de una app
+ * de Electron de 27 MB (el asar por defecto de Electron, analizado en esta
+ * máquina el 21-oct-2026) pesa 209 MB de JSON. Con un techo de 64 MB la
+ * salida llegaba cortada, y una evidencia cortada no es una evidencia: es un
+ * JSON que no se puede leer.
+ *
+ * El tope por DEFECTO sigue siendo 1 MB: un módulo que pide algo normal no
+ * llena la memoria de nadie. Este techo es el límite de la casa, no su
+ * costumbre.
+ */
+export const MAX_BYTES_TECHO = 512 * 1_048_576;
+
+/**
  * Resuelve el ejecutable de un programa permitido.
  *
  * Primero la ruta explícita; si no la hay, el PATH —pero sólo el PATH, y sólo
@@ -177,7 +192,10 @@ export function ejecutaPrograma(
   }
 
   const timeoutMs = Math.min(Math.max(peticion.timeoutMs ?? opts.timeoutPorDefecto ?? TIMEOUT_POR_DEFECTO, 100), 300_000);
-  const maxBytes = Math.min(Math.max(peticion.maxBytes ?? opts.maxBytesPorDefecto ?? MAX_BYTES_POR_DEFECTO, 1024), 64 * 1_048_576);
+  const maxBytes = Math.min(
+    Math.max(peticion.maxBytes ?? opts.maxBytesPorDefecto ?? MAX_BYTES_POR_DEFECTO, 1024),
+    MAX_BYTES_TECHO
+  );
   const argv = [...(resuelta.entrada.argvFijos ?? []), ...args];
   const env = entornoHijo(resuelta.entrada, peticion.env);
   const inicio = Date.now();
