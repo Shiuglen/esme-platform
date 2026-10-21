@@ -43,6 +43,8 @@ Entre dos lenguas solo sobrevive lo que está escrito.
 | `estandar/router.spec.yaml` | El router que aprende de los veredictos de la persona. |
 | `estandar/deseo.spec.yaml` | Los deseos: lo que guardaste es lo que falta por construir (y va firmado). |
 | `estandar/recurso.spec.yaml` | Los recursos: las piezas con las que se construye (y a qué deseo iluminan). |
+| `docs/ARENA.md` | La arena: la cata a ciegas, su compromiso y el paladar. |
+| `estandar/arena.spec.yaml` | La arena: el compromiso, la revelación y las reglas del ciego. |
 
 Y las otras dos puertas: `npm run verificar:skill -- <carpeta>` (una skill de
 cualquiera, juzgada en local) y `npm run crear:modulo` (un módulo, con su
@@ -83,6 +85,15 @@ npm run panel            # el panel de la tienda, en markdown
 npm run skills:juzgar    # el juez de las skills: el veredicto medible de cada una
 npm run modulos:juzgar   # el juez de los módulos: mide, dicta y FIRMA
 npm run tienda:publicar-modulos -- --repo <ruta> --push   # el store de módulos, público
+```
+
+**Catar a ciegas** (la arena: la carrera, el compromiso y el paladar):
+
+```bash
+npm run arena -- cata --tarea "¿qué se decidió sobre el Taller?" \
+    --categoria pruebas --modulo modulos/ejemplo-troceo-pro --modulo modulos/ejemplo-hola-mundo
+npm run arena -- revelar --ciega arena.ciega.json --clave arena.clave.json --elige A
+npm run arena -- paladar arena.revelada.json     # lo que la cata enseñó, con su número
 ```
 
 ## Publicar el kit (una vez)

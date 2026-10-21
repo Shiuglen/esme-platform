@@ -35,6 +35,7 @@ aprendido:
   veredictos: "cuántas tienen veredicto"
   correcciones: "cuántas corrigió o rechazó"
   concordancia: "0..1 (lo que ratificó de lo que eligió el router)"
+  paladar: "categoría → motor que ganó las catas a ciegas (con su número de catas)"
 
 # ——— las reglas ———
 reglas:
@@ -53,3 +54,10 @@ reglas:
   # 5. el registro no guarda datos personales: la tarea se guarda, no lo que
   #    la persona escribió de más (180 días, y se recorta).
   sin_datos_personales: true
+  # 6. el orden de lo aprendido: la persona (veredicto exacto) va delante del
+  #    paladar (la categoría que ganó las catas), y el router decide cuando no
+  #    hay nada aprendido.
+  orden_aprendido: "persona > paladar > router"
+  # 7. el paladar sólo cuenta si la cata fue limpia y hubo catas de sobra
+  #    (arena.spec.yaml): una impresión no es un paladar.
+  paladar_con_catas: true

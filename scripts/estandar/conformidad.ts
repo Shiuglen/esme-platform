@@ -27,6 +27,8 @@ import { CLAVES_RECETA_AGENTE } from "../../tienda/agente.ts";
 import { CLAVES_TURNO } from "../../core/turnos/turno.ts";
 import { CLAVES_PUNTO } from "../../core/motores/puntos.ts";
 import { CLAVES_DECISION } from "../../core/router/aprende.ts";
+import { CATEGORIAS_ARENA, CLAVES_ARENA } from "../../core/arena/arena.ts";
+import { MINIMO_CATAS } from "../../core/arena/paladar.ts";
 import { CAPABILITIES } from "../../core/extension-host/capability.ts";
 import { CATEGORIES, RUNTIMES } from "../../core/ipc/module-schema.ts";
 import { LICENCIAS_PERMITIDAS, TOPE_BYTES, TOPE_FICHEROS, TOPE_TOKENS } from "../../tienda/skills.ts";
@@ -177,8 +179,7 @@ export function compruebaConformidad(): FalloConformidad[] {
   if (!Object.keys(piezas).length) anota("piel.spec.yaml", "no declara las piezas");
 
   // 9. los recursos: el tipo y el veredicto son los del código
-  const recurso = leeSpec("recurso.spec.yaml");
-  const reglasRecurso = (recurso.reglas ?? {}) as Record<string, unknown>;
+  const recurso = leeSpec("recurso.spec.yaml");  const reglasRecurso = (recurso.reglas ?? {}) as Record<string, unknown>;
   const cerrados = (reglasRecurso.cerrados as { tipo?: string[]; veredicto?: string[] }) ?? {};
   if ((cerrados.tipo ?? []).join(",") !== [...TIPOS_RECURSO].join(",")) {
     anota(
@@ -193,12 +194,30 @@ export function compruebaConformidad(): FalloConformidad[] {
     );
   }
 
-  // 10. las formas: los campos de la spec son los del código
+  // 10. la arena: las categorías cerradas y el mínimo de catas
+  const arena = leeSpec("arena.spec.yaml");
+  const categoriasSpec = opciones(arena, "reglas", "categorias_cerradas");
+  if (categoriasSpec.join(",") !== [...CATEGORIAS_ARENA].join(",")) {
+    anota(
+      "arena.spec.yaml",
+      `las categorías no cuadran: spec [${categoriasSpec.join(", ")}] · código [${CATEGORIAS_ARENA.join(", ")}]`
+    );
+  }
+  const reglasArena = (arena.reglas ?? {}) as Record<string, unknown>;
+  if (Number(reglasArena.minimo_catas) !== MINIMO_CATAS) {
+    anota(
+      "arena.spec.yaml",
+      `el mínimo de catas es ${String(reglasArena.minimo_catas)} en la spec y ${MINIMO_CATAS} en el código`
+    );
+  }
+
+  // 11. las formas: los campos de la spec son los del código
   const formas: Array<[string, string, readonly string[]]> = [
     ["agente.spec.yaml", "agente", CLAVES_RECETA_AGENTE],
     ["turno.spec.yaml", "turno", CLAVES_TURNO],
     ["puntos.spec.yaml", "punto", CLAVES_PUNTO],
     ["router.spec.yaml", "decision", CLAVES_DECISION],
+    ["arena.spec.yaml", "arena", CLAVES_ARENA],
   ];
   for (const [fichero, seccion, claves] of formas) {
     const spec = leeSpec(fichero);

@@ -1,0 +1,83 @@
+# **Spec abierta v1 — la arena.** Una cata a ciegas, con su compromiso.
+# Referencia: core/arena/arena.ts, core/arena/ciego.ts, docs/ARENA.md.
+#
+# QUÉ ES UNA ARENA: una carrera ciega. Dos o más participantes hacen LA MISMA
+# tarea, y la persona elige el winner SIN saber quién es quién. Al final se
+# revela el mapa, y ese veredicto (medido, con catas de sobra) es lo que
+# alimenta el paladar: «para pruebas, tu cata dice Qwen».
+#
+# POR QUÉ ESTÁ ESCRITA: la cata ciega es un juego de la confianza, y sin
+# contrato se rompe en silencio en tres sitios:
+#
+#   1. **El ciego tiene que ser ciego de verdad.** Si el documento ciego lleva
+#      el nombre del motor, el modelo o el precio, la persona está eligiendo
+#      por el precio y no por la calidad. Por eso la parte ciega sólo lleva
+#      la ETIQUETA y las MEDIDAS: ni un nombre, ni un modelo, ni un céntimo.
+#   2. **El mapa se compromete ANTES.** El organizador podría cambiar el
+#      mapa después de ver los resultados (y quedarse con la mejor carrera
+#      debajo de la etiqueta que le conviene). Por eso la parte ciega lleva
+#      un COMPROMISO (el hash del mapa con su sal) y una HUELLA (el hash de
+#      todo lo ciego). La huella se entrega ANTES de la revelación; al
+#      revelar, si la huella no cuadra o el compromiso no verifica, la arena
+#      está CONTAMINADA y no alimenta nada.
+#   3. **Un paladar necesita catas.** Con una sola cata hay una impresión, no
+#      un paladar. Por eso hay un mínimo de catas por motor antes de que el
+#      paladar pueda proponer.
+#
+# Lo que este contrato NO es: cómo se dibuja la arena. La ventana decide.
+
+schema_version: 1
+
+arena:
+  id: "estable"
+  version: 1
+  emitido: "la fecha (ISO)"
+  tarea: "la tarea: la misma para todos"
+  categoria: "la categoría de la tarea (reglas.categorias_cerradas)"
+  # LA PARTE CIEGA: la etiqueta y las medidas. Ni un nombre, ni un modelo,
+  # ni un precio. Si aparece algo de eso, la cata está contaminada.
+  participantes:
+    - etiqueta: "A"
+      medidas:
+        ms: 0
+        tokens: 0
+        cambios: 0
+        ok: true
+  # el compromiso: el hash del mapa con su sal, hecho ANTES de la carrera
+  compromiso:
+    algoritmo: "sha256"
+    hash: "el hash del mapa con la sal"
+  # el veredicto de la persona: la etiqueta que eligió, sin saber quién era
+  veredicto:
+    elegida: "A"
+    nota: "por qué (opcional)"
+  # la revelación: DESPUÉS del veredicto
+  revelacion:
+    sal: "la sal del compromiso"
+    fichas:
+      A:
+        motor: "el motor que era A"
+        modelo: "el modelo (opcional)"
+        coste_usd: 0.0
+
+reglas:
+  # 1. el ciego es ciego: la parte ciega no lleva motor, ni modelo, ni coste.
+  ciego_sin_nombres: true
+  # 2. el compromiso va antes: la huella de la parte ciega se entrega antes de
+  #    revelar, y al revelar tiene que cuadrar con el documento revelado.
+  compromiso_antes: true
+  # 3. el coste se descubre al final: en la parte ciega no está.
+  coste_al_revelar: true
+  # 4. el mínimo de catas: sin catas suficientes, el paladar no propone nada.
+  minimo_catas: 3
+  # 5. una arena contaminada no cuenta: ni para el paladar ni para el router.
+  contaminada_no_cuenta: true
+  # 6. las categorías son cerradas: una tarea es de una, y de una sola.
+  categorias_cerradas:
+    - pruebas
+    - docs
+    - codigo
+    - refactor
+    - diseno
+    - investigacion
+    - libre

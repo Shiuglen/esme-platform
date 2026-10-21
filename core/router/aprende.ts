@@ -71,6 +71,14 @@ export interface Aprendido {
   correcciones: number;
   /** Cuántas veces el router acertó con lo aprendido (0-1). */
   concordancia: number;
+  /**
+   * EL PALADAR: lo que la cata a ciegas enseñó, por categoría.
+   *
+   * Es una memoria más burda que la tabla (no sabe de una tarea concreta,
+   * sino de una categoría: «para pruebas, tu cata dice Qwen»), pero con más
+   * cata detrás: son muchas carreras medidas, no una frase suelta.
+   */
+  paladar?: Record<string, { motor: string; catas: number; ganadas: number }>;
 }
 
 /**
@@ -133,17 +141,29 @@ export function aprendeDe(registro: DecisionRuta[]): Aprendido {
 /**
  * Elige motor con lo aprendido por delante.
  *
- * Si hay veredicto para esta tarea, va el motor de la persona. Si no, decide
- * Laya (o quien sea): la tabla es su memoria, no su sustituto.
+ * El orden es el orden de la casa, de la persona hacia abajo:
+ *
+ *   1. **la persona** — si hay veredicto para esta tarea EXACTA, va su motor;
+ *   2. **el paladar** — si no, el motor que ganó las catas de esa CATEGORÍA
+ *      (medido, con el número de catas al lado);
+ *   3. **el router** — si no hay nada aprendido, decide Laya (o quien sea).
+ *
+ * El paladar va en medio y no primero a propósito: la tabla de la persona es
+ * sobre una tarea concreta, y su veredicto manda; el paladar es sobre una
+ * categoría y son muchas carreras. El router sigue decidiendo cuando no hay
+ * nada aprendido: lo aprendido es su memoria, no su sustituto.
  */
 export function eligeConAprendido(
   tarea: string,
   aprendido: Aprendido,
-  porDefecto: (tarea: string) => string
-): { ruta: string; de: "persona" | "router" } {
+  porDefecto: (tarea: string) => string,
+  categoria?: string
+): { ruta: string; de: "persona" | "paladar" | "router" } {
   const firma = firmaDe(tarea);
   const guardada = firma ? aprendido.tabla[firma] : undefined;
   if (guardada) return { ruta: guardada, de: "persona" };
+  const cata = categoria ? aprendido.paladar?.[categoria] : undefined;
+  if (cata) return { ruta: cata.motor, de: "paladar" };
   return { ruta: porDefecto(tarea), de: "router" };
 }
 

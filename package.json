@@ -73,6 +73,7 @@
     "puntos": "tsx scripts/puntos.ts",
     "talamo": "tsx scripts/talamo.ts",
     "turno": "tsx scripts/turno.ts",
+    "arena": "tsx scripts/arena.ts",
     "equipo": "tsx scripts/equipo.ts",
     "bot:check": "tsx scripts/bot-check.ts",
     "router": "tsx scripts/router.ts",

@@ -37,6 +37,9 @@
 | `npm run doctor` | cómo está esta máquina: módulos, permisos, tienda y memoria |
 | `npm run modulos -- actualiza` | el plan de actualización (con `--sí`, se aplica) |
 | `npm run verificar:skill -- <carpeta>` | juzga una skill en local (hechos, norecall) |
+| `npm run arena -- cata --tarea "..." --modulo <dir> --modulo <dir>` | la cata a ciegas: mide, reparte y deja el documento ciego con su compromiso |
+| `npm run arena -- revelar --ciega <f> --clave <f> --elige A` | revela el mapa y comprueba que el compromiso sigue verificando |
+| `npm run arena -- paladar <f>...` | lo que la cata enseñó por categoría (con el número de catas al lado) |
 | `npm run cambios -- <antes> <despues>` | qué cambió entre dos versiones (Myers, con tope) |
 | `npm run ejecutar -- <módulo> "<consulta>"` | ejecuta un turno de verdad y lo mide |
 | `npm run puertas` | todas las puertas de la casa, en una carrera (lo que corre la CI) |

@@ -25,6 +25,7 @@
 | [`mind-format.spec.yaml`](mind-format.spec.yaml) | la mente portátil (`.mind`) | `core/mind/` |
 | [`catalogo-productos.spec.yaml`](catalogo-productos.spec.yaml) | el catálogo de productos de la tienda (piel, herramienta, agente, app) | `tienda/catalogo.ts` |
 | [`cerebro-frontera.spec.yaml`](cerebro-frontera.spec.yaml) | la frontera entre el cerebro (Python) y la app (TypeScript) | ambos |
+| [`arena.spec.yaml`](arena.spec.yaml) | la cata a ciegas: el compromiso, la revelación y el paladar | `core/arena/arena.ts`, `core/arena/ciego.ts` |
 
 ## La regla que las mantiene vivas
 

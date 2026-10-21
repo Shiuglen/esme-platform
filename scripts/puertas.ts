@@ -433,6 +433,77 @@ await puerta("puntos (el estado de tu PC, medido)", async () => {
   return `${lista[0].memoria_mb} MiB (pid ${lista[0].pid})`;
 });
 
+await puerta("arena (la cata a ciegas: compromiso y revelación)", async () => {
+  const { reparteCiego, compromisoDe } = await import("../core/arena/ciego.ts");
+  const { juzgaArena, vistaCiega } = await import("../core/arena/arena.ts");
+  const sal = "sal-de-puerta";
+  const mapa = reparteCiego(["claude-code", "opencode"], sal);
+  const ciega = {
+    id: "arena-puerta",
+    version: 1,
+    emitido: new Date().toISOString(),
+    tarea: "arregla la puerta",
+    categoria: "codigo" as const,
+    participantes: [
+      { etiqueta: "A", medidas: { ms: 10, tokens: 20, cambios: 1, ok: true } },
+      { etiqueta: "B", medidas: { ms: 20, tokens: 30, cambios: 0, ok: true } },
+    ],
+    compromiso: { algoritmo: "sha256", hash: compromisoDe(mapa, sal) },
+  };
+  // el ciego no enseña a nadie
+  const vista = vistaCiega(ciega);
+  if (JSON.stringify(vista).includes("claude-code")) throw new Error("la vista ciega delató a alguien");
+  // se revela: el compromiso verifica
+  const revelada = {
+    ...ciega,
+    veredicto: { elegida: "A" },
+    revelacion: { sal, fichas: { A: { motor: mapa.A }, B: { motor: mapa.B } } },
+  };
+  const juicio = juzgaArena(revelada);
+  if (!juicio.ok || juicio.integridad !== "limpia") {
+    throw new Error(`la arena no quedó limpia: ${juicio.errores.join("; ")}`);
+  }
+  // y si el mapa se cambia, la arena se contaminated
+  const sucia = {
+    ...revelada,
+    revelacion: { sal, fichas: { A: { motor: mapa.B }, B: { motor: mapa.A } } },
+  };
+  if (juzgaArena(sucia).integridad !== "contaminada") {
+    throw new Error("el mapa cambiado no se/contaminó");
+  }
+  return `ciega, revelada y contaminada (que es lo que hay que ver)`;
+});
+
+await puerta("arena (el paladar sólo cuenta catas limpias)", async () => {
+  const { compromisoDe } = await import("../core/arena/ciego.ts");
+  const { agregaPaladar, proponePaladar, MINIMO_CATAS } = await import("../core/arena/paladar.ts");
+  const sal = "sal-de-puerta";
+  const mapa = { A: "claude-code", B: "opencode" };
+  const cata = (id: string) => ({
+    id,
+    version: 1,
+    emitido: new Date().toISOString(),
+    tarea: "arregla la puerta",
+    categoria: "pruebas" as const,
+    participantes: [
+      { etiqueta: "A", medidas: { ms: 10, tokens: 20, cambios: 1, ok: true } },
+      { etiqueta: "B", medidas: { ms: 20, tokens: 30, cambios: 0, ok: true } },
+    ],
+    compromiso: { algoritmo: "sha256", hash: compromisoDe(mapa, sal) },
+    veredicto: { elegida: "A" },
+    revelacion: { sal, fichas: { A: { motor: "claude-code" }, B: { motor: "opencode" } } },
+  });
+  const paladar = agregaPaladar([cata("a1"), cata("a2"), cata("a3")]);
+  const p = proponePaladar(paladar, "pruebas");
+  if (!p || p.motor !== "claude-code") throw new Error("el paladar no propuso con catas de sobra");
+  if (p.catas < MINIMO_CATAS) throw new Error("propuso sin catas de sobra");
+  // con dos catas no propone
+  if (proponePaladar(agregaPaladar([cata("b1"), cata("b2")]), "pruebas")) {
+    throw new Error("propuso con pocas catas");
+  }
+  return `pruebas → ${p.motor} (${p.ganadas}/${p.catas})`;
+});
+
 // ——— el resultado ———
 const fallos = puertas.filter((p) => !p.ok);
 for (const p of puertas) {
