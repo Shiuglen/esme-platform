@@ -16,7 +16,7 @@
  */
 import { readFileSync, existsSync } from "node:fs";
 import { resolve, dirname, isAbsolute, sep } from "node:path";
-import yaml from "js-yaml";
+import * as yaml from "js-yaml";
 import { validaManifiesto, type Manifest } from "../core/ipc/module-schema.ts";
 import { confinaEntrada, type Confinada } from "../core/modulos/rutas.ts";
 

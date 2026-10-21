@@ -7,7 +7,7 @@ import { execFileSync } from "node:child_process";
 import { createHash, createPublicKey } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import yaml from "js-yaml";
+import * as yaml from "js-yaml";
 import { verificarBytes } from "./firma.ts";
 import { estaRevocada, rutaRevocaciones } from "./revocacion.ts";
 import { confiaIndexChain, huellaDePub } from "./rotacion.ts";

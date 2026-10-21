@@ -6,7 +6,7 @@
  * El orden del router es la regla del proyecto: primero lo gratis, y aprende
  * de lo aprobado. Laya NO ejecuta, NO aprende y NO diseña.
  */
-import yaml from "js-yaml";
+import * as yaml from "js-yaml";
 import { readFileSync } from "node:fs";
 
 export type Motor =

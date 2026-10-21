@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { validaManifiesto } from "../modulos/nucleo/manifest-schema.ts";
-import yaml from "js-yaml";
+import * as yaml from "js-yaml";
 import { readFileSync } from "node:fs";
 
 /** El ejemplo vivo será esterno legal: lo cargamos y lo validamos. */

@@ -308,7 +308,7 @@ docs/
 
 ### 10. CI/CD — GitHub Actions, 1 Creador + Bots
 
-**Decisión:** Matrix 3 OS (ubuntu-latest, windows-latest, macos-latest) × Node 20/22 × Python 3.11/3.12. Jobs: `lint`, `test:unit`, `test:integration`, `test:offline`, `security-scan` (syft + grype en artifacts), `sign-artifacts` (minisign + cosign), `release-channel` (nightly/beta/stable via tags `v*`, `v*-beta.*`, `v*-nightly.*`). **1 creador + bots = equipo:** Dependabot + Renovate (deps), CodeQL (sec), custom bot `esme-bot` (triaje issues, label PRs, run compat-check, commenta resultados).
+**Decisión:** Matrix 3 OS (ubuntu-latest, windows-latest, macos-latest) × Node 26 × Python 3.14/3.15. Jobs: `lint`, `test:unit`, `test:integration`, `test:offline`, `security-scan` (syft + grype en artifacts), `sign-artifacts` (minisign + cosign), `release-channel` (nightly/beta/stable via tags `v*`, `v*-beta.*`, `v*-nightly.*`). **1 creador + bots = equipo:** Dependabot + Renovate (deps), CodeQL (sec), custom bot `esme-bot` (triaje issues, label PRs, run compat-check, commenta resultados).
 
 **Rutas exactas:**
 - `.github/workflows/ci.yml`

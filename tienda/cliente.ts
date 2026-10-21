@@ -4,7 +4,7 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import yaml from "js-yaml";
+import * as yaml from "js-yaml";
 import { verificarIndex, verificarBytes } from "./firma.ts";
 import { estaRevocada } from "./revocacion.ts";
 import { confiaIndexChain, huellaDePub, leerLedger } from "./rotacion.ts";

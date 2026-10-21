@@ -10,10 +10,10 @@ jobs:
     name: core — lint + tests + spec-lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 26
           cache: npm
       - run: npm ci
       - run: npm run lint
@@ -32,10 +32,10 @@ jobs:
     name: módulos — build + lint de manifiesto
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 26
       - run: npm ci
       - run: npm run build:ejemplo
       - run: npm run spec:lint
@@ -44,10 +44,10 @@ jobs:
     name: tienda — la tienda publicada se verifica (sin llaves)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 26
       - run: npm ci
       - name: la raíz congelada verifica el índice y los artefactos
         run: npm run verificar

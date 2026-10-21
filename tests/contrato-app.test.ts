@@ -88,7 +88,7 @@ describe("el contrato Rumbo: el kit y la app dicen lo mismo", () => {
   it("la forma que declara la spec de la frontera es la del kit", async () => {
     // la spec (estandar/cerebro-frontera.spec.yaml) declara el rumbo: si el
     // kit cambiara la forma, la spec y el kit se separarían
-    const yaml = (await import("js-yaml")).default;
+    const yaml = await import("js-yaml");
     const { readFileSync } = await import("node:fs");
     const { resolve } = await import("node:path");
     const spec = yaml.load(

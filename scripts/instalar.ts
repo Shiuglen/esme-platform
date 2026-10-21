@@ -3,7 +3,7 @@
 // verifica (índice + firma del artefacto) → desempaqueta en instalaciones/
 // → abre el extension host (worker aislado) → llama al módulo de verdad.
 import { readFileSync } from "node:fs";
-import yaml from "js-yaml";
+import * as yaml from "js-yaml";
 import { resolve, join } from "node:path";
 import { instalar } from "../tienda/receptor.ts";
 import { abreHost } from "../core/extension-host/host.ts";

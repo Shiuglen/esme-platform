@@ -3,7 +3,7 @@
 import { describe, expect, it } from "vitest";
 import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import yaml from "js-yaml";
+import * as yaml from "js-yaml";
 import {
   CATEGORIES,
   RUNTIMES,

@@ -18,7 +18,7 @@ import { describe, expect, it } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
-import yaml from "js-yaml";
+import * as yaml from "js-yaml";
 
 const raizKit = resolve(import.meta.dirname, "..");
 const appRepo = join(homedir(), "Daimon");

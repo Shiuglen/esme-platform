@@ -7,7 +7,7 @@ import { gzipSync } from "node:zlib";
 import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
-import yaml from "js-yaml";
+import * as yaml from "js-yaml";
 
 export interface Paquete {
   ruta: string;

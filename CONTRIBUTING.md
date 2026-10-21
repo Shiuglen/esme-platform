@@ -33,6 +33,12 @@ npm run spec:lint   # cada module.yaml contra su spec
 npm run build       # el paquete compila
 ```
 
+**Antes de nada:** Node `>=22.22.2` y npm `12.2.0` (el `packageManager` del
+`package.json` lo fija). Con npm 12 los scripts de instalación de las
+dependencias están bloqueados salvo los que el proyecto aprueba en
+`allowScripts`: si añades una dependencia con `postinstall`, apúntala ahí o su
+instalación fallará.
+
 Si tocas un contrato de la frontera (los dos lados), corre además:
 
 ```bash

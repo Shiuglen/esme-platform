@@ -8,7 +8,7 @@
  */
 import { readdirSync, statSync, existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import yaml from "js-yaml";
+import * as yaml from "js-yaml";
 import { validaModuloFile } from "../modulos/nucleo/manifest-validator.ts";
 import { licenciasPresentes, nivelDe } from "../core/licensing.ts";
 
