@@ -13,7 +13,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { claveDeFirma, puedePublicar } from "../tienda/claves.ts";
-import { juzgaRecurso, empareja, type Recurso } from "../core/tienda/recursos.ts";
+import { juzgaRecurso, empareja, huecosDelEmparejamiento, type Recurso } from "../core/tienda/recursos.ts";
 import { firmaCatalogo, verificaCatalogo } from "../core/tienda/recursos-firmados.ts";
 import { escribeAtomico } from "../core/escribe.ts";
 
@@ -101,6 +101,7 @@ if (import.meta.url === new URL(`file://${process.argv[1]}`).href) {
       id: string;
       texto: string;
       etiquetas: string[];
+      estado?: string;
     }>;
     const recursos = JSON.parse(readFileSync(desde, "utf8")) as Recurso[];
     const pares = empareja(deseos, recursos);
@@ -109,6 +110,24 @@ if (import.meta.url === new URL(`file://${process.argv[1]}`).href) {
     for (const p of pares) {
       if (!p.recursos.length) continue;
       console.log(`  · ${p.deseo}: ${p.recursos.map((x) => x.nombre).join(", ")}`);
+    }
+    // y los que NADIE ilumina: el hueco es la hoja de ruta, y si no se dice,
+    // la lista de deseos parecería cubierta entera.
+    const estados = Object.fromEntries(deseos.map((d) => [d.id, d.estado ?? "nuevo"]));
+    const huecos = huecosDelEmparejamiento(pares, estados);
+    const abiertos = deseos.filter((d) => estados[d.id] !== "hecho" && estados[d.id] !== "descartado");
+    const cerrados = deseos.length - abiertos.length;
+    console.log("");
+    console.log(
+      `deseos    : ${deseos.length} (${abiertos.length} abiertos, ${cerrados} ya resueltos)` +
+        ` · cubiertos: ${abiertos.length - huecos.length} de ${abiertos.length}`
+    );
+    if (huecos.length) {
+      console.log("");
+      console.log(`deseos SIN nada que los ilumine (${huecos.length}): la hoja de ruta`);
+      for (const h of huecos) console.log(`  · ${h.deseo}`);
+    } else {
+      console.log("huecos    : ninguno — todo deseo abierto tiene algo que lo ilumina");
     }
   }
 }

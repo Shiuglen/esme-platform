@@ -142,6 +142,33 @@ export interface Emparejamiento {
 }
 
 /**
+ * Los deseos que NADA ilumina.
+ *
+ * Por qué esto importa más que los que sí. Un deseo con recursos es un deseo
+ * que la casa ya resuelve: no dice nada nuevo. Un deseo SIN recursos es una
+ * hueco: es la hoja de ruta. Y si no se dice, se pierde: la lista de deseos
+ * parecería cubierta entera.
+ *
+ * (La misma regla que en REA: lo que no se vio también es conocimiento.)
+ *
+ * Y el filtro: un deseo que ya está HECHO (o descartado) no es un hueco. Se
+ * hizo, o se dejó hacer: no está pendiente. Contarlo como hueco sería decir
+ * «esto falta» de algo que ya está resuelto — y la hoja de ruta mentiría.
+ */
+export function huecosDelEmparejamiento(
+  pares: Emparejamiento[],
+  estados: Record<string, string> = {}
+): Array<{ deseo: string; recursos: number }> {
+  return pares
+    .filter((p) => p.recursos.length === 0)
+    .filter((p) => {
+      const estado = estados[p.deseo];
+      return estado !== "hecho" && estado !== "descartado";
+    })
+    .map((p) => ({ deseo: p.deseo, recursos: 0 }));
+}
+
+/**
  * Empareja deseos con recursos.
  *
  * El emparejamiento es de palabras (y de etiquetas): no es un modelo, es una

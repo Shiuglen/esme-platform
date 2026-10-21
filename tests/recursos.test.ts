@@ -18,7 +18,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   juzgaRecurso,
-  empareja,
+  empareja, huecosDelEmparejamiento,
   palabrasDe,
   TIPOS_RECURSO,
   VEREDICTOS_RECURSO,
@@ -118,8 +118,34 @@ describe("el emparejamiento con los deseos", () => {
     expect(pares[0].recursos[0].porque).toContain("traza");
   });
 
-  it("las palabras no distinguen mayúsculas ni acentos", () => {
-    const a = palabrasDe("Rastreo y pruebas");
+  it("el hueco se ve: un deseo que nada ilumina es la hoja de ruta", () => {
+    const pares = empareja(
+      [
+        { id: "d-traza", texto: "Saber qué llamada falló", etiquetas: ["traza"] },
+        { id: "d-nuevo", texto: "Algo que ningún recurso cubre", etiquetas: ["nuevo"] },
+      ],
+      recursos
+    );
+    const huecos = huecosDelEmparejamiento(pares);
+    expect(huecos.map((h) => h.deseo)).toEqual(["d-nuevo"]);
+  });
+
+  it("un deseo YA HECHO no es un hueco (si no, la hoja de ruta mentiría)", () => {
+    const pares = empareja(
+      [{ id: "d-nuevo", texto: "Algo que ningún recurso cubre", etiquetas: ["nuevo"] }],
+      recursos
+    );
+    // sin estado: es un hueco (está pedido)
+    expect(huecosDelEmparejamiento(pares)).toHaveLength(1);
+    // hecho: se hizo, no está pendiente
+    expect(huecosDelEmparejamiento(pares, { "d-nuevo": "hecho" })).toHaveLength(0);
+    // descartado: se dejó hacer, tampoco
+    expect(huecosDelEmparejamiento(pares, { "d-nuevo": "descartado" })).toHaveLength(0);
+    // en curso: sigue pendiente, es un hueco
+    expect(huecosDelEmparejamiento(pares, { "d-nuevo": "en_curso" })).toHaveLength(1);
+  });
+
+  it("las palabras no distinguen mayúsculas ni acentos", () => {    const a = palabrasDe("Rastreo y pruebas");
     const b = palabrasDe("rastreo y pruebas");
     expect([...a].sort()).toEqual([...b].sort());
   });

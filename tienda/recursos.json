@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "emitido": 1792566067761,
+  "emitido": 1792612401376,
   "firmante": "adaaf79999a7296f",
   "recursos": [
     {
@@ -168,9 +168,9 @@
   ],
   "firma": {
     "algorithm": "ed25519-sha512",
-    "signature": "DxBEESDftwa0H6QKLWjiAQWhZIkZ98ODk1InKY4BvLZ6FF5qWdXGeGEOCTawn2FFgcnaExcVDwAfJK2gMXkKDA==",
-    "signed_at": "2026-10-21T07:01:07.763Z",
+    "signature": "iFBCm5b74rvDknxILWR0sEQpfcq+4YzUX45NemVWg8L8WL9T59etaArPPBuTmN9OlZ692UR2qliUUVfBAIsVAg==",
+    "signed_at": "2026-10-21T19:53:21.376Z",
     "signed_by": "adaaf79999a7296f",
-    "hash": "OAdNy9JkNMQhgiEKOtFIyudt56r5ut+IHaQ9/WYW38k="
+    "hash": "a7/vEKX2jGBICuFBMhK8DWOUwLUaV8RpwNqfI77n0/Y="
   }
 }
