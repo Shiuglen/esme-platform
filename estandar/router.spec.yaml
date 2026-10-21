@@ -1,0 +1,55 @@
+# **Spec abierta v1 — el router que aprende.** Las decisiones de la persona mandan.
+# Referencia: core/router/aprende.ts, docs/LAYA.md.
+#
+# QUÉ ES ESTO: Laya (el System One del núcleo) elige motor sin gastar un
+# token de modelo grande: rápido, gratis y local. Pero la persona puede estar
+# en desacuerdo, y cuando lo está, TIENE RAZÓN: es su máquina, su trabajo y su
+# tiempo.
+#
+# Así que cada decisión del router se REGISTRA, y cada veredicto de la
+# persona se ANOTA. De esos veredictos se aprende una tabla —«este tipo de
+# tarea va a este motor»— que va POR DELANTE de lo supuesto.
+#
+# Y el número que lo vigila: la CONCORDANCIA (de las decisiones con veredicto,
+# cuántas ratificó la persona). Si baja, el router ha empeorado y hay que
+# mirarlo; si sube, el router se está aprendiendo a la casa.
+
+schema_version: 1
+
+# ——— el registro (una decisión por línea) ———
+decision:
+  ts: "epoch en ms"
+  tarea: "el texto que el router juzgó"
+  ruta: "el motor que eligió"
+  confianza: "0..1"
+  razonamiento: "la trazabilidad (obligatoria: sin ella no se puede revisar)"
+  # lo que dijo la persona (si dijo algo)
+  veredicto: "aprobado | corregido | rechazado"
+  # si lo corrigió: el motor que quería de verdad
+  ruta_correcta: "el motor correcto (si lo corrigió)"
+
+# ——— lo que se aprende ———
+aprendido:
+  tabla: "firma de la tarea → motor que eligió la persona"
+  decisiones: "cuántas decisiones hubo"
+  veredictos: "cuántas tienen veredicto"
+  correcciones: "cuántas corrigió o rechazó"
+  concordancia: "0..1 (lo que ratificó de lo que eligió el router)"
+
+# ——— las reglas ———
+reglas:
+  # 1. lo aprendido va POR DELANTE de lo supuesto: si hay veredicto, va el
+  #    motor de la persona.
+  aprendido_manda: true
+  # 2. pero el router sigue decidiendo cuando no hay nada aprendido: la tabla
+  #    es su memoria, no su sustituto (Laya no se queda mudo).
+  router_sigue_decidiendo: true
+  # 3. el veredicto se anota con la decisión: sin la tarea y la ruta, un
+  #    veredicto no se puede aprender.
+  veredicto_con_decision: true
+  # 4. la concordancia se mide y se mira (docs/LAYA.md habla de ~0,7 como
+  #    objetivo: si baja, el router ha empeorado).
+  concordancia_medida: true
+  # 5. el registro no guarda datos personales: la tarea se guarda, no lo que
+  #    la persona escribió de más (180 días, y se recorta).
+  sin_datos_personales: true

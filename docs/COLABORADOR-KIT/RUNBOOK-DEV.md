@@ -29,6 +29,7 @@
 | `npm run turno -- <turno.json>` | la limpieza del chat, en un número (listón 60 %) |
 | `npm run equipo -- <equipo.json>` | juzga el equipo y dice el reparto de su presupuesto |
 | `npm run bot:check -- <bot.json>` | juzga un bot: la puerta, los permisos y el techo |
+| `npm run router -- <registro.jsonl>` | lo que el router aprendió de tus veredictos, y la concordancia |
 | `npm run piel:check -- <piel.json>` | juzga una piel (opciones cerradas y que se lea) |
 | `npm run agente:check -- <agente.json>` | juzga una receta de agente (motor real y presupuesto con techo) |
 | `npm run compat -- <carpeta>` | qué motores pueden alojar ese módulo, y por qué no los otros |
