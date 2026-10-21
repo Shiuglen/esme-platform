@@ -70,6 +70,22 @@ jobs:
       - name: la puerta se cierra cuando tiene que cerrarse
         run: npx vitest run tests/entrada.test.ts
 
+  puertas:
+    name: las puertas — todas, en una carrera
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+          cache: npm
+      - run: npm ci
+      # cada puerta de la casa, probada con material de juguete: crear,
+      # verificar, publicar, juzgar, medir, ejecutar, delegar… Una puerta que no
+      # se prueba se pudre, y no te enteras hasta que alguien la usa.
+      - name: todas las puertas, en pie
+        run: npm run puertas
+
   motores:
     name: motores — cada módulo, en cada motor
     runs-on: ubuntu-latest
