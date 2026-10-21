@@ -22,6 +22,7 @@ import {
   leeRegistro,
   type DecisionRuta,
 } from "../core/router/aprende.ts";
+import { compromisoDe } from "../core/arena/ciego.ts";
 
 const d = (parcial: Partial<DecisionRuta>): DecisionRuta => ({
   ts: 1,
@@ -88,5 +89,37 @@ describe("el router que aprende", () => {
     const a = aprendeDe([d({})]);
     expect(a.concordancia).toBe(1);
     expect(Object.keys(a.tabla)).toHaveLength(0);
+  });
+
+  it("con catas, el router aprende también el paladar (y sólo si hay catas de sobra)", () => {
+    const cata = (id: string) => {
+      const sal = "sal-de-prueba";
+      const mapa = { A: "qwen", B: "claude-code" };
+      return {
+        id,
+        version: 1,
+        emitido: "2026-10-21T00:00:00.000Z",
+        tarea: "arregla las pruebas",
+        categoria: "pruebas" as const,
+        participantes: [
+          { etiqueta: "A", medidas: { ms: 10, tokens: 20, cambios: 1, ok: true } },
+          { etiqueta: "B", medidas: { ms: 20, tokens: 30, cambios: 0, ok: true } },
+        ],
+        compromiso: { algoritmo: "sha256", hash: compromisoDe(mapa, sal) },
+        veredicto: { elegida: "A" },
+        revelacion: { sal, fichas: { A: { motor: "qwen" }, B: { motor: "claude-code" } } },
+      };
+    };
+
+    // con dos catas no hay paladar: una impresión no es un paladar
+    const dos = aprendeDe([], { arenas: [cata("a1"), cata("a2")] });
+    expect(dos.paladar).toBeUndefined();
+
+    // con tres, el paladar propone, y el router lo usa para esa categoría
+    const tres = aprendeDe([], { arenas: [cata("a1"), cata("a2"), cata("a3")] });
+    expect(tres.paladar?.pruebas?.motor).toBe("qwen");
+    expect(tres.paladar?.pruebas?.catas).toBe(3);
+    const eleccion = eligeConAprendido("arregla las pruebas", tres, () => "laya", "pruebas");
+    expect(eleccion).toEqual({ ruta: "qwen", de: "paladar" });
   });
 });

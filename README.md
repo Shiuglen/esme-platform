@@ -94,6 +94,8 @@ npm run arena -- cata --tarea "¿qué se decidió sobre el Taller?" \
     --categoria pruebas --modulo modulos/ejemplo-troceo-pro --modulo modulos/ejemplo-hola-mundo
 npm run arena -- revelar --ciega arena.ciega.json --clave arena.clave.json --elige A
 npm run arena -- paladar arena.revelada.json     # lo que la cata enseñó, con su número
+npm run router -- laya.jsonl --arenas catas.jsonl --tarea "arregla las pruebas"
+#                                                                          ↑ el paladar
 ```
 
 ## Publicar el kit (una vez)

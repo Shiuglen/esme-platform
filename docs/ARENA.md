@@ -79,6 +79,28 @@ pruebas:
   → para «pruebas», tu cata dice esme.nucleo.troceo-pro (2/3)
 ```
 
+## El bucle: la cata llega al router
+
+Una cata revelada se puede **archivar** (una arena por línea), y el router
+aprende de todas las que haya ahí:
+
+```bash
+# al revelar, la cata se archiva
+$ npm run arena -- revelar --ciega arena.ciega.json --clave arena.clave.json \
+    --elige A --archivo catas.jsonl
+
+# y el router lee el archivo de catas
+$ npm run router -- laya.jsonl --arenas catas.jsonl --tarea "arregla el test que falla"
+paladar     : 1 categorías con cata de sobra
+  pruebas → esme.nucleo.troceo-pro (2/3 catas)
+
+para «arregla el test que falla» (pruebas): esme.nucleo.troceo-pro — de paladar
+```
+
+Y el orden de las memorias del router es el de la casa, de la persona hacia
+abajo: **la persona** (su veredicto sobre esa tarea exacta) → **el paladar**
+(lo que ganó las catas de esa categoría) → **el router** (lo que supone Laya).
+
 ## Qué corre el kit y qué corre la app
 
 | | En el kit | En la app |

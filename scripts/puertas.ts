@@ -504,6 +504,34 @@ await puerta("arena (el paladar sólo cuenta catas limpias)", async () => {
   return `pruebas → ${p.motor} (${p.ganadas}/${p.catas})`;
 });
 
+await puerta("arena → router (el paladar llega al router)", async () => {
+  const { compromisoDe } = await import("../core/arena/ciego.ts");
+  const { aprendeDe, eligeConAprendido } = await import("../core/router/aprende.ts");
+  const sal = "sal-de-puerta";
+  const mapa = { A: "qwen", B: "claude-code" };
+  const cata = (id: string) => ({
+    id,
+    version: 1,
+    emitido: new Date().toISOString(),
+    tarea: "arregla las pruebas",
+    categoria: "pruebas" as const,
+    participantes: [
+      { etiqueta: "A", medidas: { ms: 10, tokens: 20, cambios: 1, ok: true } },
+      { etiqueta: "B", medidas: { ms: 20, tokens: 30, cambios: 0, ok: true } },
+    ],
+    compromiso: { algoritmo: "sha256", hash: compromisoDe(mapa, sal) },
+    veredicto: { elegida: "A" },
+    revelacion: { sal, fichas: { A: { motor: "qwen" }, B: { motor: "claude-code" } } },
+  });
+  const aprendido = aprendeDe([], { arenas: [cata("a1"), cata("a2"), cata("a3")] });
+  if (!aprendido.paladar?.pruebas) throw new Error("el router no aprendió el paladar");
+  const eleccion = eligeConAprendido("arregla las pruebas", aprendido, () => "laya", "pruebas");
+  if (eleccion.de !== "paladar" || eleccion.ruta !== "qwen") {
+    throw new Error("el router no mandó el paladar por delante");
+  }
+  return `pruebas → ${eleccion.ruta} (${eleccion.de})`;
+});
+
 // ——— el resultado ———
 const fallos = puertas.filter((p) => !p.ok);
 for (const p of puertas) {

@@ -48,3 +48,31 @@ export interface LayaDecision {
 
 Cada decisión en runtime se anota en un registro anonimizado (`laya.jsonl`, 120 días)
 para medir calidad del enrutamiento sin guardar datos personales.
+
+## El paladar: la memoria que sale de las catas
+
+El router tiene **tres** memorias, y van en este orden (de la persona hacia
+abajo):
+
+| # | Memoria | Qué es | Dónde |
+|---|---|---|---|
+| 1 | **la persona** | su veredicto sobre *esta* tarea exacta | `Aprendido.tabla` |
+| 2 | **el paladar** | lo que ganó las catas a ciegas de *esa categoría* | `Aprendido.paladar` |
+| 3 | **el router** | lo que supone Laya, cuando no hay nada aprendido | `motores/laya-adapter.ts` |
+
+El paladar es una memoria más burda que la tabla (no sabe de una tarea
+concreta, sino de una categoría: «para pruebas, tu cata dice Qwen»), pero con
+más cata detrás: son muchas carreras medidas, no una frase suelta. Y sólo
+entra si la cata fue **limpia** (el compromiso verificó) y hubo catas de
+suficia (3 por motor): una impresión no es un paladar, y un paladar con miedo
+no sirve de nada.
+
+```bash
+$ npm run router -- laya.jsonl --arenas catas.jsonl --tarea "arregla el test que falla"
+paladar     : 1 categorías con cata de sobra
+  pruebas → esme.nucleo.troceo-pro (2/3 catas)
+
+para «arregla el test que falla» (pruebas): esme.nucleo.troceo-pro — de paladar
+```
+
+Referencia: `core/arena/paladar.ts`, `core/arena/arena.ts`, [`docs/ARENA.md`](ARENA.md).

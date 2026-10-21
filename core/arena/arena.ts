@@ -321,6 +321,38 @@ export function juzgaArena(doc: unknown): JuicioArena {
   return { ok: errores.length === 0, errores, integridad: "limpia" };
 }
 
+/**
+ * Lee arenas de un texto: un documento o un archivo (una arena por línea).
+ *
+ * El archivo es lo que crece con el tiempo: cada cata revelada se añade, y el
+ * paladar aprende de todas. Un texto que no se puede leer no se tira: se
+ * salta (una línea rota no es motivo para tirar el resto).
+ */
+export function leeArenas(texto: string): Arena[] {
+  const salida: Arena[] = [];
+  const probar = (crudo: string): void => {
+    try {
+      const doc = JSON.parse(crudo) as Arena;
+      if (doc && typeof doc === "object" && Array.isArray(doc.participantes)) salida.push(doc);
+    } catch {
+      // no es una arena: se salta
+    }
+  };
+  const limpio = texto.trim();
+  if (!limpio) return salida;
+  try {
+    JSON.parse(limpio);
+    probar(limpio);
+    return salida;
+  } catch {
+    // no es un solo documento: es un archivo
+  }
+  for (const linea of limpio.split("\n")) {
+    if (linea.trim()) probar(linea);
+  }
+  return salida;
+}
+
 /** Lo que la persona ve antes de revelar: etiquetas y medidas, y nada más. */
 export interface VistaCiega {
   /** La tarea. */

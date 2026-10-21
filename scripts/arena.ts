@@ -22,7 +22,7 @@
  *
  * Referencia: estandar/arena.spec.yaml, core/arena/, docs/ARENA.md.
  */
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, mkdirSync, appendFileSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { leeManifiesto } from "../tienda/modulo-manifiesto.ts";
 import { ejecutaCata, revelaCata } from "../core/arena/ejecuta.ts";
@@ -55,7 +55,7 @@ const uso = (): void => {
     [
       "uso:",
       "  arena cata --tarea «...» [--categoria pruebas] [--modulo <dir>]... [--salida <dir>]",
-      "  arena revelar --ciega <f> --clave <f> --elige A [--nota «...»]",
+      "  arena revelar --ciega <f> --clave <f> --elige A [--nota «...»] [--archivo <f.jsonl>]",
       "  arena juzgar <f>",
       "  arena paladar <f>...",
       "  arena verificar <f> --huella <hex>",
@@ -151,6 +151,13 @@ if (comando === "revelar") {
   const salida = resolve(rutaCiega).replace(/\.ciega\.json$/, ".revelada.json");
   writeFileSync(salida, JSON.stringify(revelada, null, 2) + "\n");
 
+  // el archivo de catas: una arena revelada por línea, para que el paladar
+  // pueda aprender de todas ellas (y sólo de las limpias)
+  const archivo = arg("--archivo");
+  if (archivo) {
+    appendFileSync(resolve(archivo), JSON.stringify(revelada) + "\n");
+  }
+
   const juicio = juzgaArena(revelada);
   console.log("— la revelación —");
   for (const [etiqueta, ficha] of Object.entries(clave.fichas)) {
@@ -161,6 +168,7 @@ if (comando === "revelar") {
   console.log(`integridad: ${juicio.integridad}`);
   for (const e of juicio.errores) console.error(`  ✗ ${e}`);
   console.log(`documento revelado: ${salida}`);
+  if (archivo) console.log(`cata archivada: ${resolve(archivo)}`);
   process.exit(juicio.ok ? 0 : 1);
 }
 

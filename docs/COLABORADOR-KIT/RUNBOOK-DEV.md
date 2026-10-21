@@ -31,6 +31,7 @@
 | `npm run equipo -- <equipo.json>` | juzga el equipo y dice el reparto de su presupuesto |
 | `npm run bot:check -- <bot.json>` | juzga un bot: la puerta, los permisos y el techo |
 | `npm run router -- <registro.jsonl>` | lo que el router aprendió de tus veredictos, y la concordancia |
+| `npm run router -- <registro.jsonl> --arenas <catas.jsonl> --tarea "..."` | lo mismo, con el paladar de las catas, y qué motor saldría para esa tarea |
 | `npm run deseos -- <deseos.json>` | la lista de deseos de la tienda, y lo que pide la gente |
 | `npm run publicar:deseos` | firma la lista de deseos (la demanda, con su firma) |
 | `npm run publicar:recursos` | firma el catálogo de piezas (la oferta) y muestra el emparejamiento |
@@ -40,6 +41,7 @@
 | `npm run arena -- cata --tarea "..." --modulo <dir> --modulo <dir>` | la cata a ciegas: mide, reparte y deja el documento ciego con su compromiso |
 | `npm run arena -- revelar --ciega <f> --clave <f> --elige A` | revela el mapa y comprueba que el compromiso sigue verificando |
 | `npm run arena -- paladar <f>...` | lo que la cata enseñó por categoría (con el número de catas al lado) |
+| `npm run arena -- revelar --ciega <f> --clave <f> --elige A --archivo <catas.jsonl>` | revela, comprueba el compromiso y archiva la cata (una por línea) |
 | `npm run cambios -- <antes> <despues>` | qué cambió entre dos versiones (Myers, con tope) |
 | `npm run ejecutar -- <módulo> "<consulta>"` | ejecuta un turno de verdad y lo mide |
 | `npm run puertas` | todas las puertas de la casa, en una carrera (lo que corre la CI) |

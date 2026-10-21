@@ -26,6 +26,8 @@
  * Referencia: estandar/router.spec.yaml, docs/LAYA.md, motores/laya-adapter.ts.
  */
 import { createHash } from "node:crypto";
+import { agregaPaladar, paladarParaRouter } from "../arena/paladar.ts";
+import type { Arena } from "../arena/arena.ts";
 
 /** Lo que la persona dijo de una decisión. */
 export type VeredictoRuta = "aprobado" | "corregido" | "rechazado";
@@ -105,8 +107,16 @@ export function firmaDe(tarea: string): string {
  * Lo que se guarda: la motor que la persona quiso para cada firma de tarea.
  * Lo que se cuenta: la concordancia (de las decisiones CON veredicto, ¿cuántas
  * coinciden con lo aprendido?).
+ *
+ * Y si le dan las CATAS (las arenas), también se guarda el paladar: lo que la
+ * cata a ciegas enseñó por categoría. El paladar sólo entra si la cata fue
+ * limpia y hubo catas de sobra (core/arena/paladar.ts): una impresión no es
+ * un paladar, y un paladar con miedo no sirve de nada.
  */
-export function aprendeDe(registro: DecisionRuta[]): Aprendido {
+export function aprendeDe(
+  registro: DecisionRuta[],
+  opts: { arenas?: readonly Arena[] } = {}
+): Aprendido {
   const tabla: Record<string, string> = {};
   const conVeredicto = registro.filter((d) => d.veredicto);
   for (const d of conVeredicto) {
@@ -129,12 +139,16 @@ export function aprendeDe(registro: DecisionRuta[]): Aprendido {
   }
   const concordancia = conVeredicto.length ? aciertos / conVeredicto.length : 1;
 
+  // el paladar: lo que la cata a ciegas enseñó (si le dieron las arenas)
+  const paladar = opts.arenas?.length ? paladarParaRouter(agregaPaladar(opts.arenas)) : {};
+
   return {
     tabla,
     decisiones: registro.length,
     veredictos: conVeredicto.length,
     correcciones,
     concordancia,
+    ...(Object.keys(paladar).length ? { paladar } : {}),
   };
 }
 
