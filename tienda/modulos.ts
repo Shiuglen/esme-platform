@@ -138,7 +138,8 @@ export function creaRuntimeTienda(
   }
 ): RuntimeModulos {
   const programas =
-    opts.programas ?? new ProgramasPermitidos(rutaProgramasDe(opts.dirModulos)).lista();
+    opts.programas ??
+    new ProgramasPermitidos(rutaProgramasDe(opts.rutaPermisos)).lista();
   return modulos({
     ...opts,
     programas,

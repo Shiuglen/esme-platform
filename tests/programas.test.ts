@@ -21,7 +21,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { ProgramasPermitidos, rutaProgramasDe } from "../core/modulos/programas.ts";
 import { modulos } from "../core/modulos/api.ts";
-import { leeModulo } from "../tienda/modulos.ts";
+import { creaRuntimeTienda, leeModulo } from "../tienda/modulos.ts";
 import { mideCicloModulo } from "../core/bench/ciclo.ts";
 
 const raizKit = resolve(import.meta.dirname, "..");
@@ -29,8 +29,8 @@ const raizKit = resolve(import.meta.dirname, "..");
 /** Una casa de mentira: la carpeta de módulos y el libro al lado. */
 const casa = (): { dir: string; libro: ProgramasPermitidos } => {
   const dir = mkdtempSync(join(tmpdir(), "esme-casa-"));
-  const modulosDir = join(dir, "modulos");
-  const libro = new ProgramasPermitidos(rutaProgramasDe(modulosDir));
+  // el ancla es el libro de PERMISOS (lo que el kit y la app ya comparten)
+  const libro = new ProgramasPermitidos(rutaProgramasDe(join(dir, "modulos", "consentimientos.json")));
   return { dir, libro };
 };
 
@@ -106,7 +106,9 @@ describe("el libro de los programas", () => {
   it("el libro sobrevive a cerrar y abrir (está en el disco)", () => {
     const { dir, libro } = casa();
     libro.agrega({ nombre: "rea", descripcion: "REA", ruta: "/usr/local/bin/rea" });
-    const otro = new ProgramasPermitidos(rutaProgramasDe(join(dir, "modulos")));
+    const otro = new ProgramasPermitidos(
+      rutaProgramasDe(join(dir, "modulos", "consentimientos.json"))
+    );
     expect(otro.lista()).toHaveLength(1);
     expect(otro.permite("rea")?.ruta).toBe("/usr/local/bin/rea");
   });
@@ -302,6 +304,50 @@ describe("el módulo de ejemplo de REA (la puerta, en un módulo de verdad)", ()
     expect(r.respuesta).toContain("REA declara");
     await runtime.cierra();
   }, 120_000);
+});
+
+describe("el libro de los programas vive junto al de los permisos", () => {
+  it("el ancla es el libro de permisos (el que el kit y la app ya comparten)", () => {
+    const permisos = "/casa/modulos/consentimientos.json";
+    expect(rutaProgramasDe(permisos)).toBe("/casa/modulos/programas.json");
+  });
+
+  it("el runtime de la Tienda lee el libro de ahí (y la puerta se abre)", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "esme-tienda-"));
+    const modulosDir = join(dir, "modulos");
+    mkdirSync(modulosDir, { recursive: true });
+    // el libro de los programas, junto al de los permisos
+    writeFileSync(
+      join(modulosDir, "programas.json"),
+      JSON.stringify({
+        version: 1,
+        programas: [{ nombre: "node", descripcion: "node, para la prueba" }],
+      }),
+      "utf8"
+    );
+    // y el módulo que lo usa
+    const carpeta = moduloDelLibro(dir);
+
+    const runtime = creaRuntimeTienda({
+      pubRaiz: "-----BEGIN PUBLIC KEY-----\nprueba\n-----END PUBLIC KEY-----\n",
+      dirModulos: modulosDir,
+      rutaPermisos: join(modulosDir, "consentimientos.json"),
+    });
+    const leido = leeModulo(carpeta);
+    runtime.registro.registra(leido.modulo!);
+    runtime.concede("esme.prueba.proc", ["proc:spawn"]);
+    await runtime.activa("esme.prueba.proc");
+
+    const r = (await runtime.llama("esme.prueba.proc", "prueba")) as {
+      hayPuerta: boolean;
+      salida?: string;
+      error?: string;
+    };
+    expect(r.hayPuerta).toBe(true);
+    // la puerta se abrió con el programa del libro: sin él, esto sería un no
+    expect(r.salida).toBe("hola");
+    await runtime.cierra();
+  });
 });
 
 describe("la herramienta de REA no esquiva la puerta", () => {  it("sin REA en el libro, la herramienta se niega (y dice cómo abrirla)", () => {

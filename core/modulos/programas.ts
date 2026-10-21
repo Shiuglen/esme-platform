@@ -145,19 +145,29 @@ export class ProgramasPermitidos {
  *
  * Es el atajo para quien está en la máquina de la persona: el juez, el banco
  * y el turno leen el libro de la casa sin que nadie se lo pase a mano.
+ *
+ * La ruta por defecto es la de la casa del kit (`~/.esme/modulos/`), que es
+ * donde el kit guarda sus permisos; la app usa la suya (`<userData>/modulos/`)
+ * y le pasa la ruta explícitamente.
  */
 export function programasDeLaCasa(ruta?: string): ProgramaPermitido[] {
-  const donde = ruta ?? join(homedir(), ".esme", "programas.json");
+  const donde = ruta ?? join(homedir(), ".esme", "modulos", "programas.json");
   return new ProgramasPermitidos(donde).lista();
 }
 
 /**
- * La ruta del libro que acompaña a una carpeta de módulos.
+ * La ruta del libro que va JUNTO al libro de los permisos.
  *
- * Los módulos viven en `~/.esme/modulos` y sus permisos en
- * `~/.esme/consentimientos.json`: el libro de los programas va en la MISMA
- * casa, `~/.esme/programas.json`.
+ * Por qué junto, y no en otro sitio. El libro de los permisos es el ancla
+ * que el kit y la app YA comparten (la app lo pone en
+ * `<userData>/modulos/consentimientos.json`, el kit en
+ * `~/.esme/modulos/consentimientos.json`). El libro de los programas tiene
+ * que estar en la MISMA carpeta: si cada lado lo buscara por su cuenta, la
+ * puerta se abriría en un sitio y se cerraría en otro, y nadie sabría por
+ * qué.
+ *
+ * Referencia: core/modulos/consentimiento.ts, tienda/modulos.ts.
  */
-export function rutaProgramasDe(dirModulos: string): string {
-  return join(dirname(dirModulos), "programas.json");
+export function rutaProgramasDe(rutaPermisos: string): string {
+  return join(dirname(rutaPermisos), "programas.json");
 }

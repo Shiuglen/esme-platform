@@ -124,8 +124,12 @@ normales.
 La puerta sólo lanza lo que está en la **lista de programas** que el anfitrión
 tiene concedida. Esa lista no vive en el código (si viviera en el código, la
 puerta estaría cerrada para siempre): vive en el **libro de la casa**, en
-`~/.esme/programas.json`, en texto plano, para que se pueda leer y corregir a
-mano.
+texto plano, para que se pueda leer y corregir a mano.
+
+Dónde está: **junto al libro de los permisos** (`programas.json`, al lado de
+`consentimientos.json`). Esa carpeta es el ancla que el kit y la app ya
+comparten: si cada uno buscara el libro por su cuenta, la puerta se abriría
+en un sitio y se cerraría en otro, y nadie sabría por qué.
 
 ```bash
 npm run programas -- lista
@@ -137,8 +141,8 @@ Dos decisiones, y no se confunden:
 
 | | Qué decide | Dónde vive |
 |---|---|---|
-| **El libro de los programas** | qué se puede lanzar en esta casa | `~/.esme/programas.json` |
-| **El libro de los permisos** | qué puede hacer cada módulo | `~/.esme/consentimientos.json` |
+| **El libro de los programas** | qué se puede lanzar en esta casa | `programas.json`, junto a los permisos |
+| **El libro de los permisos** | qué puede hacer cada módulo | `consentimientos.json` |
 
 Un módulo puede tener `proc:spawn` concedido y que no haya ningún programa
 permitido: entonces la puerta existe y no abre nada. Al revés también: que el
