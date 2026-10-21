@@ -73,6 +73,7 @@
     "puntos": "tsx scripts/puntos.ts",
     "talamo": "tsx scripts/talamo.ts",
     "turno": "tsx scripts/turno.ts",
+    "equipo": "tsx scripts/equipo.ts",
     "piel:check": "tsx scripts/estandar/piel-check.ts",
     "agente:check": "tsx scripts/estandar/agente-check.ts",
     "build": "tsc -p tsconfig.build.json",

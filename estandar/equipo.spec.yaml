@@ -1,0 +1,48 @@
+# **Spec abierta v1 — el equipo.** Varios agentes, un presupuesto repartido.
+# Referencia: core/equipo.ts, docs/TURNOS.md.
+#
+# QUÉ ES UN EQUIPO: un arquitecto y sus trabajadores, corriendo a la vez. Lo
+# que lo hace un EQUIPO (y no un montón de agentes sueltos) es que hay UN
+# presupuesto, repartido por escrito, y el reparto se respeta.
+#
+# POR QUÉ ESTÁ ESCRITO: treinta agentes en paralelo son treinta bocas comiendo
+# RAM y tokens a la vez. La forma de que eso no pase es que el equipo tenga un
+# TECHO y que el reparto sea explícito: nadie se lo queda todo sin que nadie
+# tenga que pedirlo.
+#
+# Lo que este contrato NO decide: si el equipo es el adecuado para un trabajo
+# (eso lo decide la persona) ni si los motores existen (eso lo dice la spec de
+# motores y el compat-check).
+
+schema_version: 1
+
+equipo:
+  id: "esme.<autor>.<slug>"
+  nombre: "lo que ve la persona"
+  modo: "estandar | ahorrador | equipo (contexto.spec.yaml)"
+  # el techo del EQUIPO entero (la suma de las partes no puede pasar de aquí)
+  cap:
+    tokens: 0
+    segundos: 0
+  miembros:
+    - rol: "arquitecto | trabajador | critico"
+      motor: "el motor que usa (motor-capability.spec.yaml)"
+      encargo: "qué hace este miembro"
+      presupuesto:
+        tokens: 0
+        segundos: 0
+
+reglas:
+  # 1. exactamente un arquitecto: sin él nadie decide; con dos, nadie decide.
+  un_arquitecto: true
+  # 2. el reparto es explícito: cada miembro dice cuánto lleva. Si no viene,
+  #    se reparte por defecto (el arquitecto la mitad, el resto a partes
+  #    iguales) — pero queda escrito.
+  reparto_explicito: true
+  # 3. la suma de las partes es el total, y el total no pasa del cap.
+  suma_es_cap: true
+  # 4. los roles son CERRADOS: un rol nuevo es una spec nueva (si no, no se
+  #    puede repartir ni medir).
+  roles_cerrados: [arquitecto, trabajador, critico]
+  # 5. cada miembro dice qué hace (un encargo vacío no es un miembro).
+  encargo_obligatorio: true
