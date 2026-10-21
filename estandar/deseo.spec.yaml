@@ -1,0 +1,48 @@
+# **Spec abierta v1 — el deseo.** Lo que guardaste es lo que falta.
+# Referencia: core/tienda/deseos.ts, docs/TIENDA.md.
+#
+# QUÉ ES UN DESEO: algo que le falta a Esme y que alguien guardó (en su X, en
+# una conversación, en una nota). Un deseo es una PROMESA que se puede cumplir:
+# cuando alguien construye el módulo que lo cumple, pasa a «hecho» y dice
+# con cuál.
+#
+# POR QUÉ ESTÁ ESCRITA: la tienda es un juez, y un juez que no sabe lo que la
+# gente pide es un juez a ciegas. La lista de deseos es la demanda escrita, y
+# es lo que dice qué falta construir. Y el circuito se cierra: guardas →
+# deseo → alguien lo construye → el deseo se cumple → y se queda (con su
+# módulo), que es la historia de lo que la casa construyó.
+#
+# Lo que este contrato NO decide: si un deseo es BUENO (eso lo decide la
+# gente y el veredicto de la tienda).
+
+schema_version: 1
+
+deseo:
+  id: "estable"
+  # de dónde sale: lo que guardaste (una URL)
+  url: "https://..."
+  # quién lo guardó (el alias del sitio: @usuario)
+  autor: "@usuario"
+  # lo que se pide, en una frase
+  texto: "qué le falta a Esme"
+  etiquetas: ["puntos", "memoria"]
+  # el estado (cerrado)
+  estado: "nuevo | en_curso | hecho | descartado"
+  # si está hecho: el módulo que lo cumplió (tiene que estar en la tienda)
+  modulo: "esme.<autor>.<slug>"
+  # cuándo
+  ts: 0
+
+reglas:
+  # 1. todo deseo viene de algo: sin origen es una opinión, no un deseo.
+  origen_obligatorio: true
+  # 2. el estado es cerrado (un estado nuevo es una spec nueva).
+  estado_cerrado: [nuevo, en_curso, hecho, descartado]
+  # 3. «hecho» dice con qué módulo, y ese módulo está en la tienda: si no,
+  #    el deseo miente.
+  hecho_con_modulo: true
+  # 4. un deseo hecho NO se borra: se queda, con su módulo (es la historia).
+  hechos_no_se_borran: true
+  # 5. la demanda sale de la lista: lo «nuevo» y lo «en curso», por
+  #    etiqueta. Es lo que dice qué construir.
+  demanda_calculada: true

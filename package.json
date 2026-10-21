@@ -76,6 +76,7 @@
     "equipo": "tsx scripts/equipo.ts",
     "bot:check": "tsx scripts/bot-check.ts",
     "router": "tsx scripts/router.ts",
+    "deseos": "tsx scripts/deseos.ts",
     "piel:check": "tsx scripts/estandar/piel-check.ts",
     "agente:check": "tsx scripts/estandar/agente-check.ts",
     "build": "tsc -p tsconfig.build.json",
