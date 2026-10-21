@@ -102,6 +102,19 @@ describe("el doctor de la casa", () => {
     expect(e.avisos.some((a) => a.includes("versión nueva"))).toBe(true);
   });
 
+  it("dice qué programas se pueden lanzar (y si la puerta está cerrada)", () => {
+    const cerrado = doctorDeLaCasa(base);
+    expect(cerrado.programas).toEqual([]);
+    expect(renderDoctor(cerrado)).toContain("la puerta de los programas está cerrada");
+
+    const abierto = doctorDeLaCasa({
+      ...base,
+      programas: [{ nombre: "rea", descripcion: "el motor de ingeniería inversa" }],
+    });
+    expect(abierto.programas).toHaveLength(1);
+    expect(renderDoctor(abierto)).toContain("rea");
+  });
+
   it("avisa de los procesos que se pasan del tope", () => {
     const e = doctorDeLaCasa({
       ...base,

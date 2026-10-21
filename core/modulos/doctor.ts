@@ -34,6 +34,8 @@ export interface EstadoDoctor {
   memoria: Array<{ proceso: string; pid: number; mb: number | null; pasado: boolean }>;
   /** ¿La tienda verifica? */
   tienda: { ok: boolean; via?: string; motivo?: string };
+  /** Los programas que esta casa permite lanzar (la puerta `proc:spawn`). */
+  programas: Array<{ nombre: string; descripcion: string }>;
   /** El veredicto: la casa está en pie. */
   enPie: boolean;
   /** Los avisos (lo que hay que mirar). */
@@ -50,8 +52,15 @@ export function doctorDeLaCasa(opts: {
   rutaLedger?: string;
   memoria?: Array<{ proceso: string; pid: number; mb: number | null; pasado: boolean }>;
   mideCambios?: (inst: Instalado, nueva: EnLaTienda) => { ficheros: unknown[] } | null;
+  /** Los programas que esta casa permite lanzar (la puerta `proc:spawn`). */
+  programas?: Array<{ nombre: string; descripcion: string }>;
 }): EstadoDoctor {
   const avisos: string[] = [];
+
+  // 0. los programas: lo que la puerta puede lanzar en esta máquina. Se dice
+  //    aunque no haya ningún módulo que lo use: si la puerta está cerrada y
+  //    no se dice, parece que no hace falta abrirla.
+  const programas = opts.programas ?? [];
 
   // 1. los módulos y sus permisos pendientes
   const instalados = opts.instalados.map((m) => {
@@ -117,6 +126,7 @@ export function doctorDeLaCasa(opts: {
     })),
     memoria,
     tienda,
+    programas,
     enPie,
     avisos,
   };
@@ -139,6 +149,12 @@ export function renderDoctor(e: EstadoDoctor): string {
     }
   }
   lineas.push(`tienda    : ${e.tienda.ok ? `verifica ✓ (${e.tienda.via ?? "directa"})` : `FALLA ✗ — ${e.tienda.motivo ?? ""}`}`);
+  // los programas: lo que la puerta puede lanzar aquí
+  lineas.push(
+    e.programas.length
+      ? `programas : ${e.programas.map((p) => p.nombre).join(", ")} (la puerta de los programas)`
+      : "programas : ninguno (la puerta de los programas está cerrada)"
+  );
   if (e.memoria.length) {
     lineas.push(`memoria   :`);
     for (const m of e.memoria.slice(0, 5)) {

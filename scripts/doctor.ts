@@ -15,6 +15,7 @@ import { puntos } from "../core/motores/puntos.ts";
 import { instaladosEn } from "../tienda/modulos.ts";
 import { planDeActualizacion } from "../core/modulos/actualiza.ts";
 import { Consentimientos } from "../core/modulos/consentimiento.ts";
+import { ProgramasPermitidos, rutaProgramasDe } from "../core/modulos/programas.ts";
 
 const raizKit = resolve(import.meta.dirname, "..");
 const dirModulos = process.env.ESME_MODULOS ?? join(process.env.HOME ?? "/root", ".esme", "modulos");
@@ -58,6 +59,12 @@ const memoria = puntos({ todos: true })
   .slice(0, 5)
   .map((p) => ({ proceso: p.proceso, pid: p.pid, mb: p.memoria_mb, pasado: p.pasado }));
 
+// los programas que esta casa permite lanzar (la puerta de los programas):
+// el libro va junto al de los permisos
+const programas = new ProgramasPermitidos(
+  rutaProgramasDe(join(dirModulos, "consentimientos.json"))
+).lista();
+
 const estado = doctorDeLaCasa({
   instalados,
   pendientes,
@@ -66,6 +73,7 @@ const estado = doctorDeLaCasa({
   pubRaiz: raizDeConfianza(raizKit),
   rutaLedger: join(raizKit, "tienda", "rotaciones.json"),
   memoria,
+  programas: programas.map((p) => ({ nombre: p.nombre, descripcion: p.descripcion })),
 });
 
 if (tiene("--json")) console.log(JSON.stringify(estado, null, 2));

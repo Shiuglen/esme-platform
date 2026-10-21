@@ -17,10 +17,14 @@
  */
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { ProgramasPermitidos } from "../core/modulos/programas.ts";
+import { ProgramasPermitidos, rutaProgramasDe } from "../core/modulos/programas.ts";
 
+// el libro va JUNTO al de los permisos: esa es la carpeta que el kit y la app
+// ya comparten (misma casa, mismos ficheros)
 const dirCasa = process.env.ESME_CASA ?? join(homedir(), ".esme");
-const ruta = process.env.ESME_PROGRAMAS ?? join(dirCasa, "programas.json");
+const ruta =
+  process.env.ESME_PROGRAMAS ??
+  rutaProgramasDe(join(dirCasa, "modulos", "consentimientos.json"));
 const libro = new ProgramasPermitidos(ruta);
 
 const arg = (flag: string): string | null => {
