@@ -31,6 +31,8 @@ export type Rol = (typeof ROLES)[number];
 
 /** Un miembro del equipo. */
 export interface Miembro {
+  /** El id del miembro (único en el equipo: las dependencias apuntan aquí). */
+  id: string;
   /** El rol (cerrado). */
   rol: Rol;
   /** El motor que usa. */
@@ -39,6 +41,12 @@ export interface Miembro {
   encargo: string;
   /** Su parte del presupuesto. */
   presupuesto: { tokens: number; segundos: number };
+  /** Los ficheros que toca (si los toca): dos miembros en el mismo fichero es un conflicto. */
+  ficheros?: string[];
+  /** ¿Sólo lee? (un crítico sólo lee). */
+  solo_lectura?: boolean;
+  /** De qué miembros depende (por id). */
+  depende_de?: string[];
 }
 
 /** Un equipo. */
@@ -53,6 +61,18 @@ export interface Equipo {
   modo: ModoContexto;
   /** El techo del EQUIPO (la suma de sus partes no puede pasar de aquí). */
   cap: { tokens: number; segundos: number };
+  /**
+   * Cuántos miembros trabajan A LA VEZ.
+   *
+   * Este es el guardián de la RAM: treinta agentes en paralelo son treinta
+   * bocas comiendo memoria a la vez. El número lo pone la persona (y 0
+   * significa «los que quepan», como en PandaCode).
+   */
+  max_paralelo: number;
+  /** Cuántas rondas puede dar el equipo (el bucle tiene que acabar). */
+  max_rondas: number;
+  /** Cuántas tareas puede repartir el arquitecto (el bucle también). */
+  max_asignaciones: number;
 }
 
 /** La receta de un equipo, antes de juzgarla. */
@@ -62,6 +82,9 @@ export interface RecetaEquipo {
   miembros: Miembro[];
   modo?: ModoContexto;
   cap?: { tokens: number; segundos: number };
+  max_paralelo?: number;
+  max_rondas?: number;
+  max_asignaciones?: number;
 }
 
 /** El veredicto del juez de equipos. */
@@ -75,6 +98,47 @@ export interface VeredictoEquipo {
   reparto: Array<{ rol: Rol; motor: string; tokens: number }>;
   /** Los tokens del equipo entero. */
   total_tokens: number;
+}
+
+/**
+ * Busca un ciclo en las dependencias de los miembros.
+ *
+ * Devuelve el ciclo (o null). Un ciclo de dependencias es un equipo que se
+ * espera a sí mismo para siempre: el bucle no acaba nunca.
+ */
+export function buscaCiclo(miembros: Miembro[]): string[] | null {
+  const ids = new Set(miembros.map((m) => m.id));
+  const depende = new Map<string, string[]>();
+  for (const m of miembros) {
+    depende.set(
+      m.id,
+      (m.depende_de ?? []).filter((d) => ids.has(d))
+    );
+  }
+  const viendo = new Set<string>();
+  const hecho = new Set<string>();
+  const camino: string[] = [];
+
+  const visita = (n: string): string[] | null => {
+    if (hecho.has(n)) return null;
+    if (viendo.has(n)) return [...camino.slice(camino.indexOf(n)), n];
+    viendo.add(n);
+    camino.push(n);
+    for (const d of depende.get(n) ?? []) {
+      const c = visita(d);
+      if (c) return c;
+    }
+    camino.pop();
+    viendo.delete(n);
+    hecho.add(n);
+    return null;
+  };
+
+  for (const n of depende.keys()) {
+    const c = visita(n);
+    if (c) return c;
+  }
+  return null;
 }
 
 /**
@@ -130,6 +194,7 @@ export function validaEquipo(x: unknown): VeredictoEquipo {
   }
 
   const miembros: Miembro[] = [];
+  const vistos = new Set<string>();
   for (const [i, m] of (r.miembros as unknown[]).entries()) {
     if (typeof m !== "object" || m === null) {
       errores.push(`miembros.${i}: no es un objeto`);
@@ -156,7 +221,13 @@ export function validaEquipo(x: unknown): VeredictoEquipo {
     if (!Number.isFinite(segundos) || segundos <= 0) {
       errores.push(`miembros.${i}.presupuesto.segundos: tiene que ser un número (> 0)`);
     }
+    const id = typeof mm.id === "string" && mm.id.trim() ? mm.id.trim() : `${rol}-${i}`;
+    if (vistos.has(id)) {
+      errores.push(`miembros.${i}.id: «${id}» está repetido (las dependencias apuntan por id)`);
+    }
+    vistos.add(id);
     miembros.push({
+      id,
       rol: rol as Rol,
       motor: String(mm.motor ?? ""),
       encargo: String(mm.encargo ?? ""),
@@ -164,6 +235,13 @@ export function validaEquipo(x: unknown): VeredictoEquipo {
         tokens: Number.isFinite(tokens) ? Math.floor(tokens) : 0,
         segundos: Number.isFinite(segundos) ? Math.floor(segundos) : 0,
       },
+      ...(Array.isArray(mm.ficheros)
+        ? { ficheros: mm.ficheros.filter((f): f is string => typeof f === "string") }
+        : {}),
+      ...(typeof mm.solo_lectura === "boolean" ? { solo_lectura: mm.solo_lectura } : {}),
+      ...(Array.isArray(mm.depende_de)
+        ? { depende_de: mm.depende_de.filter((d): d is string => typeof d === "string") }
+        : {}),
     });
   }
 
@@ -203,12 +281,56 @@ export function validaEquipo(x: unknown): VeredictoEquipo {
     errores.push(`cap: el equipo se pasa (${total} > ${cap.tokens})`);
   }
 
+  // 4. el paralelismo: cuántos a la vez (el guardián de la RAM)
+  const maxParalelo = Number(r.max_paralelo);
+  const maxParaleloOk = Number.isFinite(maxParalelo) && maxParalelo >= 0;
+  if (!maxParaleloOk) errores.push("max_paralelo: tiene que ser un número (0 = los que quepan)");
+  if (maxParaleloOk && maxParalelo > 0 && maxParalelo > miembros.length) {
+    errores.push(
+      `max_paralelo: ${maxParalelo} y sólo hay ${miembros.length} miembros (no se puede paralelizar más de los que hay)`
+    );
+  }
+
+  // 5. los rondas y asignaciones: el bucle tiene que acabar
+  const maxRondas = Number(r.max_rondas ?? 3);
+  const maxAsignaciones = Number(r.max_asignaciones ?? miembros.length * 2);
+  if (!Number.isFinite(maxRondas) || maxRondas <= 0) {
+    errores.push("max_rondas: tiene que ser un número (> 0): el bucle tiene que acabar");
+  }
+  if (!Number.isFinite(maxAsignaciones) || maxAsignaciones <= 0) {
+    errores.push("max_asignaciones: tiene que ser un número (> 0)");
+  }
+
+  // 6. el conflicto de ficheros: dos miembros en el mismo fichero
+  const porFichero = new Map<string, string[]>();
+  for (const m of miembros) {
+    for (const f of m.ficheros ?? []) {
+      porFichero.set(f, [...(porFichero.get(f) ?? []), m.id]);
+    }
+  }
+  for (const [fichero, duenos] of porFichero) {
+    if (duenos.length > 1) {
+      errores.push(
+        `ficheros: «${fichero}» lo tocan ${duenos.length} miembros (${duenos.join(", ")}) — dos agentes en el mismo fichero es un conflicto`
+      );
+    }
+  }
+
+  // 7. las dependencias: sin ciclos
+  const ciclo = buscaCiclo(miembros);
+  if (ciclo) {
+    errores.push(`dependencias: hay un ciclo (${ciclo.join(" → ")})`);
+  }
+
   const equipo: Equipo = {
     id,
     nombre,
     miembros,
     modo: (r.modo as ModoContexto) ?? "estandar",
     cap,
+    max_paralelo: maxParaleloOk ? Math.floor(maxParalelo) : 1,
+    max_rondas: Number.isFinite(maxRondas) ? Math.floor(maxRondas) : 3,
+    max_asignaciones: Number.isFinite(maxAsignaciones) ? Math.floor(maxAsignaciones) : miembros.length * 2,
   };
   const reparto = miembros.map((m) => ({ rol: m.rol, motor: m.motor, tokens: m.presupuesto.tokens }));
 

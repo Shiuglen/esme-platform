@@ -24,13 +24,28 @@ equipo:
   cap:
     tokens: 0
     segundos: 0
+  # cuántos miembros trabajan A LA VEZ. ESTE es el guardián de la RAM: treinta
+  # agentes en paralelo son treinta bocas comiendo memoria a la vez. 0 = los
+  # que quepan.
+  max_paralelo: 0
+  # cuántas rondas puede dar el equipo, y cuántas tareas puede repartir el
+  # arquitecto: el bucle tiene que acabar.
+  max_rondas: 3
+  max_asignaciones: 6
   miembros:
-    - rol: "arquitecto | trabajador | critico"
+    - id: "único en el equipo (las dependencias apuntan aquí)"
+      rol: "arquitecto | trabajador | critico"
       motor: "el motor que usa (motor-capability.spec.yaml)"
       encargo: "qué hace este miembro"
       presupuesto:
         tokens: 0
         segundos: 0
+      # los ficheros que toca: dos miembros en el mismo fichero es un CONFLICTO
+      ficheros: ["src/lo-que-toca.ts"]
+      # si sólo lee (un crítico sólo lee)
+      solo_lectura: false
+      # de qué miembros depende (por id)
+      depende_de: ["otro-miembro-id"]
 
 reglas:
   # 1. exactamente un arquitecto: sin él nadie decide; con dos, nadie decide.
@@ -46,3 +61,14 @@ reglas:
   roles_cerrados: [arquitecto, trabajador, critico]
   # 5. cada miembro dice qué hace (un encargo vacío no es un miembro).
   encargo_obligatorio: true
+  # 6. el paralelismo es el guardián de la RAM: no puede pasar de los miembros
+  #    que hay.
+  paralelismo_acotado: true
+  # 7. dos miembros en el mismo fichero es un conflicto (y se dice antes de
+  #    que pase).
+  sin_conflicto_de_ficheros: true
+  # 8. las dependencias no pueden tener ciclo: un equipo que se espera a sí
+  #    mismo no acaba nunca.
+  sin_ciclos: true
+  # 9. el bucle acaba: rondas y asignaciones tienen techo.
+  bucle_acotado: true
