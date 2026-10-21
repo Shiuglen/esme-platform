@@ -23,6 +23,8 @@
 | `npm run crear:modulo -- --id esme.tu.mi-modulo --nombre "Mi módulo"` | la puerta de entrada: nace un módulo entero y juzgado |
 | `npm run verificar:modulo -- <carpeta>` | lo construye, lo mide de verdad y lo juzga |
 | `npm run publicar:modulo -- <carpeta>` | lo publica en el índice firmado (vuelve a juzgarlo antes) |
+| `npm run puntos` | el estado de tu PC, medido: un punto por agente, con su RAM |
+| `npm run compat -- <carpeta>` | qué motores pueden alojar ese módulo, y por qué no los otros |
 
 ## Comandos de la app (el otro repo)
 

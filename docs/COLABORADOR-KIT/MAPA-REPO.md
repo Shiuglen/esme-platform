@@ -12,6 +12,7 @@ esme/
 │   ├── ENTRADA.md                # la puerta de entrada: crea y publica un módulo
 │   ├── MOTORES.md                # los motores: la misma mente, muchos cerebros
 │   ├── PIELES.md                 # las pieles: el tema es un documento, y hay juez
+│   ├── PUNTOS.md                 # los puntos: el estado de tu PC, medido
 │   ├── SYNC.md                   # mente portable (.mind) y sync criptográfico
 │   └── COLABORADOR-KIT/          # ENTRY: COLABORADORES.md, ADRs, runbook
 ├── estandar/                     # las specs abiertas (versionadas)

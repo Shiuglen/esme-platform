@@ -1,0 +1,51 @@
+# **Spec abierta v1 — los puntos.** El estado de tu PC, medido.
+# Referencia: docs/PUNTOS.md, core/motores/puntos.ts.
+#
+# QUÉ ES UN PUNTO: un agente (un motor) corriendo en la máquina de la
+# persona, con lo que REALLY consume. Un punto por proceso, con su memoria y
+# su CPU, medidos — nunca estimados.
+#
+# POR QUÉ ESTÁ ESCRITO: la era es local. Cada persona tiene SU PC, con SUS
+# agentes, y la pregunta de todos los días es «¿qué está comiéndose la
+# memoria ahora mismo?». Esa pregunta se responde con números, no con
+# intuición. Y como los puntos son datos (no código), la ventana puede
+# dibujarlos como puntos (al estilo Dots) sin que el kit sepa nada de
+# dibujado.
+#
+# Lo que este contrato NO es: un monitor de sistema. Solo mira los procesos
+# que la casa conoce (los motores declarados en motor-capability.spec.yaml)
+# y los que uno le pida por su PID. No espía: no mira pantallas, ni teclas,
+# ni ficheros.
+
+schema_version: 1
+
+# ——— el punto ———
+punto:
+  id: "estable (el motor + el pid + el arranque)"
+  motor: "el id del motor (motor-capability.spec.yaml), o null si no se sabe"
+  proceso: "el nombre del proceso"
+  pid: "entero"
+  estado: "vivo | zombi | desconocido"
+  memoria_mb: "MiB residentes, MEDIDOS"
+  cpu_pct: "0..100, la media del proceso"
+  desde: "epoch en ms, o null"
+  pasado: "true si supera el tope de memoria"
+
+# ——— la puerta ———
+consulta:
+  motores: "sólo los motores declarados (por defecto: todos)"
+  pids: "o estos PID concretos"
+  tope_mb: "el tope de memoria por punto (por defecto: el de la spec)"
+
+# ——— las reglas ———
+reglas:
+  # 1. se mide, no se estima: la memoria sale del sistema operativo.
+  medido: true
+  # 2. lo que no se puede medir, no se inventa: si el sistema no lo dice,
+  #    el punto lo dice (null), no lo disimula.
+  honesto: true
+  # 3. un tope por defecto: el que se pasa, se ve. Una app que se come la
+  #    RAM se nota (no se descubre a posteriori).
+  tope_mb_por_defecto: 2048
+  # 4. esto es LOCAL: leer el consumo de tus procesos no sale de tu PC.
+  local: true
