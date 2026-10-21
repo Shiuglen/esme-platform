@@ -437,12 +437,19 @@ puede, sólo si se le concede) y un **juez** (si entra o no).
   se ciegan (`fetch`, `WebSocket`, `process.env`). No es una promesa del
   módulo: es un `throw` del cargador y un `undefined` en su mundo.
 - **La puerta** (`core/extension-host/puerta.ts`): el módulo ve UNA cosa,
-  `globalThis.esme`, con seis piezas (mente, disco del proyecto, red, eventos,
-  UI, entorno). Cada pieza existe si el módulo la **declaró** y la persona la
-  **concedió**. Lo declarado y no concedido no se monta: no hay una función
-  que falle, hay una puerta sin esa pieza.
+  `globalThis.esme`, con siete piezas (mente, disco del proyecto, red, eventos,
+  UI, programas, entorno). Cada pieza existe si el módulo la **declaró** y la
+  persona la **concedió**. Lo declarado y no concedido no se monta: no hay una
+  función que falle, hay una puerta sin esa pieza.
 - **El libro** (`core/modulos/consentimiento.ts`): lo concedido se guarda en
   disco, con quién y cuándo. Un permiso que no se guarda no es un permiso.
+- **El libro de los programas** (`core/modulos/programas.ts`): qué se puede
+  LANZAR en esta casa. Son dos decisiones distintas y de distinta gente: el
+  permiso dice si un módulo puede lanzar; el libro dice qué hay para lanzar.
+  La puerta de los programas (`core/extension-host/proc.ts`) sólo lanza lo que
+  está en el libro, por su nombre lógico, y **deja rastro** de cada
+  lanzamiento (`core/modulos/lanzamientos.ts`): una puerta que lanza sin
+  dejar rastro trabaja a ciegas.
 - **El juez** (`core/modulos/veredicto.ts`): un módulo entra si lo demuestra.
   Abre el módulo, lo ejercita con su puerta real y mide: carga, forma
   (memoria o herramienta), mejora contra el mínimo que él mismo declaró, coste
@@ -474,6 +481,13 @@ puede, sólo si se le concede) y un **juez** (si entra o no).
     se monta la intersección, y lo que falta, no existe.
 14. **Nunca** un número de examen escrito a mano: si el módulo no se puede
     abrir y ejercitar, el veredicto es «sin medida».
+15. **Nunca** lanzar un programa que la persona no puso en el libro de los
+    programas: el permiso (`proc:spawn`) no es una llave de la máquina, y el
+    libro va junto al de los permisos para que el kit y la app miren en el
+    mismo sitio.
+16. **Nunca** lanzar un programa sin dejar rastro: qué se lanzó, con qué
+    argumentos, por quién y cómo acabó queda escrito (en el registro de la
+    casa, no en la memoria del proceso).
 
 **Detalle:** `docs/MODULOS.md`. Specs: `estandar/module-manifest.spec.yaml`
 (el manifiesto) y `estandar/module-veredicto.spec.yaml` (el veredicto).
