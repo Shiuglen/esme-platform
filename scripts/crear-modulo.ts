@@ -62,7 +62,13 @@ export function problemaDeId(id: string): string | null {
 
 /** El manifiesto del módulo nuevo, en YAML (el formato que la spec fija). */
 export function manifiestoDe(o: OpcionesCrear): string {
-  const permisos = o.permisos ?? ["mind:read", "mind:write"];
+  // los permisos por defecto según lo que el módulo hace: un módulo de
+  // memoria trocea (no necesita la mente) y un tema sólo se viste.
+  const permisos =
+    o.permisos ??
+    ((o.categoria ?? "tool") === "memory" || (o.categoria ?? "tool") === "theme"
+      ? []
+      : ["mind:read", "mind:write"]);
   const descripcion =
     o.descripcion ??
     `${o.nombre}: un módulo de Esme que responde por la puerta y recuerda lo que la mente le dice.`;
@@ -84,8 +90,7 @@ author: "${o.autor ?? o.id.split(".")[1] ?? "anonimo"}"
 license: "MIT"
 entry: "dist/index.js"
 runtime: "nodejs"
-permissions:
-${permisos.map((p) => `  - ${p}`).join("\n")}
+permissions:${permisos.length ? "\n" + permisos.map((p) => `  - ${p}`).join("\n") : " []"}
 decision_criteria: []
 dependencies:
   - "esme.core@^1.0"
@@ -122,6 +127,112 @@ export function paqueteDe(o: OpcionesCrear): string {
  */
 export function pielDe(base: unknown): string {
   return JSON.stringify(base, null, 2) + "\n";
+}
+
+/**
+ * El código del módulo: habla POR LA PUERTA y contesta.
+ *
+ * Lo importante: no usa `fetch`, ni `node:fs`, ni `process.env`. No puede:
+ * la cápsula los cierra (core/extension-host/sandbox.ts). Va por la puerta, y
+ * la puerta decide qué pasa.
+ */
+/**
+ * El código de un módulo de MEMORIA: trocea.
+ *
+ * Un módulo de memoria no contesta: decide cómo se corta la memoria. La
+ * convención es una función `trocea(fuente, texto)` que devuelve los trozos.
+ * El examen de la casa (core/bench/memoria.ts) la mide: si el troceo del
+ * módulo hace que las respuestas quepan en el presupuesto, el recall sube.
+ *
+ * El ejemplo trocea por filas de tabla (que es el hallazgo de la casa): una
+ * tabla como un bloque entero no entra en el presupuesto del pack, y las
+ * preguntas sobre una fila concreta se quedan sin contexto.
+ */
+export function fuenteDeMemoria(o: OpcionesCrear): string {
+  return `/**
+ * ${o.nombre} — un módulo de MEMORIA de Esme.
+ *
+ * La convención: el módulo exporta \`trocea(fuente, texto)\` y devuelve los
+ * trozos. Así el examen de la casa (core/bench/memoria.ts) lo mide sin que
+ * nadie escriba un banco a mano, y el juez tiene un número con el que
+ * dictaminar.
+ *
+ * Aquí las tablas se trocean POR FILA: una tabla entera es un bloque que no
+ * cabe en el presupuesto del pack, y las preguntas sobre una fila concreta se
+ * quedan sin respuesta.
+ *
+ * Referencia: docs/ENTRADA.md, core/bench/memoria.ts.
+ */
+export const MODULO_ID = "${o.id}";
+
+export interface Trozo {
+  id: string;
+  fuente: string;
+  texto: string;
+  tokens: number;
+  tipo: "apartado" | "parrafo" | "fila-tabla";
+}
+
+/** Trocea el texto: apartados, párrafos y filas de tabla. */
+export function trocea(fuente: string, texto: string): Trozo[] {
+  const trozos: Trozo[] = [];
+  const parrafoDe = (id: string, t: string, tipo: Trozo["tipo"]): Trozo => ({
+    id: \`\${fuente}:\${id}\`,
+    fuente,
+    texto: t,
+    tokens: Math.ceil(t.length / 4),
+    tipo,
+  });
+
+  let seccion = "inicio";
+  let parrafo: string[] = [];
+  let tabla: string[] = [];
+
+  const cerrarParrafo = (): void => {
+    const t = parrafo.join(" ").trim();
+    if (t) trozos.push(parrafoDe(\`s-\${seccion}\`, t, "parrafo"));
+    parrafo = [];
+  };
+  const cerrarTabla = (): void => {
+    for (let i = 0; i < tabla.length; i++) {
+      const linea = tabla[i];
+      // la cabecera de la tabla no es un dato de nadie
+      if (i === 0 && linea.includes("---")) continue;
+      const t = linea.trim();
+      if (!t) continue;
+      trozos.push(parrafoDe(\`fila-\${i}\`, t, "fila-tabla"));
+    }
+    tabla = [];
+  };
+
+  for (const linea of texto.split("\\n")) {
+    if (linea.trim().startsWith("|")) {
+      cerrarParrafo();
+      tabla.push(linea);
+      continue;
+    }
+    if (tabla.length) cerrarTabla();
+    if (linea.startsWith("#")) {
+      cerrarParrafo();
+      seccion = linea.replace(/^#+\\s*/, "").trim().toLowerCase().replace(/\\s+/g, "-");
+      continue;
+    }
+    if (!linea.trim()) {
+      cerrarParrafo();
+      continue;
+    }
+    parrafo.push(linea.trim());
+  }
+  if (tabla.length) cerrarTabla();
+  cerrarParrafo();
+  return trozos;
+}
+
+/** Las filas de tabla: los datos sueltos, listos para indexar. */
+export function filasDe(trozos: Trozo[]): Trozo[] {
+  return trozos.filter((t) => t.tipo === "fila-tabla");
+}
+`;
 }
 
 /**
@@ -188,6 +299,28 @@ export async function ciclo(consulta: string): Promise<RespuestaCiclo> {
 
 /** La prueba del módulo: lo mínimo que tiene que ser verdad. */
 export function pruebaDe(o: OpcionesCrear): string {
+  if ((o.categoria ?? "tool") === "memory") {
+    return `import { describe, expect, it } from "vitest";
+import { trocea, filasDe, MODULO_ID } from "../src/index.ts";
+
+describe("${o.nombre}", () => {
+  it("declara su id", () => {
+    expect(MODULO_ID).toBe("${o.id}");
+  });
+
+  it("trocea el texto en trozos", () => {
+    const t = trocea("doc", "Un párrafo.\n\n| A | B |\n|---|---|\n| 1 | 2 |");
+    expect(t.length).toBeGreaterThan(1);
+    expect(t.every((x) => x.texto.length > 0)).toBe(true);
+  });
+
+  it("las filas de tabla salen sueltas (el hallazgo de la casa)", () => {
+    const t = trocea("doc", "| A | B |\n|---|---|\n| 1 | 2 |");
+    expect(filasDe(t).length).toBe(1);
+  });
+});
+`;
+  }
   return `import { describe, expect, it } from "vitest";
 import { ciclo, MODULO_ID } from "../src/index.ts";
 
@@ -214,7 +347,7 @@ Módulo de Esme. Id: \`${o.id}\`.
 ## Qué hace
 
 Un módulo de tipo \`${o.categoria ?? "tool"}\` que responde por la puerta y
-recuerda lo que la mente le dice. Pide: ${(o.permisos ?? ["mind:read", "mind:write"]).join(", ")}.
+recuerda lo que la mente le dice. Pide: ${(o.permisos ?? []).join(", ") || "nada"}.
 
 ## Cómo se comprueba
 
@@ -256,7 +389,10 @@ export async function creaModulo(
   mkdirSync(join(dir, "test"), { recursive: true });
   writeFileSync(join(dir, "module.yaml"), manifiestoDe(o));
   writeFileSync(join(dir, "package.json"), paqueteDe(o));
-  writeFileSync(join(dir, "src", "index.ts"), fuenteDe(o));
+  writeFileSync(
+    join(dir, "src", "index.ts"),
+    (o.categoria ?? "tool") === "memory" ? fuenteDeMemoria(o) : fuenteDe(o)
+  );
   writeFileSync(join(dir, "test", "index.test.ts"), pruebaDe(o));
   writeFileSync(join(dir, "README.md"), readmeDe({ ...o, dir: join("modulos", slugDe(o.id)) }));
   // un tema trae su piel: el documento que decide cómo se ve
@@ -291,10 +427,12 @@ if (import.meta.url === new URL(`file://${process.argv[1]}`).href) {
     console.error(`categoría desconocida: ${cat} (valen: ${CATEGORIES.join(", ")})`);
     process.exit(2);
   }
-  const permisos = (arg("--permisos") ?? "mind:read,mind:write")
-    .split(",")
-    .map((p) => p.trim())
-    .filter(Boolean);
+  // sin --permisos, cada categoría pide lo que necesita (el manifiesto lo
+  // decide); con --permisos, manda quien lo dice.
+  const argPermisos = arg("--permisos");
+  const permisos = argPermisos
+    ? argPermisos.split(",").map((p) => p.trim()).filter(Boolean)
+    : [];
   for (const p of permisos) {
     if (!CAPABILITIES.includes(p as Capability)) {
       console.error(`permiso desconocido: ${p} (valen: ${CAPABILITIES.join(", ")})`);
@@ -306,7 +444,7 @@ if (import.meta.url === new URL(`file://${process.argv[1]}`).href) {
     id,
     nombre,
     categoria: (cat as Category) ?? "tool",
-    permisos: permisos as Capability[],
+    ...(argPermisos ? { permisos: permisos as Capability[] } : {}),
     dir: arg("--dir") ?? undefined,
   };
 

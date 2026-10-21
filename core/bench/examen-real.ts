@@ -28,14 +28,14 @@ La mente sustituye los ficheros de memoria de los agentes por contexto vivo y me
 Se vende a desarrolladores cuando la Prueba 0 demuestre la mejora.
 `;
 
-interface Pregunta {
+export interface Pregunta {
   id: string;
   pregunta: string;
   oroEnFila: number; // índice de la fila que responde (o -1 si es párrafo)
   oroParr: number; // 0 = p1 (la regla), 1 = p2 (la cuña); -1 = no aplica
 }
 
-const PREGUNTAS: Pregunta[] = [
+export const PREGUNTAS: Pregunta[] = [
   { id: "q1", pregunta: "estado de la red neuronal en la app", oroEnFila: 0, oroParr: -1 },
   { id: "q2", pregunta: "absorción de la propia Esme cuántos recuerdos", oroEnFila: 1, oroParr: -1 },
   { id: "q3", pregunta: "la Prueba 0 y su recall qué falta", oroEnFila: 2, oroParr: -1 },

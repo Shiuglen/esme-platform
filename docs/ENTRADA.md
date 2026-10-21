@@ -41,7 +41,7 @@ export async function ciclo(consulta: string) {
 }
 ```
 
-## 2. La convención: `ciclo(consulta)`
+## 2. La convención: `ciclo(consulta)` (o `trocea(fuente, texto)`, si es de memoria)
 
 Todo módulo que quiera ser medido exporta **una** función:
 
@@ -52,6 +52,16 @@ export async function ciclo(consulta: string): Promise<{ respuesta: string }>
 El verificador le hace tres consultas (las mismas para todos), mira si contesta
 y cuenta los tokens que cuesta cada respuesta. Con eso hay número, y con un
 número hay veredicto.
+
+Y si el módulo es de **memoria** (category: `memory`), la convención es otra:
+exporta `trocea(fuente, texto)` y devuelve los trozos. El examen de la casa
+(core/bench/memoria.ts) lo mide con el mismo documento y las mismas preguntas
+— y con el mismo presupuesto: el mundo base (la tabla entera) se queda en
+0,25 de recall y el módulo que trocea por filas llega a 1,00.
+
+> El oro del examen es el **texto** de la respuesta, no su identificador: por
+> eso un módulo de fuera, que trocea con sus propios ids, se puede medir con
+> el mismo examen que los de la casa.
 
 Es la misma convención para módulos de dentro y de fuera: una sola forma de
 medir, una sola verdad.
@@ -125,7 +135,8 @@ rompe, la CI lo dice en el PR — antes de que lo descubra quien publica.
 |-----|-------|
 | El verificador | `scripts/verificar-modulo.ts` |
 | El constructor | `scripts/crear-modulo.ts` |
-| La medida genérica | `core/bench/ciclo.ts` |
+| La medida genérica (herramientas) | `core/bench/ciclo.ts` |
+| La medida genérica (memoria) | `core/bench/memoria.ts` |
 | El juez | `core/modulos/veredicto.ts` |
 | El contrato del módulo | `estandar/module-manifest.spec.yaml`, `core/ipc/module-schema.ts` |
 | Los módulos de la casa | `docs/MODULOS.md` |

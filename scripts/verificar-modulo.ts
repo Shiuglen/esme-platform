@@ -31,6 +31,7 @@ import { empaquetar } from "../tienda/empaque.ts";
 import { firmarBytes, type FirmaBytes } from "../tienda/firma.ts";
 import { leeManifiesto } from "../tienda/modulo-manifiesto.ts";
 import { mideCicloModulo, menteDePrueba } from "../core/bench/ciclo.ts";
+import { mideMemoriaModulo } from "../core/bench/memoria.ts";
 import { juzgaPielDeModulo } from "./estandar/piel-check.ts";
 import { mideModulo } from "../core/bench/modulos.ts";
 import { juzgaModulo, type VeredictoModulo, type InformeModulo } from "../core/modulos/veredicto.ts";
@@ -190,11 +191,17 @@ export async function verificaModulo(
     };
   }
 
-  // 3. medir de verdad (el ciclo de la puerta) y 4. el informe medido.
+  // 3. medir de verdad y 4. el informe medido.
+  //    Un módulo de HERRAMIENTA se mide por su ciclo (la puerta); un módulo de
+  //    MEMORIA, por su troceo (el examen de la casa). Cada forma con su
+  //    examen: no hay dos verdades.
   //    La misma mente de juguete para las dos medidas: si el módulo no tiene
   //    a quién preguntar, la medición no mide nada (y el juez lo dice).
   const { mente } = menteDePrueba();
-  const medida = await mideCicloModulo(dir, manifiesto, { mente });
+  const medida =
+    manifiesto.category === "memory"
+      ? await mideMemoriaModulo(dir, manifiesto)
+      : await mideCicloModulo(dir, manifiesto, { mente });
   if (opts.escribirInforme !== false) {
     const nombre = manifiesto.benchmarks?.report ?? "bench.json";
     writeFileSync(join(dir, nombre), JSON.stringify(medida.informe, null, 2) + "\n");
@@ -268,9 +275,15 @@ export function renderVerificacion(r: ResultadoVerificar): string {
   if (v) {
     lineas.push(`carga      : ${v.medidas.carga ? "sí" : "no"}`);
     lineas.push(`forma      : ${v.medidas.forma}`);
-    lineas.push(
-      `número     : ${v.medidas.casos} casos · ${Math.round(v.medidas.tokensCiclo ?? 0)} tokens por ciclo`
-    );
+    if (v.medidas.forma === "memoria") {
+      lineas.push(
+        `número     : ${v.medidas.casos} casos · recall ${(v.medidas.recallBase ?? 0).toFixed(3)} → ${(v.medidas.recallCon ?? 0).toFixed(3)} · ${Math.round(v.medidas.tokensCon ?? 0)} tokens`
+      );
+    } else {
+      lineas.push(
+        `número     : ${v.medidas.casos} casos · ${Math.round(v.medidas.tokensCiclo ?? 0)} tokens por ciclo`
+      );
+    }
     lineas.push(`permisos   : usa [${v.medidas.usadas.join(", ") || "nada"}] de [${v.medidas.declaradas.join(", ") || "nada"}]`);
     lineas.push(`veredicto  : ${v.entra ? "ENTRA" : "FUERA"} (${v.nivel}) — ${v.causa}`);
   }

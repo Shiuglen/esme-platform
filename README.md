@@ -154,6 +154,10 @@ npm run crear:modulo -- --id esme.tu.mi-modulo --nombre "Mi módulo"
 npm run verificar:modulo -- modulos/mi-modulo
 ```
 
+Y si es un módulo de **memoria** o un **tema**, también hay puerta:
+`--categoria memory` (trocea por filas) y `--categoria theme` (trae su piel,
+que el juez comprueba).
+
 El primero te deja el módulo entero (manifiesto, código, prueba) y lo pasa por
 el verificador; el segundo lo construye, lo **mide de verdad** (abre su worker,
 le habla por la puerta y cuenta los tokens) y lo juzga. El contrato del módulo
