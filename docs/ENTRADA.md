@@ -66,6 +66,46 @@ exporta `trocea(fuente, texto)` y devuelve los trozos. El examen de la casa
 Es la misma convención para módulos de dentro y de fuera: una sola forma de
 medir, una sola verdad.
 
+### Si tu módulo lanza programas
+
+Un módulo puede pedir al **anfitrión** que lance un programa (REA, por
+ejemplo). Es la séptima pieza de la puerta, `esme.proc`, y funciona como las
+otras: si el módulo no la declara, no existe.
+
+```ts
+export async function ciclo(consulta: string) {
+  const puerta = globalThis.esme;
+  if (!puerta?.proc) return { respuesta: "no hay puerta a los programas" };
+  const r = await puerta.proc.ejecutar({
+    programa: "rea",                               // el NOMBRE LÓGICO, no la ruta
+    args: ["analyze", ruta, "--format", "json"],   // argumentos en array, nunca una cadena
+  });
+  return { respuesta: r.stdout };
+}
+```
+
+Tres cosas que el módulo tiene que saber:
+
+| | |
+|---|---|
+| **El nombre es un nombre** | el anfitrión sólo lanza lo que la persona puso en el libro de los programas (`npm run programas -- concede rea --desc "…"`). Un nombre inventado recibe un no, no una ejecución |
+| **Los argumentos son un array** | sin shell no hay `;`, ni `$(...)`, ni redirección |
+| **El hijo no ve tus llaves** | el entorno es mínimo (PATH, HOME, LANG y lo que el programa pida), y vive confinado a la carpeta del proyecto, con tope de tiempo y de salida |
+
+En el manifiesto, el permiso se declara como cualquier otro:
+
+```yaml
+permissions:
+  - proc:spawn
+  - mind:write
+```
+
+Y el juez lo mide con la puerta abierta de verdad: si el programa no está en
+el libro, la medida sale con el motivo («programa no permitido») en vez de
+medir un módulo que no puede trabajar.
+
+Detalle: [`docs/REA.md`](REA.md).
+
 ## 3. Qué hace el verificador (y en qué orden)
 
 ```bash

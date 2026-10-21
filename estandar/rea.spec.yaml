@@ -70,10 +70,38 @@ evidencia:
         familias: []
 
 # --- EL CATÁLOGO: lo que REA dice que sabe hacer ---
-catalogo:
+# Dos formas: la CRUDA (la que emite REA, `rea capabilities --format json`) y
+# la NORMALIZADA (la que produce el kit: las operaciones aplanadas, con sus
+# efectos ya traducidos a capacidades del kit).
+catalogo_crudo:
   # Si REA está abierto (listo para recibir trabajo).
+  open: false
+  # Si hay una limpieza pendiente (REA lo dice: no se presume que esté limpio).
+  cleanup_pending: false
+  # Los proveedores, cada uno con sus grupos de operaciones.
+  capabilities:
+    - provider:
+        id: "rea"
+        name: "el nombre del proveedor"
+        version: "la versión"
+      # Las limitaciones que comparte TODO lo que ofrece este proveedor.
+      shared_limitations: []
+      groups:
+        - operations: ["la operación"]
+          # Los efectos de este grupo (cerrados: `reglas.efectos_cerrados`).
+          effects: []
+          # Las limitaciones de ESTE grupo (se suman las compartidas).
+          limitations: []
+          # Si la operación está disponible en esta máquina.
+          available: false
+          # Por qué no está disponible (si no lo está).
+          reason: "por qué no"
+          # El código de disponibilidad (por ejemplo, «unsupported_host»).
+          availability_code: "el código"
+
+catalogo:
+  # La forma NORMALIZADA del kit: las operaciones, aplanadas.
   abierto: false
-  # Las operaciones, con sus efectos.
   operaciones:
     - nombre: "la operación"
       proveedor: "rea"

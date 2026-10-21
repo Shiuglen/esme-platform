@@ -54,7 +54,7 @@ export function mente(): MenteDelModulo {
 
 /**
  * La puerta entera: la mente y todo lo demás que se le conceda (el disco del
- * proyecto, la red, los eventos, la UI).
+ * proyecto, la red, los eventos, la UI y los programas).
  *
  * Lo que no está concedido NO está: no hay una función que falle, hay una
  * puerta que no tiene esa pieza. Un módulo que la usa sin permiso se
