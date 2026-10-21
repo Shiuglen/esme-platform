@@ -10,6 +10,7 @@
  * Referencia: core/tienda/deseos.ts, core/tienda/deseos-firmados.ts,
  * estandar/deseo.spec.yaml.
  */
+import { escribeAtomico, escribeJsonAtomico } from "../core/escribe.ts";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { claveDeFirma, puedePublicar } from "../tienda/claves.ts";
@@ -69,7 +70,7 @@ export function publicaDeseos(
   if (!check.ok) {
     return { ok: false, deseos: v.deseos.length, firmante: clave.huella, razon: check.motivo };
   }
-  writeFileSync(join(tienda, "deseos.json"), texto);
+  escribeAtomico(join(tienda, "deseos.json"), texto);
   return {
     ok: true,
     deseos: v.deseos.length,

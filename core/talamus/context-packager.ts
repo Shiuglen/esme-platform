@@ -19,6 +19,13 @@ export interface Paquete {
   seleccionados: Recuerdo[];
   tokens_gastados: number;
   veredictos: { id: string; veredicto: VeredictoTalamo }[];
+  /**
+   * Lo que NO entró y por qué (sólo si se pidió el detalle).
+   *
+   * Es la diferencia entre recortar en silencio y recortar explainado: un
+   * recorte que no se puede revisar no se puede corregir.
+   */
+  fuera?: Array<{ id: string; tokens: number; motivo: "ruido" | "marginal" | "no-cabe" }>;
 }
 
 /** Umbral del Tálamo: lo que la Lente pone bajo esto y con etiqueta ruidosa, no entra. */
@@ -41,6 +48,13 @@ export interface OpcionesEmpaque {
   margen?: number;
   /** Si los marginales pueden entrar siquiera (false = sólo lo relevante). */
   marginales?: boolean;
+  /**
+   * Que el empaque diga lo que dejó fuera y por qué.
+   *
+   * Cuesta un poco más (hay que llevar la cuenta), pero un recorte sin
+   * explicación no se puede revisar: es elCompactar que se docta.
+   */
+  detalle?: boolean;
 }
 
 /**
@@ -60,6 +74,8 @@ export function selectMemoriesForPack(
   const umbral = opts.umbral ?? UMBRAL_SALIENCIA;
   const margen = opts.margen ?? 0.3;
   const marginales = opts.marginales ?? true;
+  const detalle = opts.detalle ?? false;
+  const fuera: NonNullable<Paquete["fuera"]> = [];
   const orden = [...candidates].sort((a, b) => b.score - a.score);
   const seleccionados: Recuerdo[] = [];
   const veredictos: Paquete["veredictos"] = [];
@@ -68,11 +84,23 @@ export function selectMemoriesForPack(
   for (const r of orden) {
     const v = veredicto(r, umbral);
     veredictos.push({ id: r.id, veredicto: v });
-    if (v === "ruido") continue;
+    if (v === "ruido") {
+      if (detalle) fuera.push({ id: r.id, tokens: r.tokens, motivo: "ruido" });
+      continue;
+    }
     const esMarginal = v === "marginal";
-    if (esMarginal && !marginales) continue;
-    if (esMarginal && gastados > 0 && gastados / budget > 1 - margen) continue;
-    if (gastados + r.tokens > budget) continue;
+    if (esMarginal && !marginales) {
+      if (detalle) fuera.push({ id: r.id, tokens: r.tokens, motivo: "marginal" });
+      continue;
+    }
+    if (esMarginal && gastados > 0 && gastados / budget > 1 - margen) {
+      if (detalle) fuera.push({ id: r.id, tokens: r.tokens, motivo: "marginal" });
+      continue;
+    }
+    if (gastados + r.tokens > budget) {
+      if (detalle) fuera.push({ id: r.id, tokens: r.tokens, motivo: "no-cabe" });
+      continue;
+    }
     seleccionados.push(r);
     gastados += r.tokens;
   }
@@ -81,6 +109,7 @@ export function selectMemoriesForPack(
     seleccionados,
     tokens_gastados: gastados,
     veredictos,
+    ...(detalle ? { fuera } : {}),
   };
 }
 

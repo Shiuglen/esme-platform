@@ -30,6 +30,7 @@ import { armaTurno, limpiezaDelTurno, type Turno } from "./turno.ts";
 import { compara, instantanea, type ResultadoCambios } from "./cambios.ts";
 import type { ModoContexto } from "../talamus/modos.ts";
 import { empaquetaEn } from "../talamus/modos.ts";
+import { planDeEmpaquete, resumenPlan } from "../talamus/plan.ts";
 
 /** Lo que hay que saber para ejecutar un turno. */
 export interface OpcionesEjecutar {
@@ -154,8 +155,14 @@ export async function ejecutaTurno(opts: OpcionesEjecutar): Promise<ResultadoEje
   const despues = instantanea(espacio);
   const cambios = compara(antes, despues);
 
-  // 5. el turno, medido
+  // 5. el turno, medido. Los pasos del Tálamo también son pasos: lo que se
+  //    quedó fuera del contexto, con su motivo, es parte del turno (un
+  //    recorte en silencio no se puede revisar).
   const pasos = usadas.map((u) => ({ paso: `usa ${u}`, estado: "ok" as const }));
+  const plan = planDeEmpaquete(opts.consulta, [], opts.modo === "ahorrador" ? 150 : 400);
+  if (plan.quedan.length) {
+    pasos.push({ paso: `talamo: ${resumenPlan(plan)}`, estado: "ok" as const });
+  }
   const turno = armaTurno({
     id: `${manifiesto.id}@${manifiesto.version}`,
     motor: opts.motor ?? "local",

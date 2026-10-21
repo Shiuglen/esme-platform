@@ -324,6 +324,34 @@ await puerta("doctor (¿está todo bien aquí?)", async () => {
   return `${e.avisos.length} avisos`;
 });
 
+await puerta("talamo (el plan: lo que no cabe, y por qué)", async () => {
+  const { planDeEmpaquete, resumenPlan } = await import("../core/talamus/plan.ts");
+  const { examenMemoria } = await import("../core/bench/memoria.ts");
+  const { trocea } = await import("../core/mind/troceo.ts");
+  const { DOC, PREGUNTAS } = await import("../core/bench/examen-real.ts");
+  const { conScoreDeCaso } = await import("../core/bench/examen.ts");
+  const trozos = trocea("doc", DOC);
+  const base = trozos.map((t) => ({ id: t.id, texto: t.texto, tokens: t.tokens, score: 0 }));
+  const puntuados = conScoreDeCaso(
+    base as never,
+    { id: "q", pregunta: PREGUNTAS[0].pregunta, oro: [] } as never
+  ) as never;
+  const plan = planDeEmpaquete(PREGUNTAS[0].pregunta, puntuados, 400);
+  if (!plan.entra.length) throw new Error("el plan no deja entrar nada");
+  if (!plan.quedan.length) throw new Error("el plan no dice qué se quedó fuera");
+  return resumenPlan(plan);
+});
+
+await puerta("escribe (nada a medias)", async () => {
+  const { escribeJsonAtomico } = await import("../core/escribe.ts");
+  const dir = join(casa(), "escribe");
+  const ruta = join(dir, "indice.json");
+  escribeJsonAtomico(ruta, { ok: true });
+  const leido = JSON.parse(readFileSync(ruta, "utf8")) as { ok: boolean };
+  if (!leido.ok) throw new Error("no se escribió bien");
+  return "el fichero queda entero";
+});
+
 await puerta("puntos (el estado de tu PC, medido)", async () => {
   const lista = puntos({ pids: [process.pid] });
   if (!lista.length) throw new Error("no se midió nada");

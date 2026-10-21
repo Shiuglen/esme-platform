@@ -16,6 +16,7 @@
  * bytes, el veredicto deja de aplicar y la app lo vuelve a poner en «sin
  * medir». Referencia: estandar/module-veredicto.spec.yaml.
  */
+import { escribeAtomico, escribeJsonAtomico } from "../core/escribe.ts";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -127,7 +128,7 @@ const documento = firmaVeredictosModulos(
 );
 
 mkdirSync(join(salida, ".."), { recursive: true });
-writeFileSync(salida, JSON.stringify(documento, null, 2) + "\n");
+escribeJsonAtomico(salida, documento);
 writeFileSync(panel, renderPanelModulos(documento));
 
 const dentro = veredictos.filter((v) => v.entra).length;

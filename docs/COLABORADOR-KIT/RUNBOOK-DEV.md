@@ -25,7 +25,7 @@
 | `npm run verificar:modulo -- <carpeta>` | lo construye, lo mide de verdad y lo juzga |
 | `npm run publicar:modulo -- <carpeta>` | lo publica en el índice firmado (vuelve a juzgarlo antes) |
 | `npm run puntos` | el estado de tu PC, medido: un punto por agente, con su RAM |
-| `npm run talamo` | el contexto en tres modos, y el ahorro MEDIDO |
+| `npm run talamo` | el contexto en tres modos, el ahorro MEDIDO y el plan de compactación |
 | `npm run turno -- <turno.json>` | la limpieza del chat, en un número (listón 60 %) |
 | `npm run equipo -- <equipo.json>` | juzga el equipo y dice el reparto de su presupuesto |
 | `npm run bot:check -- <bot.json>` | juzga un bot: la puerta, los permisos y el techo |

@@ -5,7 +5,8 @@
 //   tool   → el ciclo recall→inject completo de extremo a extremo
 // Después empaqueta cada módulo en tarball reproducible, firma los bytes
 // (Ed25519), sube entradas al índice, firma el índice y redacta el panel.
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { escribeAtomico, escribeJsonAtomico } from "../core/escribe.ts";
+import { readFileSync, mkdirSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { tmpdir } from "node:os";
 import { createPublicKey } from "node:crypto";
@@ -26,7 +27,7 @@ import { abreHost } from "../core/extension-host/host.ts";
 
 const raiz = resolve(import.meta.dirname, "..");
 const escribir = (ruta: string, dato: unknown) =>
-  writeFileSync(ruta, JSON.stringify(dato, null, 2) + "\n");
+  escribeJsonAtomico(ruta, dato);
 
 // la llave de esta copia: la de release si el entorno la apunta, si no la dev
 // key local (que nace sola si no existe). Ver tienda/claves.ts.
@@ -251,7 +252,7 @@ try {
   pubKey = undefined;
 }
 const panel = panelDe(indiceFinal, { pubKey });
-writeFileSync(join(raiz, "tienda", "panel.md"), render(panel));
+escribeAtomico(join(raiz, "tienda", "panel.md"), render(panel));
 
 console.log(`memoria    : recall ${base.recall.toFixed(3)} → ${con.recall.toFixed(3)} · ${veredictoPro.entra ? "ENTRA" : "FUERA"} (${veredictoPro.causa})`);
 console.log(`herramienta: ${veredictoHola.entra ? "ENTRA" : "FUERA"} — ${veredictoHola.causa}`);

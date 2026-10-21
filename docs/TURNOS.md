@@ -104,6 +104,27 @@ turno lo dice). La cápsula, además, cierra `node:fs`: un módulo que quiere
 escribir, escribe por la puerta (`fs:project`), y lo que cambia es el
 proyecto.
 
+## El plan de compactación (lo que no cabe, y por qué)
+
+El Tálamo recorta: mete lo que cabe y tira el resto. Antes, en silencio — y
+un recorte en silencio es un recorte que nadie puede revisar (la persona ve
+que el agente «no se acuerda» y no hay modo de saber si fue que no cabía, que
+era ruido o que el umbral estaba mal).
+
+Ahora el empaque **dice** lo que dejó fuera y por qué (`ruido`, `marginal`,
+`no-cabe`), y lo dice el propio Tálamo (los motivos no se inventan en otro
+sitio: una sola verdad).
+
+```
+$ npm run talamo
+plan    : entran 4 recuerdos (105 tokens); fuera: 4 ruido (65 tokens)
+  · ruido     6 tokens — | Área | Estado | Nota |
+  · ruido    21 tokens — | Prueba 0 | a medias | recall 0,77; falta validar oro y com
+```
+
+Y el turno lo lleva: los pasos del Tálamo son pasos del turno, así que el
+chat puede decirlo.
+
 ## De dónde viene la idea
 
 De las capturas de PandaCode (las de los marcadores de X): *«Tool steps fold

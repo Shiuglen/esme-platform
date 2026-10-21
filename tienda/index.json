@@ -69,7 +69,7 @@
   "signature": {
     "algorithm": "ed25519-sha512",
     "signature": "Nic+JHVQmBj889ZwFg2mYHokAQVrpJ72TqLmO6kArt+7KsVpSQswWG3SvIeMyM+556Lhvm41sUUBUYljAWtzCQ==",
-    "signed_at": "2026-10-21T05:38:12.765Z",
+    "signed_at": "2026-10-21T06:53:01.027Z",
     "signed_by": "adaaf79999a7296f",
     "hash": "ySMQpueDOtkeELn4eWKDortEG3XufSfZTei/KaOzWBA="
   },

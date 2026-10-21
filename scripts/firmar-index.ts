@@ -8,6 +8,7 @@
  * (ella misma o su estirpe). Firmar con una llave sin derecho dejaría el
  * índice publicado en estado de "no confiable" para todo el mundo.
  */
+import { escribeAtomico, escribeJsonAtomico } from "../core/escribe.ts";
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { createPublicKey } from "node:crypto";
@@ -54,6 +55,6 @@ if (!derecho.ok) {
 
 const firmado = firmaIndice(indice, privPem);
 const r = verificarIndex(firmado, pub);
-writeFileSync(ruta, JSON.stringify(firmado, null, 2) + "\n");
+escribeJsonAtomico(ruta, firmado);
 console.log(`✓ índice firmado (${deQuien} · ${huellaDePub(pub)}), verificación local: ${r.ok ? "ok" : r.razon}`);
 if (!r.ok) process.exit(1);

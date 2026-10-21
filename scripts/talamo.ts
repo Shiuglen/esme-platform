@@ -12,6 +12,7 @@
  * Referencia: core/talamus/modos.ts, estandar/contexto.spec.yaml.
  */
 import { comparaModos, MODOS, type ModoContexto } from "../core/talamus/modos.ts";
+import { planDeEmpaquete, resumenPlan } from "../core/talamus/plan.ts";
 import { conScoreDeCaso, type Candidato } from "../core/bench/examen.ts";
 import { PREGUNTAS, DOC } from "../core/bench/examen-real.ts";
 import { trocea } from "../core/mind/troceo.ts";
@@ -73,6 +74,13 @@ if (import.meta.url === new URL(`file://${process.argv[1]}`).href) {
     console.log(
       `ahorro   : ${r.ahorro_pct}% (${r.tokens_ahorrados} tokens) — el ahorrador frente al estándar`
     );
+    // y el plan: lo que quedó fuera del todo, y por qué
+    const plan = planDeEmpaquete(pregunta, conScore as never, MODOS.estandar.budget);
+    console.log("");
+    console.log(`plan    : ${resumenPlan(plan)}`);
+    for (const f of plan.quedan.slice(0, 6)) {
+      console.log(`  · ${f.motivo.padEnd(9)} ${f.tokens} tokens — ${f.texto.slice(0, 60)}`);
+    }
   }
   process.exit(0);
 }
