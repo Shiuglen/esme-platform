@@ -24,6 +24,9 @@ runtime: "nodejs"                   # nodejs | wasm | python
 # --- Permiso ---
 permissions: []                     # mind:read | mind:write | ipc:emit | fs:project | net:fetch | ui:render | proc:spawn
 # Nota: pedir cualquier "net:*" sin "net:fetch" declarado ⇒ rechazo automático.
+# Y lo mismo con los procesos: pedir cualquier "proc:*" sin "proc:spawn"
+# declarado ⇒ rechazo automático. (El enum ya es cerrado; estas reglas son la
+# voz que lo dice, por si el enum crece.)
 # `mind:read` cubre también LEER el rumbo de la mente (para qué trabaja). Moverlo
 # es cosa de la persona: ningún permiso de módulo permite cambiarlo.
 # `proc:spawn` deja lanzar PROGRAMAS por su nombre lógico (el anfitrión decide

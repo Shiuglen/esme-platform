@@ -48,6 +48,17 @@ describe("manifiesto de módulo (esme.nucleo.hola-mundo como oro)", () => {
     expect(r.ok).toBe(false);
   });
 
+  it("capacidad de procesos fuera del enum cerrado → rechazo (como las de red)", () => {
+    // pedir `proc:exec` hoping to slip past `proc:spawn` no cuela
+    const r = validaManifiesto(modifica({ permissions: ["mind:read", "proc:exec"] }));
+    expect(r.ok).toBe(false);
+  });
+
+  it("`proc:spawn` sí es una capacidad válida (la séptima pieza de la puerta)", () => {
+    const r = validaManifiesto(modifica({ permissions: ["proc:spawn"] }));
+    expect(r.ok).toBe(true);
+  });
+
   it("sin firma → pasa con aviso de la Prueba 0 (verificable o no entra)", () => {
     const { signatures: _drop, ...rest } = modifica({}) as Record<string, unknown>;
     const r = validaManifiesto(rest);
