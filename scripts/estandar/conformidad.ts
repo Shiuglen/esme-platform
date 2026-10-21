@@ -42,6 +42,7 @@ import {
 import { CATEGORIES, RUNTIMES } from "../../core/ipc/module-schema.ts";
 import { LICENCIAS_PERMITIDAS, TOPE_BYTES, TOPE_FICHEROS, TOPE_TOKENS } from "../../tienda/skills.ts";
 import { entradaDe } from "../publicar-modulo.ts";
+import { esProducto, type Producto, type TipoProducto } from "../../tienda/catalogo.ts";
 import { declaraClave, firmarIndex } from "../../tienda/firma.ts";
 import { generateKeyPairSync } from "node:crypto";
 
@@ -55,6 +56,28 @@ export interface FalloConformidad {
 
 const raiz = (): string => resolve(import.meta.dirname, "..", "..");
 const dirSpecs = (): string => join(raiz(), "estandar");
+
+/** Los tipos de producto que el kit acepta (el enum cerrado del catálogo). */
+const TIPOS_PRODUCTO: TipoProducto[] = ["piel", "herramienta", "agente", "app"];
+
+/**
+ * Las claves de un producto (las del tipo `Producto`).
+ *
+ * Se escriben a mano y no se sacan del tipo porque `precio` es OPCIONAL: en
+ * el tipo no siempre está, y en la spec tampoco. Si se sacaran del objeto,
+ * `precio` no se compararía nunca.
+ */
+const CLAVES_PRODUCTO: (keyof Producto)[] = [
+  "id",
+  "tipo",
+  "nombre",
+  "autor",
+  "descripcion",
+  "etiquetas",
+  "version",
+  "precio",
+  "contenido",
+];
 
 /** Las specs que hay. */
 export function listaSpecs(): string[] {
@@ -411,6 +434,43 @@ export function compruebaConformidad(): FalloConformidad[] {
     for (const r of Object.keys(firmado)) {
       if (!declaradasIndice.includes(r)) {
         anota("indice-tienda.spec.yaml", `la firma pone «${r}» y la spec no lo declara`);
+      }
+    }
+  }
+
+  // 14. el catálogo de productos: la spec y el tipo del código
+  const productos = leeSpec("catalogo-productos.spec.yaml");
+  const cuerpo = (productos.cuerpo_firmado ?? {}) as Record<string, unknown>;
+  const listaProductos = Array.isArray(cuerpo.productos) ? (cuerpo.productos as unknown[]) : [];
+  const primerProducto = listaProductos[0] as Record<string, unknown> | undefined;
+  if (!primerProducto) {
+    anota("catalogo-productos.spec.yaml", "no declara la forma de un producto");
+  } else {
+    const declarados = Object.keys(primerProducto);
+    const delCodigo = CLAVES_PRODUCTO as string[];
+    for (const d of declarados) {
+      if (!delCodigo.includes(d)) {
+        anota("catalogo-productos.spec.yaml", `el producto declara «${d}», que el tipo del kit no tiene`);
+      }
+    }
+    for (const c of delCodigo) {
+      if (!declarados.includes(c)) {
+        anota("catalogo-productos.spec.yaml", `el tipo del kit tiene «${c}» y la spec no lo declara`);
+      }
+    }
+    // y los tipos: los que la spec permite son los que el código acepta
+    const tiposSpec = String(primerProducto.tipo ?? "")
+      .replace(/[<>|]/g, "")
+      .split(/[\s,]+/)
+      .filter(Boolean);
+    for (const t of tiposSpec) {
+      if (!(TIPOS_PRODUCTO as string[]).includes(t)) {
+        anota("catalogo-productos.spec.yaml", `el tipo «${t}» no está en el enum del kit`);
+      }
+    }
+    for (const t of TIPOS_PRODUCTO) {
+      if (!tiposSpec.includes(t)) {
+        anota("catalogo-productos.spec.yaml", `el kit acepta el tipo «${t}» y la spec no lo declara`);
       }
     }
   }
