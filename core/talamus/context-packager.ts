@@ -24,33 +24,54 @@ export interface Paquete {
 /** Umbral del Tálamo: lo que la Lente pone bajo esto y con etiqueta ruidosa, no entra. */
 export const UMBRAL_SALIENCIA = 0.25;
 
-export function veredicto(r: Recuerdo): VeredictoTalamo {
-  if (r.score < UMBRAL_SALIENCIA) return "ruido";
+export function veredicto(r: Recuerdo, umbral = UMBRAL_SALIENCIA): VeredictoTalamo {
+  if (r.score < umbral) return "ruido";
   if (r.score < 0.45) return "marginal";
   return "relevante";
+}
+
+/** Las reglas del empaque (con las de la casa por defecto). */
+export interface OpcionesEmpaque {
+  /** El score mínimo para entrar (por debajo: ruido). */
+  umbral?: number;
+  /**
+   * Cuánto presupuesto libre tiene que quedar para que un MARGINAL entre
+   * (0,3 = entran cuando queda el 30 %; es el valor de la casa).
+   */
+  margen?: number;
+  /** Si los marginales pueden entrar siquiera (false = sólo lo relevante). */
+  marginales?: boolean;
 }
 
 /**
  * selectMemoriesForPack: orden por score descendente, consume budget de tokens
  * sin cortar un recuerdo por la mitad (si no cabe entero, se busca el siguiente),
  * los "ruido" jamás suben. Los "marginal" solo si suelto budget > 30%.
+ *
+ * Las reglas son PARÁMETROS (con los valores de la casa por defecto): así los
+ * modos del contexto (core/talamus/modos.ts) usan ESTE empaque y no otro.
  */
 export function selectMemoriesForPack(
   query: string,
   candidates: Recuerdo[],
-  budget: number
+  budget: number,
+  opts: OpcionesEmpaque = {}
 ): Paquete {
+  const umbral = opts.umbral ?? UMBRAL_SALIENCIA;
+  const margen = opts.margen ?? 0.3;
+  const marginales = opts.marginales ?? true;
   const orden = [...candidates].sort((a, b) => b.score - a.score);
   const seleccionados: Recuerdo[] = [];
   const veredictos: Paquete["veredictos"] = [];
   let gastados = 0;
 
   for (const r of orden) {
-    const v = veredicto(r);
+    const v = veredicto(r, umbral);
     veredictos.push({ id: r.id, veredicto: v });
     if (v === "ruido") continue;
     const esMarginal = v === "marginal";
-    if (esMarginal && gastados > 0 && gastados / budget > 0.7) continue;
+    if (esMarginal && !marginales) continue;
+    if (esMarginal && gastados > 0 && gastados / budget > 1 - margen) continue;
     if (gastados + r.tokens > budget) continue;
     seleccionados.push(r);
     gastados += r.tokens;

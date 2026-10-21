@@ -22,6 +22,8 @@
 #   - `pricing`: api | local | gratuito.
 #   - `cancel_support`: si se puede CANCELAR la ejecución (un motor que no se
 #     puede parar, para).
+#   - `desbordamiento`: qué pasa cuando no queda hueco (la anti-matriz: a la
+#     COLA, nunca a la nube).
 #   - `mcp`: si el motor puede conectarse a la memoria de la casa por MCP
 #     (los que no, no pueden prometer la memoria: un agente con memoria es
 #     una receta, y la receta no puede mentir).
@@ -44,6 +46,7 @@ capabilities:
   local_only: false
   pricing: "api"
   cancel_support: true
+  desbordamiento: "cola"
   mcp: true
   runtimes: ["nodejs", "wasm", "python"]
   net: true
@@ -65,6 +68,7 @@ capabilities:
   local_only: false
   pricing: "gratuito"
   cancel_support: true
+  desbordamiento: "cola"
   mcp: true
   runtimes: ["nodejs", "wasm", "python"]
   net: true
@@ -87,6 +91,7 @@ capabilities:
   local_only: false
   pricing: "api"
   cancel_support: true
+  desbordamiento: "cola"
   mcp: false
   runtimes: ["nodejs", "wasm", "python"]
   net: true
@@ -107,6 +112,7 @@ capabilities:
   local_only: false
   pricing: "api"
   cancel_support: true
+  desbordamiento: "cola"
   mcp: false
   runtimes: ["nodejs", "wasm", "python"]
   net: true
@@ -128,6 +134,7 @@ capabilities:
   local_only: true
   pricing: "gratuito"
   cancel_support: true
+  desbordamiento: "cola"
   mcp: false
   runtimes: ["nodejs", "wasm", "python"]
   # el shell no sale a la red por su cuenta: la red es de la puerta
@@ -151,6 +158,7 @@ capabilities:
   local_only: true
   pricing: "local"
   cancel_support: true
+  desbordamiento: "cola"
   mcp: false
   # ollama es un servidor de modelos: aloja herramientas, no módulos
   runtimes: []
@@ -172,6 +180,7 @@ capabilities:
   local_only: true
   pricing: "local"
   cancel_support: true
+  desbordamiento: "cola"
   mcp: false
   # el cerebro es Python: lo que habla con él es python o wasm
   runtimes: ["python", "wasm"]

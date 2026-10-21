@@ -1,0 +1,54 @@
+# **Spec abierta v1 — el contexto.** Cuánto se le da a la mente, y cómo se mide.
+# Referencia: core/talamus/modos.ts, docs/PUNTOS.md.
+#
+# QUÉ ES EL CONTEXTO: el paquete de recuerdos que ve una ejecución. Lo arma
+# el Tálamo (core/talamus/context-packager.ts) y se mide en TOKENS, no en
+# Techno feeling.
+#
+# POR QUÉ HAY TRES MODOS: un motor con 200K de ventana y un modelo local con
+# 32K no pueden gastar lo mismo, y hay un caso en el que lo que importa es el
+# coste. Los tres modos son el MISMO empaque con distinto presupuesto: si el
+# ahorrador fuera otro algoritmo, un ahorro medido contra él no sería un
+# ahorro, sería otra cosa.
+#
+# La regla de la casa: el ahorro se MEIDE. No hay porcentajes escritos a mano
+# en ningún sitio: `npm run talamo` los calcula sobre el examen real.
+
+schema_version: 1
+
+# ——— los modos ———
+modos:
+  estandar:
+    nombre: "Estándar"
+    presupuesto: 400
+    umbral: 0.25           # por debajo: ruido (jamás entra)
+    marginales: true
+    margen: 0.3            # un marginal entra si queda el 30 % libre
+  ahorrador:
+    nombre: "Ahorrador"
+    presupuesto: 150
+    umbral: 0.45           # sólo lo relevante
+    marginales: false
+    margen: 0
+  equipo:
+    nombre: "Equipo"
+    presupuesto: 1200
+    umbral: 0.25
+    marginales: true
+    margen: 0.1            # el equipo comparte contexto: entra antes
+
+# ——— las reglas ———
+reglas:
+  # 1. un solo empaque: los modos son PARÁMETROS del Tálamo, no algoritmos
+  #    paralelos (si no, la comparación no sería una comparación).
+  un_empaque: true
+  # 2. el ahorro se mide: `npm run talamo` lo calcula sobre el examen real.
+  ahorro_medido: true
+  # 3. un recuerdo no se corta por la mitad: si no cabe entero, se busca el
+  #    siguiente (un troceo medio es una pista falsa).
+  sin_cortes: true
+  # 4. el ruido jamás sube: por debajo del umbral, no entra en ningún modo.
+  ruido_nunca: true
+  # 5. el modo se elige por el MOTOR (su ventana) y por lo que la persona
+  #    pida, y se escribe en el turno: el contexto que se usó, con su modo.
+  modo_visible: true

@@ -27,6 +27,13 @@ punto:
   pid: "entero"
   estado: "vivo | zombi | desconocido"
   memoria_mb: "MiB residentes, MEDIDOS"
+  # el desglose (cuando el proceso lo sabe): de qué se compone esa memoria.
+  # No es un adorno: «pesos» y «caché» se comportan distinto (la caché se
+  # puede soltar; los pesos, no).
+  carga:
+    pesos_mb: "el modelo en memoria (null si el proceso no es un modelo)"
+    cache_mb: "la caché (la KV de cada petición: cada una lleva la suya)"
+    libre_mb: "lo que queda sin usar del total"
   cpu_pct: "0..100, la media del proceso"
   desde: "epoch en ms, o null"
   pasado: "true si supera el tope de memoria"
@@ -49,3 +56,10 @@ reglas:
   tope_mb_por_defecto: 2048
   # 4. esto es LOCAL: leer el consumo de tus procesos no sale de tu PC.
   local: true
+  # 5. el desglose se muestra con la barra: pesos, caché y libre, cada uno con
+  #    su número (así se sabe qué se puede soltar).
+  desglose: true
+  # 6. CUANDO NO HAY HUECO, A LA COLA. Nunca a la nube: el desbordamiento de
+  #    esta máquina se espera aquí, no se manda fuera. (Es la anti-matriz de
+  #    la casa, escrita como regla de los puntos.)
+  desbordamiento: "cola"

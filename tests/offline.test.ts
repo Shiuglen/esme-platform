@@ -18,6 +18,7 @@ const capa = (id: string, pricing: "api" | "local" | "gratuito" = "gratuito"): C
     runtimes: ["nodejs"],
     net: false,
     mcp: false,
+    desbordamiento: "cola",
   },
   adapter: null,
 });

@@ -75,6 +75,20 @@ La idea que se absorbe no es la herramienta: es la forma de pensar. **Lo que
 pasa en tu máquina, se ve en tu máquina, en un punto, con un número al lado.**
 Y nada de eso necesita un navegador entero para verse.
 
+## El desglose y el desbordamiento
+
+Dos reglas que la idea de las tarjetas de GPU trajo consigo (el gestor visual
+de GPUs que había en los marcadores: «cada tarjeta muestra su memoria, y con un
+clic se ajusta la configuración para que encaje»):
+
+1. **El desglose**: no basta con «cuánta memoria» — hay que saber **de qué**
+   se compone: **pesos** (el modelo), **caché** (la KV de cada petición: cada
+   una lleva la suya) y **libre**. La caché se puede soltar; los pesos, no.
+2. **Cuando no hay hueco, a la COLA. Nunca a la nube.** Es la anti-matriz de la
+   casa escrita como regla: el desbordamiento de esta máquina se espera aquí,
+   no se manda fuera. Está en la spec de los motores (`desbordamiento: "cola"`)
+   y en la de los puntos.
+
 ## Dónde vive
 
 | Qué | Dónde |

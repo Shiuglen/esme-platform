@@ -52,6 +52,8 @@ export interface CognitionMotor {
     net: boolean;
     /** Si el motor puede conectarse a la memoria de la casa por MCP. */
     mcp: boolean;
+    /** Qué pasa cuando no queda hueco: a la COLA (nunca a la nube). */
+    desbordamiento: string;
   };
   /** El fichero que sabe cómo se habla con este motor. */
   adapter: string | null;
@@ -169,6 +171,7 @@ export function cargaMotorCached(ruta: string): CognitionMotor[] {
         runtimes: Array.isArray(d.capabilities.runtimes) ? d.capabilities.runtimes.map(String) : [],
         net: !!d.capabilities.net,
         mcp: !!d.capabilities.mcp,
+        desbordamiento: String(d.capabilities.desbordamiento ?? "cola"),
       },
       adapter: d.adapter ? String(d.adapter) : null,
       source: d.source ? String(d.source) : undefined,

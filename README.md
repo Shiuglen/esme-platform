@@ -36,6 +36,7 @@ Entre dos lenguas solo sobrevive lo que está escrito.
 | `docs/PIELES.md` | Las pieles: el tema es un documento, y hay un juez que lo comprueba. |
 | `docs/PUNTOS.md` | Los puntos: el estado de tu PC, medido (un punto por agente, con su RAM). |
 | `estandar/RACI.md` | Quién decide qué en las specs (RACI lite). |
+| `estandar/contexto.spec.yaml` | Los tres modos del contexto y el ahorro medido. |
 | `estandar/` | Las specs abiertas (manifiesto, mente `.mind`, frontera, veredicto…). |
 | `core/mind/` | La mente portable: importadores, troceo, redacción, rumbo, delta, ZIP. |
 | `core/extension-host/` | La cápsula y la puerta de los módulos (qué no puede tocar, qué puede, y sólo si se le concede). |

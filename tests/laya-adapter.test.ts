@@ -22,6 +22,7 @@ const capa = (
     runtimes: ["nodejs"],
     net: false,
     mcp: false,
+    desbordamiento: "cola",
   },
   adapter: null,
 });
