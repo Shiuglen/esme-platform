@@ -30,9 +30,14 @@
 schema_version: 1
 
 # --- LA EVIDENCIA: el documento que REA entrega ---
+#
+# OJO: aquí van las CLAVES REALES del documento (las que emite REA y las que
+# leen el kit y el cerebro), no sus equivalentes en castellano. Una spec que
+# renombra las claves no es un contrato: es un resumen. Entre dos lenguas
+# sólo sobrevive lo que está escrito, y lo que está escrito son estas claves.
 evidencia:
   # Quién es el analizado. Sin nombre no hay evidencia: no se sabe de quién.
-  sujeto:
+  subject:
     name: "el nombre del programa"
     format: "el formato (asar, elf, pe…)"
     digest:
@@ -40,34 +45,67 @@ evidencia:
     local_path: "dónde estaba"
     architecture: "x64, arm64…"
   # Quién lo miró. Un análisis sin proveedor declarado no se puede repetir.
-  proveedor:
+  provider:
     id: "rea"
     name: "REA"
     version: "la versión"
   # Qué se hizo: la operación concreta del catálogo.
-  operacion: "la operación"
+  operation: "la operación"
   # Con qué confianza se observó, y con qué autoridad.
-  confianza: "exact | derived | inferred…"
-  autoridad: "la autoridad de la fuente"
+  confidence: "exact | derived | inferred…"
+  authority: "la autoridad de la fuente"
   # Lo que el análisis NO pudo hacer. Siempre presente: una lista puede estar
   # vacía, pero el campo no.
-  limitaciones:
+  limitations:
     - "lo que este análisis no vio"
   # El resultado normalizado: el resumen, las estadísticas y el grafo.
-  resultado:
-    resumen: {}
-    estadisticas: {}
-    grafo:
-      nodos: []
-      relaciones: []
-      desconocidos: []
-      contextos: []
-      cobertura:
-        estado: "el estado de la cobertura"
-        truncado: false
-        omitidos_nodos: 0
-        omitidas_relaciones: 0
-        familias: []
+  normalized_result:
+    summary: {}
+    statistics: {}
+    semantic_graph:
+      nodes: []
+      relations: []
+      unknowns: []
+      evidence_contexts: []
+      coverage:
+        status: "el estado de la cobertura"
+        truncated: false
+        omitted_nodes: 0
+        omitted_relations: 0
+        families: []
+
+# --- LAS FORMAS: qué hay dentro de cada elemento ---
+# Lo que hay dentro de un nodo, de una relación y de un desconocido. No son
+# claves del documento (van dentro de las listas de arriba): son la forma de
+# cada elemento, y las lee el espejo igual que las lee el kit.
+formas:
+  nodo:
+    kind: "la clase (module, function, expression, endpoint…)"
+    node_id: "la identidad del nodo"
+    label: "el nombre, si lo tiene"
+    properties: {}
+    identity:
+      module_path: "el fichero de donde viene"
+      source_range:
+        start:
+          line: 0
+    evidence:
+      context_id: "el contexto que lo respalda"
+  relacion:
+    source_node_id: "de dónde"
+    target_node_id: "a dónde"
+    relation: "el verbo (declara, llama, envía…)"
+    resolution: "exact | derived | inferred"
+  desconocido:
+    node_id: "el nodo que no se pudo resolver"
+    family: "la familia de relaciones"
+    reason: "por qué no se resolvió"
+    detail: "el detalle, si lo hay"
+    relation_kinds: []
+  contexto:
+    context_id: "la identidad del contexto"
+    confidence: "la confianza con que se observó"
+    authority: "la autoridad de la fuente"
 
 # --- EL CATÁLOGO: lo que REA dice que sabe hacer ---
 # Dos formas: la CRUDA (la que emite REA, `rea capabilities --format json`) y

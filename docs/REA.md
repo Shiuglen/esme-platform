@@ -235,9 +235,30 @@ por separado.
 | Qué | Dónde |
 |---|---|
 | La forma de la evidencia y del catálogo | `tests/rea.test.ts` |
+| La evidencia REAL de REA (37 nodos, 9 limitaciones, 13 familias) | `tests/rea-real.test.ts` |
 | Los hechos, lo que no se vio y el presupuesto | `tests/rea.test.ts` |
 | Las cuatro guardas de `proc:spawn` | `tests/rea.test.ts` (la puerta) y `tests/capsula.test.ts` (el anfitrión entero) |
 | El libro de los programas y la cadena entera | `tests/programas.test.ts` (libro → runtime → anfitrión → hijo real) |
+| Que el kit y el CEREBRO leen lo mismo | `tests/frontera-rea.test.ts` (las claves y los números) |
+| Que un caso de REA se puede medir | `tests/rea-banco.test.ts` |
 | Que la spec y el código son la misma cosa | `tests/specs-codigo.test.ts` (check 11) |
 | Que zod no se arrastra al núcleo | `tests/consumible.test.ts` |
 | Que una evidencia se absorbe por la CLI | `tests/mind-cli.test.ts` |
+
+## 7. La otra mitad: el espejo
+
+El cerebro (Python) tiene su propio espejo: `/rea/absorber`, `/rea/recuerdos`
+y `/rea/comparar`. Lee **la misma evidencia** y produce **la misma clase de
+conocimiento** (un informe en vez de unas filas, que es lo que la mente
+absorbe).
+
+Por eso hay una frontera comprobada (`tests/frontera-rea.test.ts`):
+
+- **las claves**: las que el espejo lee tienen que estar declaradas en
+  [`estandar/rea.spec.yaml`](../estandar/rea.spec.yaml). Si REA cambia una
+  clave y la spec no se entera, un lado deja de ver lo que el otro ve;
+- **los números**: con la evidencia real, el informe del espejo y los hechos
+  del kit cuentan lo mismo (la misma ventana, el mismo canal IPC, los mismos
+  módulos, las mismas limitaciones).
+
+Entre dos lenguas sólo sobrevive lo que está escrito.

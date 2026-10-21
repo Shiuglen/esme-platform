@@ -4,15 +4,21 @@
  *   npm run banco -- --construir     : propone los casos (el humano aún no ha elegido)
  *   npm run banco -- --validar       : el humano elige el oro, caso a caso
  *   npm run banco -- --medir         : mide el banco validado
+ *   npm run banco -- --rea <app>     : un caso hecho con REA (la mente con ojos)
  *
  * De dónde sale (todo local, todo privado):
  *   - las preguntas: lo que el usuario preguntó a las IAs (las transcripciones)
  *   - los documentos: su Vault (markdown)
  *   - los candidatos: las frases del Vault que mejor responden a la pregunta
+ *   - y con `--rea`: lo que REA vio dentro de un programa (por la puerta)
  *
  * El humano elige (es la constitution: «valida el oro rápidamente»): el
  * constructor propone cinco y la persona dice cuál es. El banco vive FUERA
  * del repo (es del usuario): nada de sus preguntas en un repositorio.
+ *
+ * El caso de REA es la excepción: su oro es MECÁNICO (es lo que el análisis
+ * produjo, no una suposición), así que no hay nada que elegir — sólo que
+ * mirar.
  */
 import { spawnSync } from "node:child_process";
 import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
@@ -38,6 +44,11 @@ import {
   type PreguntaConHora,
 } from "../core/bench/banco.ts";
 import { importaMarkdown } from "../core/mind/importers/markdown.ts";
+import { casoDeEvidencia } from "../core/rea/banco.ts";
+import { leeEvidenciaReaJson } from "../core/rea/forma.ts";
+import { programasDeLaCasa } from "../core/modulos/programas.ts";
+import { ejecutaPrograma } from "../core/extension-host/proc.ts";
+import type { EvidenciaRea } from "../core/rea/evidencia.ts";
 
 const arg = (flag: string): string | null => {
   const i = process.argv.indexOf(flag);
@@ -366,6 +377,39 @@ export function construyeBanco(maxCasos = 40): BancoReal {
   };
 }
 
+/**
+ * La evidencia de REA, POR LA PUERTA.
+ *
+ * Mismo camino que un módulo: el libro de los programas decide si se puede
+ * lanzar, y el libro no está, no se lanza. Sin atajos.
+ */
+async function evidenciaDeRea(app: string): Promise<EvidenciaRea> {
+  const permitidos = programasDeLaCasa();
+  if (!permitidos.some((p) => p.nombre === "rea")) {
+    console.error("✗ REA no está en el libro de los programas (la puerta está cerrada)");
+    console.error('  npm run programas -- concede rea --desc "el motor de ingeniería inversa"');
+    process.exit(1);
+  }
+  const r = await ejecutaPrograma(
+    { programa: "rea", args: ["analyze", app, "--format", "json"], timeoutMs: 900_000 },
+    { permitidos, maxBytesPorDefecto: 512 * 1_048_576 }
+  );
+  if (r.timeout) {
+    console.error("✗ el análisis tardó demasiado y lo mataron");
+    process.exit(1);
+  }
+  if (r.truncado) {
+    console.error("✗ la evidencia llegó cortada (el tope de bytes de la puerta)");
+    process.exit(1);
+  }
+  const lectura = leeEvidenciaReaJson(r.stdout);
+  if (!lectura.ok) {
+    console.error(`✗ la evidencia no encaja: ${lectura.errores.slice(0, 5).join("; ")}`);
+    process.exit(1);
+  }
+  return lectura.evidencia;
+}
+
 const lee = (): BancoReal | null => {
   if (!existsSync(RUTA_BANCO)) return null;
   try {
@@ -424,6 +468,27 @@ if (tiene("--construir")) {
     guarda(banco);
     console.log(`\nelegidos  : ${banco.casos.filter((c) => c.validado).length}/${banco.casos.length}`);
   }
+} else if (tiene("--rea")) {
+  // Un caso del banco hecho con los ojos: REA mira un programa y lo que vio
+  // (y lo que NO vio) se convierte en una pregunta con su oro. Después lo
+  // mide `npm run prueba0:real`: la mente con ojos se mide, no se supone.
+  const app = arg("--rea");
+  if (!app) {
+    console.error("uso: banco --rea <programa|app.asar>");
+    process.exit(2);
+  }
+  const banco = lee() ?? { version: 1, creado: new Date().toISOString(), documentos: [], casos: [] };
+  const evidencia = await evidenciaDeRea(app);
+  const { documento, caso } = casoDeEvidencia(evidencia);
+  banco.documentos = [...banco.documentos.filter((d) => d.id !== documento.id), documento];
+  banco.casos = [...banco.casos.filter((c) => c.id !== caso.id), caso];
+  guarda(banco);
+  console.log(`caso      : ${caso.id}`);
+  console.log(`pregunta  : ${caso.pregunta}`);
+  console.log(`oro       : ${caso.oro.length} caracteres (${caso.evidencia})`);
+  console.log(`banco     : ${RUTA_BANCO}`);
+  console.log("");
+  console.log("  para medirlo: npm run prueba0:real");
 } else if (tiene("--medir")) {
   const banco = lee();
   if (!banco) {
