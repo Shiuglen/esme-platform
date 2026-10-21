@@ -94,9 +94,24 @@ por eso un módulo malo es un resultado, no un fallo del script.
 4. Quien mantiene la tienda lo mete en el **índice firmado**
    (`npm run bench`) y lo firma con la llave de release.
 
-La regla de la casa: la tienda no es un estante, **es un juez**. Por eso
-quien publica sin derecho no publica: su firma no la avala nadie y el módulo
-no se instala (`tienda/receptor.ts` lo comprueba).
+Y si quieres llevarte el paquete tú mismo, con **tu** llave:
+
+```bash
+npm run verificar:modulo -- <carpeta> --firmar     # firma los bytes con tu llave
+npm run publicar:modulo -- <carpeta> --firma salida/<id>.artefacto.json
+```
+
+El publicador **vuelve a verificar** el módulo antes de tocar el índice (el
+juez manda sobre los dos) y declara tu clave dentro del cuerpo firmado del
+índice, que es lo que permite al consumidor verificar tu paquete.
+
+> La tienda no es un estante: **es un juez**. Y un juez que sólo juzga sus
+> propias piezas no es un juez. Por eso el camino del módulo de cualquiera es
+> el mismo que el de los de la casa, con la diferencia de quién firma.
+
+Y la regla que no se negocia: quien publica sin derecho no publica. Su firma
+no la avala nadie y el módulo no se instala (`tienda/receptor.ts` lo
+comprueba).
 
 ## 6. La CI lo comprueba por ti
 

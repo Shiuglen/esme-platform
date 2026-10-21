@@ -22,6 +22,7 @@
 | `npm run build:modulos` | construye TODOS los módulos, incluidos los que llegan de fuera |
 | `npm run crear:modulo -- --id esme.tu.mi-modulo --nombre "Mi módulo"` | la puerta de entrada: nace un módulo entero y juzgado |
 | `npm run verificar:modulo -- <carpeta>` | lo construye, lo mide de verdad y lo juzga |
+| `npm run publicar:modulo -- <carpeta>` | lo publica en el índice firmado (vuelve a juzgarlo antes) |
 
 ## Comandos de la app (el otro repo)
 

@@ -28,11 +28,11 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { claveDeFirma, puedePublicar } from "../tienda/claves.ts";
 import { empaquetar } from "../tienda/empaque.ts";
-import { firmarBytes } from "../tienda/firma.ts";
+import { firmarBytes, type FirmaBytes } from "../tienda/firma.ts";
 import { leeManifiesto } from "../tienda/modulo-manifiesto.ts";
 import { mideCicloModulo, menteDePrueba } from "../core/bench/ciclo.ts";
 import { mideModulo } from "../core/bench/modulos.ts";
-import { juzgaModulo, type VeredictoModulo } from "../core/modulos/veredicto.ts";
+import { juzgaModulo, type VeredictoModulo, type InformeModulo } from "../core/modulos/veredicto.ts";
 import { construyeModulo } from "./construir-modulos.ts";
 
 export interface OpcionesVerificar {
@@ -53,12 +53,59 @@ export interface ResultadoVerificar {
   avisos: string[];
   /** El veredicto del juez (si se pudo juzgar). */
   veredicto: VeredictoModulo | null;
+  /** El informe medido (el bench.json que se escribió). */
+  informe: InformeModulo | null;
   /** El paquete (si se llegó a empaquetar). */
   paquete: { ruta: string; sha256: string; bytes: number } | null;
   /** La firma del paquete (si la llave tenía derecho). */
   firma: { signed_by: string; hash: string } | null;
   /** Los pasos que quedan para publicar. */
   pasos: string[];
+}
+
+/** El artefacto firmado: lo que el libro de firmas guarda de cada módulo. */
+export interface ArtefactoFirmado {
+  modulo: string;
+  version: string;
+  tar: string;
+  bytes: number;
+  firmado_en: string;
+  firma: FirmaBytes;
+  /**
+   * La clave pública que firmó.
+   *
+   * Por qué va dentro: el índice declara las claves de los que firman, y el
+   * consumidor busca ahí la del firmante del artefacto. Si el que firma es
+   * otro (un módulo de cualquiera, con su propia llave), su clave tiene que
+   * poder viajar con la firma — o el consumidor no puede verificarla.
+   */
+  pub?: string;
+}
+
+/**
+ * Firma un paquete (el tarball) y devuelve el artefacto.
+ *
+ * Una sola forma de firmar en toda la casa: el que verifica, el que publica
+ * y el bench firman IGUAL, o los bytes que se firman y los que se publican
+ * dejan de ser los mismos.
+ */
+export function firmaArtefacto(
+  paquete: { ruta: string; sha256: string; bytes: number },
+  modulo: string,
+  version: string,
+  privPem: string,
+  huella: string,
+  pubPem?: string
+): ArtefactoFirmado {
+  return {
+    modulo,
+    version,
+    tar: paquete.sha256,
+    bytes: paquete.bytes,
+    firmado_en: new Date().toISOString().slice(0, 10),
+    firma: firmarBytes(readFileSync(paquete.ruta), privPem, huella),
+    ...(pubPem ? { pub: pubPem } : {}),
+  };
 }
 
 const escribir = (ruta: string, dato: unknown): void =>
@@ -86,6 +133,7 @@ export async function verificaModulo(
       errores: forma.errores,
       avisos: forma.avisos ?? [],
       veredicto: null,
+      informe: null,
       paquete: null,
       firma: null,
       pasos: ["el manifiesto no vale: arréglalo y vuelve a pasar por aquí"],
@@ -101,6 +149,7 @@ export async function verificaModulo(
       errores: [],
       avisos: forma.avisos ?? [],
       veredicto: null,
+      informe: null,
       paquete: null,
       firma: null,
       pasos: [`el módulo no compila: ${String((e as Error)?.message || e)}`],
@@ -115,6 +164,7 @@ export async function verificaModulo(
       errores: dictamen.errores,
       avisos: dictamen.avisos ?? [],
       veredicto: null,
+      informe: null,
       paquete: null,
       firma: null,
       pasos: ["el manifiesto no vale: arréglalo y vuelve a pasar por aquí"],
@@ -148,15 +198,16 @@ export async function verificaModulo(
     if (opts.firmar) {
       const derecho = puedePublicar(clave);
       if (derecho.ok) {
-        firma = firmarBytes(readFileSync(p.ruta), clave.priv, clave.huella);
-        escribir(join(salida, `${manifiesto.id}.artefacto.json`), {
-          modulo: manifiesto.id,
-          version: manifiesto.version,
-          tar: p.sha256,
-          bytes: p.bytes,
-          firmado_en: new Date().toISOString().slice(0, 10),
-          firma,
-        });
+        const artefacto = firmaArtefacto(
+          { ruta: p.ruta, sha256: p.sha256, bytes: p.bytes },
+          manifiesto.id,
+          manifiesto.version,
+          clave.priv,
+          clave.huella,
+          clave.pub
+        );
+        firma = artefacto.firma;
+        escribir(join(salida, `${manifiesto.id}.artefacto.json`), artefacto);
       } else {
         pasos.push(`esta llave no publica (${derecho.razon}): el paquete queda sin firma`);
       }
@@ -179,6 +230,7 @@ export async function verificaModulo(
     errores: [],
     avisos: dictamen.avisos ?? [],
     veredicto,
+    informe: medida.informe,
     paquete,
     firma,
     pasos,

@@ -75,6 +75,7 @@
     "build:modulos": "tsx scripts/construir-modulos.ts --todos",
     "crear:modulo": "tsx scripts/crear-modulo.ts",
     "verificar:modulo": "tsx scripts/verificar-modulo.ts",
+    "publicar:modulo": "tsx scripts/publicar-modulo.ts",
     "firma:index": "tsx scripts/firmar-index.ts",
     "mind": "tsx scripts/mind-cli.ts",
     "panel": "tsx scripts/panel.ts",

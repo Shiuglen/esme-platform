@@ -46,6 +46,32 @@ y el hash coincide. Los permisos (`mind:read`, `mind:write`, `net:fetch`,
 `fs:project`, `ui:render`, `ipc:emit`) piden consentimiento interactivo la primera
 vez, con el modal de Tinta y Luz.
 
+## Cuando publica alguien que no es el creador
+
+La tienda no es un estante: **es un juez**. Y un juez que sólo puede juzgar sus
+propios piezas no es un juez: es un avaro con sello. Así que el camino de un
+módulo de cualquiera es el mismo que el de los de la casa, con dos diferencias:
+
+1. **Quien construye, firma su artefacto con SU llave** (`npm run verificar:modulo
+   -- <módulo> --firmar`). La firma viaja con el paquete (`pub` incluida: sin ella
+   el consumidor no puede verificar a un firmante nuevo).
+2. **Quien mantiene la tienda mete el módulo en el índice firmado**
+   (`npm run publicar:modulo -- <módulo> --firma <artefacto.json>`), declara la
+   clave del firmante dentro del cuerpo firmado y re-firma el índice.
+
+Lo que NO cambia: el juez. `npm run publicar:modulo` vuelve a VERIFICAR el
+módulo (construir, medir, juzgar) antes de tocar el índice. Un módulo que el
+juez echa, no entra — ni aunque traiga la firma puesta, ni aunque lo traiga
+alguien de confianza.
+
+Y lo que nunca se negocia: quien no tiene derecho no publica. La llave que
+firma el índice tiene que estar en la estirpe de la raíz congelada
+(`tienda/rotacion.ts`); si no, el índice que sale no lo verifica nadie y la
+tienda se queda sin confianza en silencio.
+
+El camino entero, escrito como prueba: `tests/tienda-publicar-modulo.test.ts`
+(crear → verificar → publicar → instalar, con una tienda de mentira).
+
 ## El catálogo de productos (la Tienda, firmado)
 
 La Tienda vende productos: pieles, herramientas, agentes, apps. Van en un solo
