@@ -1,0 +1,2029 @@
+{
+ "evidence_id": "ev_7471955b94436304715bab546c0c68dac893d020c712073953a256f7035c8bf1",
+ "subject": {
+  "name": "default_app.asar",
+  "digest": {
+   "sha256": "0eb2491b0a9ac94790389d39c09dd5005c6c1f0665842943829bbd0193f6cc4f"
+  },
+  "local_path": "/tmp/opencode/probar/default_app.asar",
+  "format": "asar",
+  "architecture": null
+ },
+ "provider": {
+  "id": "rea-javascript-application",
+  "name": "REA JavaScript application analyzer",
+  "version": "1"
+ },
+ "operation": "analyze_javascript_application",
+ "normalized_result": {
+  "input_path": "/tmp/opencode/probar/default_app.asar",
+  "format": "asar",
+  "root_artifact_sha256": "0eb2491b0a9ac94790389d39c09dd5005c6c1f0665842943829bbd0193f6cc4f",
+  "inventory_manifest_id": "agm_a8d0cf640df5b14406b96cbf251f3c7016ed939ef70851399fa8ced3ea4af934",
+  "inventory_graph_sha256": "ad72ff0c101312ca946eaa0ae794bdde085d2b496641839e72030caec28f55df",
+  "integrity_contradictions": [],
+  "summary": {
+   "browser_windows": 1,
+   "explicit_web_preferences": 4,
+   "preload_entrypoints": 1,
+   "context_bridge_apis": 1,
+   "exposed_api_members": 1,
+   "ipc": {
+    "operations": 2,
+    "literal_channels": 1,
+    "dynamic_channel_operations": 0,
+    "renderer_transmissions": 1,
+    "renderer_listeners": 0,
+    "main_handlers": 1,
+    "paired_renderer_transmissions": 1,
+    "ambiguous_renderer_transmissions": 0,
+    "unpaired_literal_renderer_transmissions": 0
+   },
+   "sender_validation_observations": 0,
+   "utility_processes": 0,
+   "resolved_utility_entrypoints": 0,
+   "native_addon_bindings": 0,
+   "resolved_native_addon_bindings": 0
+  },
+  "statistics": {
+   "relevant_files": 5,
+   "nested_asar_containers": 0,
+   "text_bytes_read": 28299,
+   "invalid_utf8_files": 0,
+   "parsed_javascript_files": 3,
+   "skipped_javascript_files": 0,
+   "visited_ast_nodes": 1966,
+   "findings": 43,
+   "modules": 0,
+   "parse_failures": 0
+  },
+  "limitations": [
+   "CommonJS and ESM binding relationships were recovered from inert syntax and resolved only within the inventoried artifact container.",
+   "Electron API identity follows proven lexical module aliases and structurally verified module-namespace interop. Other reassignments, dynamic selections, and visibly overwritten namespace members are unresolved; missing findings do not establish absence. Arbitrary call side effects and runtime registration are not evaluated.",
+   "Electron relationships are derived from inert syntax; runtime registration, reachability, defaults, and enforcement remain unproven.",
+   "Graph coverage is incomplete; unavailable facts remain explicit and must not be read as absence.",
+   "JavaScript and HTML were parsed as inert text; bundle bootstrap code was never executed.",
+   "Static imports, entrypoints, workers, endpoints, and storage relationships do not prove runtime execution.",
+   "Static paths and relationships may remain unresolved when expressions are dynamic or obfuscated.",
+   "Webpack/Rspack factories were recovered from AST literals; REA did not invoke push handlers or bundle bootstrap code.",
+   "index.html has 1 inline JavaScript body starting at line 87 that was not analyzed; endpoints, storage, imports and other facts in it are absent from the evidence."
+  ],
+  "semantic_graph": {
+   "schema": "JavaScriptSemanticRelationGraph",
+   "root_artifact_sha256": "0eb2491b0a9ac94790389d39c09dd5005c6c1f0665842943829bbd0193f6cc4f",
+   "application_graph_id": "jag_885a49c15ac773eecb687403e25a4f0feba0182f00adf15c4cb916b108a097a2",
+   "root_node_ids": [
+    "jsrg_node_04613bf7e014269cc5c3399da004fa7387cbb0ed37c6938251d0ca7070f60043",
+    "jsrg_node_ac821a14165a91b92a2d5bf15e694f3cf6e475445ad36d58ec0ee8a5556acedb",
+    "jsrg_node_c8c9240a4ae916482fdf2f8c5802663fc62f70b448a94cdcb50396cba7d3b682",
+    "jsrg_node_ef9ba3f01069ba266dd431ba4a8fe96488b29de2233620138c87f0344188e444"
+   ],
+   "evidence_contexts": [
+    {
+     "authority": "unknown",
+     "confidence": "unknown",
+     "context_id": "jsrg_evidence_02dea53294f11988a556669056eb133bf376fe03f9d534fb71e13bda52df2968"
+    },
+    {
+     "authority": "unknown",
+     "confidence": "unknown",
+     "context_id": "jsrg_evidence_07529c7823d82a90452fadc213ea76644acf0ddf587efb2527fe7a12df20fc89"
+    },
+    {
+     "authority": "unknown",
+     "confidence": "unknown",
+     "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e"
+    }
+   ],
+   "nodes": [
+    {
+     "kind": "expression",
+     "identity": {
+      "artifact_sha256": "dc02f553789476e7e439c05fcba282deb36849b63dd6238dc146eb8c564072bf",
+      "module_path": "main.js",
+      "source_range": {
+       "start": {
+        "line": 274,
+        "column": 14
+       },
+       "end": {
+        "line": 274,
+        "column": 35
+       }
+      },
+      "role_key": "reference:190:read:loadApplicationByFile"
+     },
+     "function_node_id": null,
+     "application_node_ids": [],
+     "label": "loadApplicationByFile",
+     "properties": {},
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "source-range",
+        "source": "main.js",
+        "start": {
+         "line": 274,
+         "column": 14
+        },
+        "end": {
+         "line": 274,
+         "column": 35
+        }
+       }
+      }
+     },
+     "node_id": "jsrg_node_630af9702fdfbe6fca83d6bcb76e8ddffb7813c7b4f28d03009dd2d76adfb8ef"
+    },
+    {
+     "kind": "expression",
+     "identity": {
+      "artifact_sha256": "097ed2d61ce53deb18a80edcce1de65f62236e858875112ff225c937c15ca7ef",
+      "module_path": "default_app.js",
+      "source_range": {
+       "start": {
+        "line": 57,
+        "column": 33
+       },
+       "end": {
+        "line": 57,
+        "column": 51
+       }
+      },
+      "role_key": "object:read:2030:2048"
+     },
+     "function_node_id": "jsrg_node_d55131a2fd79b0ac945b95b8656790adbc0b741693824b92eb4878860dce7917",
+     "application_node_ids": [],
+     "label": "read:/getURL",
+     "properties": {
+      "operation_kind": "read",
+      "property_path": [
+       "getURL"
+      ]
+     },
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "source-range",
+        "source": "default_app.js",
+        "start": {
+         "line": 57,
+         "column": 33
+        },
+        "end": {
+         "line": 57,
+         "column": 51
+        }
+       }
+      }
+     },
+     "node_id": "jsrg_node_27efba77ed4ab19559ea6185fc248c7ec021c4e3711523d69692a5502269c901"
+    },
+    {
+     "kind": "property-slot",
+     "identity": {
+      "artifact_sha256": "dc02f553789476e7e439c05fcba282deb36849b63dd6238dc146eb8c564072bf",
+      "module_path": "main.js",
+      "source_range": null,
+      "role_key": "property:[\"scope:program:0:9878:binding:dialog\",[\"showErrorBox\"]]"
+     },
+     "function_node_id": null,
+     "application_node_ids": [
+      "jag_node_241da03b8d8895ff6f14e6a9d6735de228f007633d349ad67ac4a49e88fcedac"
+     ],
+     "label": "showErrorBox",
+     "properties": {
+      "name": "showErrorBox",
+      "property_path": [
+       "showErrorBox"
+      ],
+      "property_pointer": "/showErrorBox",
+      "object_binding_id": "scope:program:0:9878:binding:dialog",
+      "presence": "unknown-coverage",
+      "value_status": "unknown",
+      "value_coverage": null
+     },
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "artifact-path",
+        "path": "main.js"
+       }
+      }
+     },
+     "node_id": "jsrg_node_8754619ff2bab2489f32d62b9b32ee884493c834902cb9f06e0d1339fe472a0b"
+    },
+    {
+     "kind": "property-slot",
+     "identity": {
+      "artifact_sha256": "fd24179e990be34eb2e12fb2bc7e2cc46ec096d5c799886b378139546c784348",
+      "module_path": "preload.js",
+      "source_range": null,
+      "role_key": "property:[\"scope:block:1241:1482:binding:anchor\",[\"href\"]]"
+     },
+     "function_node_id": "jsrg_node_30fcf7a2f527d8f00b49923ad3fcad9d9874baae6abc1d0439ebda9e21a03a57",
+     "application_node_ids": [
+      "jag_node_fef7b6456bf6ae5abedd221345bf394935bfaf4edc4162183283b4ab84fc91cb"
+     ],
+     "label": "href",
+     "properties": {
+      "name": "href",
+      "property_path": [
+       "href"
+      ],
+      "property_pointer": "/href",
+      "object_binding_id": "scope:block:1241:1482:binding:anchor",
+      "presence": "unknown-coverage",
+      "value_status": "unknown",
+      "value_coverage": null
+     },
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "artifact-path",
+        "path": "preload.js"
+       }
+      }
+     },
+     "node_id": "jsrg_node_ebe1296bcecf513a3a8729631e1b9c50439fd0970639f67bcc848a0a6b03a3c5"
+    },
+    {
+     "kind": "function",
+     "identity": {
+      "artifact_sha256": "dc02f553789476e7e439c05fcba282deb36849b63dd6238dc146eb8c564072bf",
+      "module_path": "main.js",
+      "source_range": {
+       "start": {
+        "line": 177,
+        "column": 4
+       },
+       "end": {
+        "line": 200,
+        "column": 5
+       }
+      },
+      "role_key": "callable:callable:function:5631:6424"
+     },
+     "function_node_id": null,
+     "application_node_ids": [],
+     "label": "defineBuiltin",
+     "properties": {
+      "name": "defineBuiltin"
+     },
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "source-range",
+        "source": "main.js",
+        "start": {
+         "line": 177,
+         "column": 4
+        },
+        "end": {
+         "line": 200,
+         "column": 5
+        }
+       }
+      }
+     },
+     "node_id": "jsrg_node_01136cd82c3a9d17b8c4ff0a05dd41dcc07b886a09ef306ec036f808209b81d1"
+    },
+    {
+     "kind": "function",
+     "identity": {
+      "artifact_sha256": "dc02f553789476e7e439c05fcba282deb36849b63dd6238dc146eb8c564072bf",
+      "module_path": "main.js",
+      "source_range": {
+       "start": {
+        "line": 252,
+        "column": 25
+       },
+       "end": {
+        "line": 252,
+        "column": 59
+       }
+      },
+      "role_key": "callable:callable:function:7801:7835"
+     },
+     "function_node_id": null,
+     "application_node_ids": [],
+     "label": "filterFn",
+     "properties": {
+      "name": "filterFn"
+     },
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "source-range",
+        "source": "main.js",
+        "start": {
+         "line": 252,
+         "column": 25
+        },
+        "end": {
+         "line": 252,
+         "column": 59
+        }
+       }
+      }
+     },
+     "node_id": "jsrg_node_2f6ce0c8ee3cc8769be425179101b067c7189428575aa04e8d3b845b0d96b16d"
+    },
+    {
+     "kind": "function",
+     "identity": {
+      "artifact_sha256": "fd24179e990be34eb2e12fb2bc7e2cc46ec096d5c799886b378139546c784348",
+      "module_path": "preload.js",
+      "source_range": {
+       "start": {
+        "line": 35,
+        "column": 4
+       },
+       "end": {
+        "line": 49,
+        "column": 5
+       }
+      },
+      "role_key": "callable:callable:function:1093:1573"
+     },
+     "function_node_id": null,
+     "application_node_ids": [],
+     "label": "replaceText",
+     "properties": {
+      "name": "replaceText"
+     },
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "source-range",
+        "source": "preload.js",
+        "start": {
+         "line": 35,
+         "column": 4
+        },
+        "end": {
+         "line": 49,
+         "column": 5
+        }
+       }
+      }
+     },
+     "node_id": "jsrg_node_30fcf7a2f527d8f00b49923ad3fcad9d9874baae6abc1d0439ebda9e21a03a57"
+    },
+    {
+     "kind": "function",
+     "identity": {
+      "artifact_sha256": "fd24179e990be34eb2e12fb2bc7e2cc46ec096d5c799886b378139546c784348",
+      "module_path": "preload.js",
+      "source_range": {
+       "start": {
+        "line": 33,
+        "column": 0
+       },
+       "end": {
+        "line": 58,
+        "column": 1
+       }
+      },
+      "role_key": "callable:callable:function:995:2185"
+     },
+     "function_node_id": null,
+     "application_node_ids": [
+      "jag_node_05499e1f26a389a6d636202c10ad129fd7f2ab9a2619d904083ceb2a6a8da2cc"
+     ],
+     "label": "initialize",
+     "properties": {
+      "name": "initialize"
+     },
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "source-range",
+        "source": "preload.js",
+        "start": {
+         "line": 33,
+         "column": 0
+        },
+        "end": {
+         "line": 58,
+         "column": 1
+        }
+       }
+      }
+     },
+     "node_id": "jsrg_node_360646bd789bc53a2bab07354db4a45baf8fde77166dfd6a3eb2ae31dd72270f"
+    },
+    {
+     "kind": "function",
+     "identity": {
+      "artifact_sha256": "097ed2d61ce53deb18a80edcce1de65f62236e858875112ff225c937c15ca7ef",
+      "module_path": "default_app.js",
+      "source_range": {
+       "start": {
+        "line": 66,
+        "column": 0
+       },
+       "end": {
+        "line": 104,
+        "column": 1
+       }
+      },
+      "role_key": "callable:callable:function:2224:3599"
+     },
+     "function_node_id": null,
+     "application_node_ids": [],
+     "label": "createWindow",
+     "properties": {
+      "name": "createWindow"
+     },
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "source-range",
+        "source": "default_app.js",
+        "start": {
+         "line": 66,
+         "column": 0
+        },
+        "end": {
+         "line": 104,
+         "column": 1
+        }
+       }
+      }
+     },
+     "node_id": "jsrg_node_44f7295cd7a20dc39d7ad8c0532967391732fa7fdb6b4ad0025e612fb67200fa"
+    },
+    {
+     "kind": "binding",
+     "identity": {
+      "artifact_sha256": "fd24179e990be34eb2e12fb2bc7e2cc46ec096d5c799886b378139546c784348",
+      "module_path": "preload.js",
+      "source_range": {
+       "start": {
+        "line": 23,
+        "column": 27
+       },
+       "end": {
+        "line": 23,
+        "column": 36
+       }
+      },
+      "role_key": "binding:scope:block:754:867:binding:elemClass"
+     },
+     "function_node_id": "jsrg_node_874d30d447bdebdab6c932ebae3fa5c714a9d37ab173c9fcd8004ab23733fa98",
+     "application_node_ids": [],
+     "label": "elemClass",
+     "properties": {},
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "source-range",
+        "source": "preload.js",
+        "start": {
+         "line": 23,
+         "column": 27
+        },
+        "end": {
+         "line": 23,
+         "column": 36
+        }
+       }
+      }
+     },
+     "node_id": "jsrg_node_19c5e39c70552902c92ea8afb787cdbcfdf3a4680526053fc2bdac221dc53b44"
+    },
+    {
+     "kind": "binding",
+     "identity": {
+      "artifact_sha256": "fd24179e990be34eb2e12fb2bc7e2cc46ec096d5c799886b378139546c784348",
+      "module_path": "preload.js",
+      "source_range": {
+       "start": {
+        "line": 55,
+        "column": 15
+       },
+       "end": {
+        "line": 55,
+        "column": 22
+       }
+      },
+      "role_key": "binding:scope:block:2089:2183:binding:element"
+     },
+     "function_node_id": "jsrg_node_360646bd789bc53a2bab07354db4a45baf8fde77166dfd6a3eb2ae31dd72270f",
+     "application_node_ids": [],
+     "label": "element",
+     "properties": {},
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "source-range",
+        "source": "preload.js",
+        "start": {
+         "line": 55,
+         "column": 15
+        },
+        "end": {
+         "line": 55,
+         "column": 22
+        }
+       }
+      }
+     },
+     "node_id": "jsrg_node_2277fc276ffbd2a7803c8cd24cb35c8762a265ef98392a3905c0e81c729c4d8d"
+    },
+    {
+     "kind": "task",
+     "identity": {
+      "artifact_sha256": "097ed2d61ce53deb18a80edcce1de65f62236e858875112ff225c937c15ca7ef",
+      "module_path": "default_app.js",
+      "source_range": {
+       "start": {
+        "line": 25,
+        "column": 20
+       },
+       "end": {
+        "line": 25,
+        "column": 113
+       }
+      },
+      "role_key": "promise:awaited-expression:805:898"
+     },
+     "function_node_id": "jsrg_node_60f1af7646a33df73222287f2fd6b562f08c81f2e169fa4d86392aae77b70a86",
+     "application_node_ids": [],
+     "label": "awaited expression",
+     "properties": {
+      "method": "await",
+      "operation_kind": "awaited-expression",
+      "ownership": "awaited",
+      "source_resolution": "unresolved"
+     },
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "source-range",
+        "source": "default_app.js",
+        "start": {
+         "line": 25,
+         "column": 20
+        },
+        "end": {
+         "line": 25,
+         "column": 113
+        }
+       }
+      }
+     },
+     "node_id": "jsrg_node_c132eae9b5a90b4afbd033ce70fa0d51483673357cebd4e623c99f5d27903ed7"
+    },
+    {
+     "kind": "task",
+     "identity": {
+      "artifact_sha256": "dc02f553789476e7e439c05fcba282deb36849b63dd6238dc146eb8c564072bf",
+      "module_path": "main.js",
+      "source_range": {
+       "start": {
+        "line": 311,
+        "column": 4
+       },
+       "end": {
+        "line": 311,
+        "column": 45
+       }
+      },
+      "role_key": "promise:awaited-expression:9801:9842"
+     },
+     "function_node_id": null,
+     "application_node_ids": [],
+     "label": "awaited expression",
+     "properties": {
+      "method": "await",
+      "operation_kind": "awaited-expression",
+      "ownership": "awaited",
+      "source_resolution": "unresolved"
+     },
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "source-range",
+        "source": "main.js",
+        "start": {
+         "line": 311,
+         "column": 4
+        },
+        "end": {
+         "line": 311,
+         "column": 45
+        }
+       }
+      }
+     },
+     "node_id": "jsrg_node_2234167bd6552f62d2e9f5fbfcbf6bc95ebae2eb2641f9f54a1f3061fd4a4051"
+    },
+    {
+     "kind": "call-site",
+     "identity": {
+      "artifact_sha256": "dc02f553789476e7e439c05fcba282deb36849b63dd6238dc146eb8c564072bf",
+      "module_path": "main.js",
+      "source_range": {
+       "start": {
+        "line": 253,
+        "column": 24
+       },
+       "end": {
+        "line": 253,
+        "column": 52
+       }
+      },
+      "role_key": "call:call:call:7861:7889"
+     },
+     "function_node_id": "jsrg_node_84914a2a801f57aab9f4b5fb9a01d45aa650bc703741438cffe30f8e2b483ef1",
+     "application_node_ids": [],
+     "label": "call",
+     "properties": {},
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "source-range",
+        "source": "main.js",
+        "start": {
+         "line": 253,
+         "column": 24
+        },
+        "end": {
+         "line": 253,
+         "column": 52
+        }
+       }
+      }
+     },
+     "node_id": "jsrg_node_afd3fc291a1a4502dfb84837bc1fb827de9b2c8b3f2c64d2d49462535a68bc1e"
+    },
+    {
+     "kind": "call-site",
+     "identity": {
+      "artifact_sha256": "dc02f553789476e7e439c05fcba282deb36849b63dd6238dc146eb8c564072bf",
+      "module_path": "main.js",
+      "source_range": {
+       "start": {
+        "line": 309,
+        "column": 8
+       },
+       "end": {
+        "line": 309,
+        "column": 35
+       }
+      },
+      "role_key": "call:call:call:9762:9789"
+     },
+     "function_node_id": null,
+     "application_node_ids": [],
+     "label": "call",
+     "properties": {},
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "source-range",
+        "source": "main.js",
+        "start": {
+         "line": 309,
+         "column": 8
+        },
+        "end": {
+         "line": 309,
+         "column": 35
+        }
+       }
+      }
+     },
+     "node_id": "jsrg_node_17dea008dd8d11ae8bbf6f9eaec3da4303cf793433ef17b38c7a8eb8725fa820"
+    },
+    {
+     "kind": "boundary",
+     "identity": {
+      "artifact_sha256": "fd24179e990be34eb2e12fb2bc7e2cc46ec096d5c799886b378139546c784348",
+      "module_path": "preload.js",
+      "source_range": {
+       "start": {
+        "line": 59,
+        "column": 0
+       },
+       "end": {
+        "line": 61,
+        "column": 2
+       }
+      },
+      "role_key": "electron-path:0035d3b18150393358351af11bf12ef2e02baa4d8c2d2423babaa8ed6fe7fa5e:0"
+     },
+     "function_node_id": null,
+     "application_node_ids": [
+      "jag_node_159fef655a79d0fca667f9c06899b5c960e3319dc31daa8281042446a49483cc",
+      "jag_node_308f09a8c7f302690184f5bc2fc3ab646cffba7348f41b910a0b70eff7fe0b71"
+     ],
+     "label": "electronDefaultApp.initialize",
+     "properties": {
+      "path_id": "0035d3b18150393358351af11bf12ef2e02baa4d8c2d2423babaa8ed6fe7fa5e",
+      "entry": "electronDefaultApp.initialize",
+      "entry_path": [
+       "electronDefaultApp",
+       "initialize"
+      ],
+      "channel": "bootstrap",
+      "terminal": "electron/renderer.ipcRenderer.invoke",
+      "step_kind": "exposure",
+      "resolution": "candidate",
+      "conditions": []
+     },
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "source-range",
+        "source": "preload.js",
+        "start": {
+         "line": 59,
+         "column": 0
+        },
+        "end": {
+         "line": 61,
+         "column": 2
+        }
+       }
+      }
+     },
+     "node_id": "jsrg_node_04613bf7e014269cc5c3399da004fa7387cbb0ed37c6938251d0ca7070f60043"
+    },
+    {
+     "kind": "boundary",
+     "identity": {
+      "artifact_sha256": "dc02f553789476e7e439c05fcba282deb36849b63dd6238dc146eb8c564072bf",
+      "module_path": "main.js",
+      "source_range": {
+       "start": {
+        "line": 11,
+        "column": 12
+       },
+       "end": {
+        "line": 11,
+        "column": 49
+       }
+      },
+      "role_key": "boundary:coerce:326:363"
+     },
+     "function_node_id": null,
+     "application_node_ids": [],
+     "label": "Boolean",
+     "properties": {
+      "boundary_kind": "coerce",
+      "field": "Boolean",
+      "method": "Boolean"
+     },
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "source-range",
+        "source": "main.js",
+        "start": {
+         "line": 11,
+         "column": 12
+        },
+        "end": {
+         "line": 11,
+         "column": 49
+        }
+       }
+      }
+     },
+     "node_id": "jsrg_node_067709500499d8afaf6092990f6d78f7e29b1ea1c7fc4fa8652fbfb7cac6e206"
+    },
+    {
+     "kind": "return-site",
+     "identity": {
+      "artifact_sha256": "dc02f553789476e7e439c05fcba282deb36849b63dd6238dc146eb8c564072bf",
+      "module_path": "main.js",
+      "source_range": {
+       "start": {
+        "line": 203,
+        "column": 47
+       },
+       "end": {
+        "line": 203,
+        "column": 60
+       }
+      },
+      "role_key": "callable:function:6574:6593:return:203:47:203:60"
+     },
+     "function_node_id": "jsrg_node_529eab62c7949e5f40614c6079ae067852a142e91ff75a6a174bde3ef00199fb",
+     "application_node_ids": [],
+     "label": "return",
+     "properties": {},
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "source-range",
+        "source": "main.js",
+        "start": {
+         "line": 203,
+         "column": 47
+        },
+        "end": {
+         "line": 203,
+         "column": 60
+        }
+       }
+      }
+     },
+     "node_id": "jsrg_node_e9d9f9d6ae901dc96eedd8ac99d9409c0eec2a9063c98da42920dd096809270f"
+    },
+    {
+     "kind": "return-site",
+     "identity": {
+      "artifact_sha256": "dc02f553789476e7e439c05fcba282deb36849b63dd6238dc146eb8c564072bf",
+      "module_path": "main.js",
+      "source_range": {
+       "start": {
+        "line": 201,
+        "column": 50
+       },
+       "end": {
+        "line": 201,
+        "column": 58
+       }
+      },
+      "role_key": "callable:function:6469:6483:return:201:50:201:58"
+     },
+     "function_node_id": "jsrg_node_644092b05d52b1f10ec967e407d96da95c1f994736db99efa0aa1a0cab5b5408",
+     "application_node_ids": [],
+     "label": "return",
+     "properties": {},
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "source-range",
+        "source": "main.js",
+        "start": {
+         "line": 201,
+         "column": 50
+        },
+        "end": {
+         "line": 201,
+         "column": 58
+        }
+       }
+      }
+     },
+     "node_id": "jsrg_node_6d1ce4e73f341da423398bd821b3891828ef00e39658369611e1008039336f9a"
+    },
+    {
+     "kind": "parameter",
+     "identity": {
+      "artifact_sha256": "fd24179e990be34eb2e12fb2bc7e2cc46ec096d5c799886b378139546c784348",
+      "module_path": "preload.js",
+      "source_range": {
+       "start": {
+        "line": 35,
+        "column": 41
+       },
+       "end": {
+        "line": 35,
+        "column": 45
+       }
+      },
+      "role_key": "binding:scope:function:1093:1573:binding:link"
+     },
+     "function_node_id": "jsrg_node_30fcf7a2f527d8f00b49923ad3fcad9d9874baae6abc1d0439ebda9e21a03a57",
+     "application_node_ids": [],
+     "label": "link",
+     "properties": {},
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "source-range",
+        "source": "preload.js",
+        "start": {
+         "line": 35,
+         "column": 41
+        },
+        "end": {
+         "line": 35,
+         "column": 45
+        }
+       }
+      }
+     },
+     "node_id": "jsrg_node_15b82bf0d601d3b1d981ab3f2c243980eed6818752f464c6be2b352f305d96cd"
+    },
+    {
+     "kind": "parameter",
+     "identity": {
+      "artifact_sha256": "fd24179e990be34eb2e12fb2bc7e2cc46ec096d5c799886b378139546c784348",
+      "module_path": "preload.js",
+      "source_range": {
+       "start": {
+        "line": 18,
+        "column": 23
+       },
+       "end": {
+        "line": 18,
+        "column": 30
+       }
+      },
+      "role_key": "binding:scope:function:519:994:binding:element"
+     },
+     "function_node_id": "jsrg_node_874d30d447bdebdab6c932ebae3fa5c714a9d37ab173c9fcd8004ab23733fa98",
+     "application_node_ids": [],
+     "label": "element",
+     "properties": {},
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "source-range",
+        "source": "preload.js",
+        "start": {
+         "line": 18,
+         "column": 23
+        },
+        "end": {
+         "line": 18,
+         "column": 30
+        }
+       }
+      }
+     },
+     "node_id": "jsrg_node_1f46193106731702f7fc9b6574e517c25c5facf213c30d0b45a749a059abac1f"
+    },
+    {
+     "kind": "response",
+     "identity": {
+      "artifact_sha256": "fd24179e990be34eb2e12fb2bc7e2cc46ec096d5c799886b378139546c784348",
+      "module_path": "preload.js",
+      "source_range": {
+       "start": {
+        "line": 11,
+        "column": 48
+       },
+       "end": {
+        "line": 11,
+        "column": 63
+       }
+      },
+      "role_key": "response:434:449"
+     },
+     "function_node_id": "jsrg_node_d743a1b70029be8a2253562a425b98a17c12ba1489b844170812f6972c44b9ee",
+     "application_node_ids": [],
+     "label": "text",
+     "properties": {
+      "endpoint": null,
+      "method": "text",
+      "operation_kind": "response-consumer"
+     },
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "source-range",
+        "source": "preload.js",
+        "start": {
+         "line": 11,
+         "column": 48
+        },
+        "end": {
+         "line": 11,
+         "column": 63
+        }
+       }
+      }
+     },
+     "node_id": "jsrg_node_10fc917169f6a6f96cd9f2751f74cb9e929502a7d5fdd6a2cee4f15bd239ca59"
+    },
+    {
+     "kind": "event",
+     "identity": {
+      "artifact_sha256": "dc02f553789476e7e439c05fcba282deb36849b63dd6238dc146eb8c564072bf",
+      "module_path": "main.js",
+      "source_range": null,
+      "role_key": "event:binding:scope:program:0:9878:binding:app\u0000window-all-closed"
+     },
+     "function_node_id": null,
+     "application_node_ids": [
+      "jag_node_241da03b8d8895ff6f14e6a9d6735de228f007633d349ad67ac4a49e88fcedac"
+     ],
+     "label": "event",
+     "properties": {
+      "emitter_key": "binding:scope:program:0:9878:binding:app",
+      "event_name": "window-all-closed"
+     },
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "artifact-path",
+        "path": "main.js"
+       }
+      }
+     },
+     "node_id": "jsrg_node_26ca872129e8a3b78a69468a7fbb051c2657ffd3c577db438418a31840f882fa"
+    },
+    {
+     "kind": "event",
+     "identity": {
+      "artifact_sha256": "097ed2d61ce53deb18a80edcce1de65f62236e858875112ff225c937c15ca7ef",
+      "module_path": "default_app.js",
+      "source_range": null,
+      "role_key": "event:binding:scope:program:0:3973:binding:mainWindow\u0000ready-to-show"
+     },
+     "function_node_id": null,
+     "application_node_ids": [
+      "jag_node_ae223e251a3de2905e4ac6d8bd8d6f7811f187060e2a98975ccde7dbdab6bb0f"
+     ],
+     "label": "event",
+     "properties": {
+      "emitter_key": "binding:scope:program:0:3973:binding:mainWindow",
+      "event_name": "ready-to-show"
+     },
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "artifact-path",
+        "path": "default_app.js"
+       }
+      }
+     },
+     "node_id": "jsrg_node_5f94208a070bf768ff69213501757bfb89085af16d1d7d5a058c1fe46ff2e289"
+    },
+    {
+     "kind": "event",
+     "identity": {
+      "artifact_sha256": "dc02f553789476e7e439c05fcba282deb36849b63dd6238dc146eb8c564072bf",
+      "module_path": "main.js",
+      "source_range": null,
+      "role_key": "event:expression:5539:5574\u0000exit"
+     },
+     "function_node_id": null,
+     "application_node_ids": [
+      "jag_node_241da03b8d8895ff6f14e6a9d6735de228f007633d349ad67ac4a49e88fcedac"
+     ],
+     "label": "exit",
+     "properties": {
+      "emitter_key": "expression:5539:5574",
+      "event_name": "exit"
+     },
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "artifact-path",
+        "path": "main.js"
+       }
+      }
+     },
+     "node_id": "jsrg_node_cd24445e0d461fed8054a955d2bdfd8aa91eff69901fcfe74ea3617cee3d9d04"
+    },
+    {
+     "kind": "event",
+     "identity": {
+      "artifact_sha256": "097ed2d61ce53deb18a80edcce1de65f62236e858875112ff225c937c15ca7ef",
+      "module_path": "default_app.js",
+      "source_range": null,
+      "role_key": "event:binding:scope:program:0:3973:binding:app\u0000window-all-closed"
+     },
+     "function_node_id": null,
+     "application_node_ids": [
+      "jag_node_ae223e251a3de2905e4ac6d8bd8d6f7811f187060e2a98975ccde7dbdab6bb0f"
+     ],
+     "label": "event",
+     "properties": {
+      "emitter_key": "binding:scope:program:0:3973:binding:app",
+      "event_name": "window-all-closed"
+     },
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "artifact-path",
+        "path": "default_app.js"
+       }
+      }
+     },
+     "node_id": "jsrg_node_fa74a746ae585a5ad3e10a17912e3ce8a020facdd6d675330da55dd7eb4317c8"
+    },
+    {
+     "kind": "listener",
+     "identity": {
+      "artifact_sha256": "dc02f553789476e7e439c05fcba282deb36849b63dd6238dc146eb8c564072bf",
+      "module_path": "main.js",
+      "source_range": {
+       "start": {
+        "line": 174,
+        "column": 18
+       },
+       "end": {
+        "line": 176,
+        "column": 5
+       }
+      },
+      "role_key": "listener:event:register:5539:5625"
+     },
+     "function_node_id": "jsrg_node_f08a0abd53b29fa801b052c71866389fb5d30501bd0eb06025d9b608c62c4701",
+     "application_node_ids": [],
+     "label": "on:exit",
+     "properties": {
+      "emitter_key": "expression:5539:5574",
+      "event_name": "exit",
+      "method": "on"
+     },
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "source-range",
+        "source": "main.js",
+        "start": {
+         "line": 174,
+         "column": 18
+        },
+        "end": {
+         "line": 176,
+         "column": 5
+        }
+       }
+      }
+     },
+     "node_id": "jsrg_node_297dbe6c9989d1a1dcc83937e4ee27745fb302e3bc249add57f6b0de24248e51"
+    },
+    {
+     "kind": "listener",
+     "identity": {
+      "artifact_sha256": "dc02f553789476e7e439c05fcba282deb36849b63dd6238dc146eb8c564072bf",
+      "module_path": "main.js",
+      "source_range": {
+       "start": {
+        "line": 160,
+        "column": 32
+       },
+       "end": {
+        "line": 160,
+        "column": 41
+       }
+      },
+      "role_key": "listener:event:register:4981:5019"
+     },
+     "function_node_id": "jsrg_node_f08a0abd53b29fa801b052c71866389fb5d30501bd0eb06025d9b608c62c4701",
+     "application_node_ids": [],
+     "label": "on:listener",
+     "properties": {
+      "emitter_key": "binding:scope:program:0:9878:binding:app",
+      "event_name": "window-all-closed",
+      "method": "on"
+     },
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "source-range",
+        "source": "main.js",
+        "start": {
+         "line": 160,
+         "column": 32
+        },
+        "end": {
+         "line": 160,
+         "column": 41
+        }
+       }
+      }
+     },
+     "node_id": "jsrg_node_2fbe3be5e4e06ecf1de68cac056c9ca34e096354fd583e49a5fe75466b329d25"
+    },
+    {
+     "kind": "listener",
+     "identity": {
+      "artifact_sha256": "097ed2d61ce53deb18a80edcce1de65f62236e858875112ff225c937c15ca7ef",
+      "module_path": "default_app.js",
+      "source_range": {
+       "start": {
+        "line": 7,
+        "column": 28
+       },
+       "end": {
+        "line": 9,
+        "column": 1
+       }
+      },
+      "role_key": "listener:event:register:244:298"
+     },
+     "function_node_id": null,
+     "application_node_ids": [],
+     "label": "on:listener",
+     "properties": {
+      "emitter_key": "binding:scope:program:0:3973:binding:app",
+      "event_name": "window-all-closed",
+      "method": "on"
+     },
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "source-range",
+        "source": "default_app.js",
+        "start": {
+         "line": 7,
+         "column": 28
+        },
+        "end": {
+         "line": 9,
+         "column": 1
+        }
+       }
+      }
+     },
+     "node_id": "jsrg_node_4e0fc0082281677b8aeb6761c7a7f0fd2904bbf44faf197b6bb93e7fd835db74"
+    },
+    {
+     "kind": "listener",
+     "identity": {
+      "artifact_sha256": "097ed2d61ce53deb18a80edcce1de65f62236e858875112ff225c937c15ca7ef",
+      "module_path": "default_app.js",
+      "source_range": {
+       "start": {
+        "line": 86,
+        "column": 35
+       },
+       "end": {
+        "line": 86,
+        "column": 58
+       }
+      },
+      "role_key": "listener:event:register:2864:2919"
+     },
+     "function_node_id": "jsrg_node_44f7295cd7a20dc39d7ad8c0532967391732fa7fdb6b4ad0025e612fb67200fa",
+     "application_node_ids": [],
+     "label": "on:listener",
+     "properties": {
+      "emitter_key": "binding:scope:program:0:3973:binding:mainWindow",
+      "event_name": "ready-to-show",
+      "method": "on"
+     },
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "source-range",
+        "source": "default_app.js",
+        "start": {
+         "line": 86,
+         "column": 35
+        },
+        "end": {
+         "line": 86,
+         "column": 58
+        }
+       }
+      }
+     },
+     "node_id": "jsrg_node_da433b56ea1a1c4e35affc1c6db21fad1fc8270e55a01e30db95e99e7ff425a1"
+    },
+    {
+     "kind": "literal",
+     "identity": {
+      "artifact_sha256": "dc02f553789476e7e439c05fcba282deb36849b63dd6238dc146eb8c564072bf",
+      "module_path": "main.js",
+      "source_range": {
+       "start": {
+        "line": 161,
+        "column": 10
+       },
+       "end": {
+        "line": 161,
+        "column": 15
+       }
+      },
+      "role_key": "literal:scope:function:4777:8146:binding:GREEN:binding:\"32\""
+     },
+     "function_node_id": "jsrg_node_f08a0abd53b29fa801b052c71866389fb5d30501bd0eb06025d9b608c62c4701",
+     "application_node_ids": [],
+     "label": "\"32\"",
+     "properties": {
+      "value": "32"
+     },
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "source-range",
+        "source": "main.js",
+        "start": {
+         "line": 161,
+         "column": 10
+        },
+        "end": {
+         "line": 161,
+         "column": 15
+        }
+       }
+      }
+     },
+     "node_id": "jsrg_node_54013e2ca288cbd7d4ca09148dbfe8dfc5b7d1d196e395d797a16d38a8ab37f2"
+    },
+    {
+     "kind": "request",
+     "identity": {
+      "artifact_sha256": "fd24179e990be34eb2e12fb2bc7e2cc46ec096d5c799886b378139546c784348",
+      "module_path": "preload.js",
+      "source_range": {
+       "start": {
+        "line": 9,
+        "column": 31
+       },
+       "end": {
+        "line": 9,
+        "column": 59
+       }
+      },
+      "role_key": "request:305:333"
+     },
+     "function_node_id": "jsrg_node_d743a1b70029be8a2253562a425b98a17c12ba1489b844170812f6972c44b9ee",
+     "application_node_ids": [
+      "jag_node_cca582bb91e644ab02340f9d6f38ba226bf9a1488527a9ba34ed48c2bfe83c9d"
+     ],
+     "label": "fetch",
+     "properties": {
+      "endpoint": null,
+      "method": "fetch",
+      "operation_kind": "request"
+     },
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "source-range",
+        "source": "preload.js",
+        "start": {
+         "line": 9,
+         "column": 31
+        },
+        "end": {
+         "line": 9,
+         "column": 59
+        }
+       }
+      }
+     },
+     "node_id": "jsrg_node_604473fdf46bbdb0f9f6a9226ff0a77f6ef82d23abbb0edd5d1189f0472511cb"
+    },
+    {
+     "kind": "promise",
+     "identity": {
+      "artifact_sha256": "097ed2d61ce53deb18a80edcce1de65f62236e858875112ff225c937c15ca7ef",
+      "module_path": "default_app.js",
+      "source_range": {
+       "start": {
+        "line": 99,
+        "column": 8
+       },
+       "end": {
+        "line": 101,
+        "column": 10
+       }
+      },
+      "role_key": "promise:chain:3453:3565"
+     },
+     "function_node_id": "jsrg_node_b63be73cfa592fee3fc9a43f51faf4d30ed610ea59e70d4cd6f8243864ca62b2",
+     "application_node_ids": [],
+     "label": "Promise.then",
+     "properties": {
+      "method": "then",
+      "operation_kind": "chain",
+      "ownership": "detached",
+      "source_resolution": "unresolved"
+     },
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "source-range",
+        "source": "default_app.js",
+        "start": {
+         "line": 99,
+         "column": 8
+        },
+        "end": {
+         "line": 101,
+         "column": 10
+        }
+       }
+      }
+     },
+     "node_id": "jsrg_node_e884a82b8011cb136214c124fff77fe9a9217cc1591492aba9cc99e977651ac8"
+    },
+    {
+     "kind": "promise",
+     "identity": {
+      "artifact_sha256": "097ed2d61ce53deb18a80edcce1de65f62236e858875112ff225c937c15ca7ef",
+      "module_path": "default_app.js",
+      "source_range": {
+       "start": {
+        "line": 11,
+        "column": 0
+       },
+       "end": {
+        "line": 46,
+        "column": 2
+       }
+      },
+      "role_key": "promise:chain:345:1484"
+     },
+     "function_node_id": null,
+     "application_node_ids": [],
+     "label": "Promise.then",
+     "properties": {
+      "method": "then",
+      "operation_kind": "chain",
+      "ownership": "detached",
+      "source_resolution": "unresolved"
+     },
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "source-range",
+        "source": "default_app.js",
+        "start": {
+         "line": 11,
+         "column": 0
+        },
+        "end": {
+         "line": 46,
+         "column": 2
+        }
+       }
+      }
+     },
+     "node_id": "jsrg_node_6908601a74ff13eac4c8798ad2334398ad859e2695ec51cf31ff93cabdd5bcbc"
+    },
+    {
+     "kind": "module",
+     "identity": {
+      "artifact_sha256": "dc02f553789476e7e439c05fcba282deb36849b63dd6238dc146eb8c564072bf",
+      "module_path": "main.js",
+      "source_range": null,
+      "role_key": "module"
+     },
+     "function_node_id": null,
+     "application_node_ids": [
+      "jag_node_241da03b8d8895ff6f14e6a9d6735de228f007633d349ad67ac4a49e88fcedac"
+     ],
+     "label": "main.js",
+     "properties": {},
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "artifact-path",
+        "path": "main.js"
+       }
+      }
+     },
+     "node_id": "jsrg_node_ac821a14165a91b92a2d5bf15e694f3cf6e475445ad36d58ec0ee8a5556acedb"
+    },
+    {
+     "kind": "module",
+     "identity": {
+      "artifact_sha256": "fd24179e990be34eb2e12fb2bc7e2cc46ec096d5c799886b378139546c784348",
+      "module_path": "preload.js",
+      "source_range": null,
+      "role_key": "module"
+     },
+     "function_node_id": null,
+     "application_node_ids": [
+      "jag_node_fef7b6456bf6ae5abedd221345bf394935bfaf4edc4162183283b4ab84fc91cb"
+     ],
+     "label": "preload.js",
+     "properties": {},
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "artifact-path",
+        "path": "preload.js"
+       }
+      }
+     },
+     "node_id": "jsrg_node_c8c9240a4ae916482fdf2f8c5802663fc62f70b448a94cdcb50396cba7d3b682"
+    },
+    {
+     "kind": "module",
+     "identity": {
+      "artifact_sha256": "097ed2d61ce53deb18a80edcce1de65f62236e858875112ff225c937c15ca7ef",
+      "module_path": "default_app.js",
+      "source_range": null,
+      "role_key": "module"
+     },
+     "function_node_id": null,
+     "application_node_ids": [
+      "jag_node_ae223e251a3de2905e4ac6d8bd8d6f7811f187060e2a98975ccde7dbdab6bb0f"
+     ],
+     "label": "default_app.js",
+     "properties": {},
+     "evidence": {
+      "context_id": "jsrg_evidence_08d4eb52ba8dcbef09f5ab3b9726cb5ec81ae26bb6da7410be3f51e480763c2e",
+      "location": {
+       "available": true,
+       "value": {
+        "kind": "artifact-path",
+        "path": "default_app.js"
+       }
+      }
+     },
+     "node_id": "jsrg_node_ef9ba3f01069ba266dd431ba4a8fe96488b29de2233620138c87f0344188e444"
+    }
+   ],
+   "relations": [
+    {
+     "source_node_id": "jsrg_node_644253138936403a3058057ae8dda2e7a19e2cbfabe77cd27a3223e06865ed31",
+     "target_node_id": "jsrg_node_44f7295cd7a20dc39d7ad8c0532967391732fa7fdb6b4ad0025e612fb67200fa",
+     "relation": "calls",
+     "resolution": "resolved"
+    },
+    {
+     "source_node_id": "jsrg_node_01517ac45a01bf6235dcf7b2695079102a77e95d0ebde62cec1a131651d14af0",
+     "target_node_id": "jsrg_node_44f7295cd7a20dc39d7ad8c0532967391732fa7fdb6b4ad0025e612fb67200fa",
+     "relation": "captures",
+     "resolution": "resolved"
+    },
+    {
+     "source_node_id": "jsrg_node_3e2a965911f258d841ee5d2d7a3c070e6c3188bcb120b52469e07e28dc5f0ee3",
+     "target_node_id": "jsrg_node_44f7295cd7a20dc39d7ad8c0532967391732fa7fdb6b4ad0025e612fb67200fa",
+     "relation": "captures",
+     "resolution": "resolved"
+    },
+    {
+     "source_node_id": "jsrg_node_01517ac45a01bf6235dcf7b2695079102a77e95d0ebde62cec1a131651d14af0",
+     "target_node_id": "jsrg_node_44f7295cd7a20dc39d7ad8c0532967391732fa7fdb6b4ad0025e612fb67200fa",
+     "relation": "captures",
+     "resolution": "resolved"
+    },
+    {
+     "source_node_id": "jsrg_node_614073a73da1f266d7ae0b2498684c5138a3c3fd7409c03e059a08404d463490",
+     "target_node_id": "jsrg_node_19c5e39c70552902c92ea8afb787cdbcfdf3a4680526053fc2bdac221dc53b44",
+     "relation": "defines",
+     "resolution": "resolved"
+    },
+    {
+     "source_node_id": "jsrg_node_5dcf64835848fad510ffb5a95f79f701e9da4a27b0b9ab2989f6bd8cacad0149",
+     "target_node_id": "jsrg_node_15b82bf0d601d3b1d981ab3f2c243980eed6818752f464c6be2b352f305d96cd",
+     "relation": "argument-to-parameter",
+     "resolution": "resolved"
+    },
+    {
+     "source_node_id": "jsrg_node_21667d356c7e626b88aae0c6b89347bda3517a32a3e5ce8b97be78236793e268",
+     "target_node_id": "jsrg_node_e9d9f9d6ae901dc96eedd8ac99d9409c0eec2a9063c98da42920dd096809270f",
+     "relation": "aliases",
+     "resolution": "candidate"
+    },
+    {
+     "source_node_id": "jsrg_node_77360e291999ed0f18c3cba247ae705d174fb97d6b562c8476cf0e690b067f6a",
+     "target_node_id": "jsrg_node_2277fc276ffbd2a7803c8cd24cb35c8762a265ef98392a3905c0e81c729c4d8d",
+     "relation": "defines",
+     "resolution": "resolved"
+    },
+    {
+     "source_node_id": "jsrg_node_1f46193106731702f7fc9b6574e517c25c5facf213c30d0b45a749a059abac1f",
+     "target_node_id": "jsrg_node_e7d4ea834fc3c45a7242ae531f489123b01165e9257e2695ae3c1b3488df47a4",
+     "relation": "reads",
+     "resolution": "resolved"
+    },
+    {
+     "source_node_id": "jsrg_node_26ca872129e8a3b78a69468a7fbb051c2657ffd3c577db438418a31840f882fa",
+     "target_node_id": "jsrg_node_2fbe3be5e4e06ecf1de68cac056c9ca34e096354fd583e49a5fe75466b329d25",
+     "relation": "registers-listener",
+     "resolution": "resolved"
+    },
+    {
+     "source_node_id": "jsrg_node_fa74a746ae585a5ad3e10a17912e3ce8a020facdd6d675330da55dd7eb4317c8",
+     "target_node_id": "jsrg_node_4e0fc0082281677b8aeb6761c7a7f0fd2904bbf44faf197b6bb93e7fd835db74",
+     "relation": "registers-listener",
+     "resolution": "resolved"
+    },
+    {
+     "source_node_id": "jsrg_node_9ec433a91edaef85a6a8000b3571654f024d34769e087549deb5655a907aeea5",
+     "target_node_id": "jsrg_node_630af9702fdfbe6fca83d6bcb76e8ddffb7813c7b4f28d03009dd2d76adfb8ef",
+     "relation": "reads",
+     "resolution": "resolved"
+    },
+    {
+     "source_node_id": "jsrg_node_afd3fc291a1a4502dfb84837bc1fb827de9b2c8b3f2c64d2d49462535a68bc1e",
+     "target_node_id": "jsrg_node_fa7688b468544ab5546f3cbb1d20c404979c635562e6a061ee3abe457ac1c8da",
+     "relation": "aliases",
+     "resolution": "candidate"
+    },
+    {
+     "source_node_id": "jsrg_node_01517ac45a01bf6235dcf7b2695079102a77e95d0ebde62cec1a131651d14af0",
+     "target_node_id": "jsrg_node_44f7295cd7a20dc39d7ad8c0532967391732fa7fdb6b4ad0025e612fb67200fa",
+     "relation": "captures",
+     "resolution": "resolved"
+    },
+    {
+     "source_node_id": "jsrg_node_791eed7e140ebc37562e1e30486cb92dd813304e6266e9a3c3908cf5f088eae9",
+     "target_node_id": "jsrg_node_6908601a74ff13eac4c8798ad2334398ad859e2695ec51cf31ff93cabdd5bcbc",
+     "relation": "creates-promise",
+     "resolution": "candidate"
+    },
+    {
+     "source_node_id": "jsrg_node_18d380aa236854428d1a726c13bd159f9f51205cc1cd9d5ac18a007607e498d9",
+     "target_node_id": "jsrg_node_30fcf7a2f527d8f00b49923ad3fcad9d9874baae6abc1d0439ebda9e21a03a57",
+     "relation": "calls",
+     "resolution": "resolved"
+    },
+    {
+     "source_node_id": "jsrg_node_360646bd789bc53a2bab07354db4a45baf8fde77166dfd6a3eb2ae31dd72270f",
+     "target_node_id": "jsrg_node_a9e81c30136f23fcd114a01e22adaf8a2986e449b4d603036909251f75ec63b8",
+     "relation": "awaits",
+     "resolution": "resolved"
+    },
+    {
+     "source_node_id": "jsrg_node_44f7295cd7a20dc39d7ad8c0532967391732fa7fdb6b4ad0025e612fb67200fa",
+     "target_node_id": "jsrg_node_3b89f36b3760a2a6bab55caebe391925a1679170a75dbe3354612ecc266919cc",
+     "relation": "awaits",
+     "resolution": "resolved"
+    },
+    {
+     "source_node_id": "jsrg_node_625e0ac68ee2c9808a14c2da48fdfa4ab46e0d5b26180d3234cbe9e5e3993269",
+     "target_node_id": "jsrg_node_30fcf7a2f527d8f00b49923ad3fcad9d9874baae6abc1d0439ebda9e21a03a57",
+     "relation": "calls",
+     "resolution": "resolved"
+    },
+    {
+     "source_node_id": "jsrg_node_ac821a14165a91b92a2d5bf15e694f3cf6e475445ad36d58ec0ee8a5556acedb",
+     "target_node_id": "jsrg_node_067709500499d8afaf6092990f6d78f7e29b1ea1c7fc4fa8652fbfb7cac6e206",
+     "relation": "coerces",
+     "resolution": "resolved"
+    },
+    {
+     "source_node_id": "jsrg_node_02204956dc82058b1bb092a672901cdfacb0b5198bf24ccc50d26110aa053502",
+     "target_node_id": "jsrg_node_ebe1296bcecf513a3a8729631e1b9c50439fd0970639f67bcc848a0a6b03a3c5",
+     "relation": "writes-property",
+     "resolution": "candidate"
+    },
+    {
+     "source_node_id": "jsrg_node_8754619ff2bab2489f32d62b9b32ee884493c834902cb9f06e0d1339fe472a0b",
+     "target_node_id": "jsrg_node_bdcd8081a211238c24b474bcf7399b3b2b0f47f5369cb7943f67f62c630466b1",
+     "relation": "reads-property",
+     "resolution": "candidate"
+    },
+    {
+     "source_node_id": "jsrg_node_1f46193106731702f7fc9b6574e517c25c5facf213c30d0b45a749a059abac1f",
+     "target_node_id": "jsrg_node_2d4cf0c68558e32e8e0aa49d1ceef0a459b0a37518f5953c37903aeef2463532",
+     "relation": "reads",
+     "resolution": "resolved"
+    },
+    {
+     "source_node_id": "jsrg_node_6646d8b9b6f97538f4e01eee5054c6936fffd02978118c6ebfa8d14ec160a637",
+     "target_node_id": "jsrg_node_01136cd82c3a9d17b8c4ff0a05dd41dcc07b886a09ef306ec036f808209b81d1",
+     "relation": "calls",
+     "resolution": "resolved"
+    },
+    {
+     "source_node_id": "jsrg_node_10fc917169f6a6f96cd9f2751f74cb9e929502a7d5fdd6a2cee4f15bd239ca59",
+     "target_node_id": "jsrg_node_f2ea92c671145c06e8fb1cbc0457fedcca3f337181a4265284e8d1677b315c1a",
+     "relation": "consumed-by",
+     "resolution": "resolved"
+    },
+    {
+     "source_node_id": "jsrg_node_0b49600e469adf9b17f14a445919cd4167d6d783fdb1cc21d8f89ac6c24a83c0",
+     "target_node_id": "jsrg_node_44f7295cd7a20dc39d7ad8c0532967391732fa7fdb6b4ad0025e612fb67200fa",
+     "relation": "captures",
+     "resolution": "resolved"
+    },
+    {
+     "source_node_id": "jsrg_node_b2912b2b306376aa6e7110037c1e61f24dc36c193d43939c97aaffc8e7dffc8e",
+     "target_node_id": "jsrg_node_27efba77ed4ab19559ea6185fc248c7ec021c4e3711523d69692a5502269c901",
+     "relation": "reads-property",
+     "resolution": "candidate"
+    },
+    {
+     "source_node_id": "jsrg_node_65c94083df0d1fd3974fc704bc833b448be65a7ac1603eb2891760f720b78fdf",
+     "target_node_id": "jsrg_node_1f46193106731702f7fc9b6574e517c25c5facf213c30d0b45a749a059abac1f",
+     "relation": "defines",
+     "resolution": "resolved"
+    },
+    {
+     "source_node_id": "jsrg_node_0fe6ecf35df623b32f0b14652b004eaef4db3d3422ee05f1cfba0d659c70745d",
+     "target_node_id": "jsrg_node_15b82bf0d601d3b1d981ab3f2c243980eed6818752f464c6be2b352f305d96cd",
+     "relation": "argument-to-parameter",
+     "resolution": "resolved"
+    },
+    {
+     "source_node_id": "jsrg_node_d214a12a89c4e73a88d22e3ad80af952bbb5b6815fbfc70264e86e7ddb2fb2ec",
+     "target_node_id": "jsrg_node_2f6ce0c8ee3cc8769be425179101b067c7189428575aa04e8d3b845b0d96b16d",
+     "relation": "captures",
+     "resolution": "resolved"
+    },
+    {
+     "source_node_id": "jsrg_node_19c5e39c70552902c92ea8afb787cdbcfdf3a4680526053fc2bdac221dc53b44",
+     "target_node_id": "jsrg_node_f6abbd313ebf742ba80a2a5d7a64429548f2be95e5d65b7af3e1108be0e9b4b6",
+     "relation": "reads",
+     "resolution": "resolved"
+    },
+    {
+     "source_node_id": "jsrg_node_ac821a14165a91b92a2d5bf15e694f3cf6e475445ad36d58ec0ee8a5556acedb",
+     "target_node_id": "jsrg_node_2234167bd6552f62d2e9f5fbfcbf6bc95ebae2eb2641f9f54a1f3061fd4a4051",
+     "relation": "awaits",
+     "resolution": "resolved"
+    },
+    {
+     "source_node_id": "jsrg_node_cd24445e0d461fed8054a955d2bdfd8aa91eff69901fcfe74ea3617cee3d9d04",
+     "target_node_id": "jsrg_node_297dbe6c9989d1a1dcc83937e4ee27745fb302e3bc249add57f6b0de24248e51",
+     "relation": "registers-listener",
+     "resolution": "candidate"
+    },
+    {
+     "source_node_id": "jsrg_node_6f1f637ffdcdd6a040bc2db12a9c5dc9a838ca39b0d343bd5c75fca4ec9f1649",
+     "target_node_id": "jsrg_node_15b82bf0d601d3b1d981ab3f2c243980eed6818752f464c6be2b352f305d96cd",
+     "relation": "defines",
+     "resolution": "resolved"
+    },
+    {
+     "source_node_id": "jsrg_node_71984b307f6c7564c6f1b7af025ff4c47492fd45866f41e08cd0ff862c76215b",
+     "target_node_id": "jsrg_node_1f46193106731702f7fc9b6574e517c25c5facf213c30d0b45a749a059abac1f",
+     "relation": "argument-to-parameter",
+     "resolution": "resolved"
+    },
+    {
+     "source_node_id": "jsrg_node_5f94208a070bf768ff69213501757bfb89085af16d1d7d5a058c1fe46ff2e289",
+     "target_node_id": "jsrg_node_da433b56ea1a1c4e35affc1c6db21fad1fc8270e55a01e30db95e99e7ff425a1",
+     "relation": "registers-listener",
+     "resolution": "resolved"
+    },
+    {
+     "source_node_id": "jsrg_node_b8a92df377a5e70ec11a7252dd58a574a79f907a4a0f8f5bc2635c49cc0c9078",
+     "target_node_id": "jsrg_node_19c5e39c70552902c92ea8afb787cdbcfdf3a4680526053fc2bdac221dc53b44",
+     "relation": "defines",
+     "resolution": "resolved"
+    },
+    {
+     "source_node_id": "jsrg_node_680b641632fb86ef9fa068d1a90b33da45786bc6b3a01f2a195f6289b57d31b6",
+     "target_node_id": "jsrg_node_30fcf7a2f527d8f00b49923ad3fcad9d9874baae6abc1d0439ebda9e21a03a57",
+     "relation": "calls",
+     "resolution": "resolved"
+    },
+    {
+     "source_node_id": "jsrg_node_ef9ba3f01069ba266dd431ba4a8fe96488b29de2233620138c87f0344188e444",
+     "target_node_id": "jsrg_node_6908601a74ff13eac4c8798ad2334398ad859e2695ec51cf31ff93cabdd5bcbc",
+     "relation": "detaches-task",
+     "resolution": "resolved"
+    },
+    {
+     "source_node_id": "jsrg_node_15b82bf0d601d3b1d981ab3f2c243980eed6818752f464c6be2b352f305d96cd",
+     "target_node_id": "jsrg_node_9c351993ff68be03d17061dbc6b0008a9de249238ef7e5c868ff85891fbedb76",
+     "relation": "reads",
+     "resolution": "resolved"
+    }
+   ],
+   "unknowns": [
+    {
+     "node_id": "jsrg_node_46b93c99bb666268509ce73745c494d3e8e5c244eabbb98040b6691139e58174",
+     "family": "data-flow",
+     "relation_kinds": [
+      "defines"
+     ],
+     "reason": "unknown-value",
+     "detail": "Unsupported AwaitExpression value. Unknown value at binding."
+    },
+    {
+     "node_id": "jsrg_node_ac821a14165a91b92a2d5bf15e694f3cf6e475445ad36d58ec0ee8a5556acedb",
+     "family": "call-flow",
+     "relation_kinds": [
+      "calls"
+     ],
+     "reason": "dynamic-call",
+     "detail": "Unsupported MemberExpression call target."
+    },
+    {
+     "node_id": "jsrg_node_667fbe71cbab767e987e7d63329fcc3332f2e7658ed949c52175fe76ccdbd5f1",
+     "family": "object-flow",
+     "relation_kinds": [
+      "reads-property"
+     ],
+     "reason": "ambiguous-target",
+     "detail": "Static read property /execPath has unknown-coverage presence; its receiver is unresolved or not a retained container; object identity is partial."
+    },
+    {
+     "node_id": "jsrg_node_2c59c12a798ac9da8e205241fd8a700fafd8c2a2184f2aa5e06f45bae04db604",
+     "family": "object-flow",
+     "relation_kinds": [
+      "writes-property"
+     ],
+     "reason": "ambiguous-target",
+     "detail": "Static write property /icon has unknown-coverage presence; its receiver is unresolved or not a retained container; object identity is complete."
+    },
+    {
+     "node_id": "jsrg_node_874d30d447bdebdab6c932ebae3fa5c714a9d37ab173c9fcd8004ab23733fa98",
+     "family": "call-flow",
+     "relation_kinds": [
+      "calls"
+     ],
+     "reason": "dynamic-call",
+     "detail": "Unsupported MemberExpression call target."
+    },
+    {
+     "node_id": "jsrg_node_1591ac701d87ae9ce36a7507331c7471398e095f12d309b54deee5e77b78780c",
+     "family": "object-flow",
+     "relation_kinds": [
+      "reads-property"
+     ],
+     "reason": "ambiguous-target",
+     "detail": "Static read property /exit has unknown-coverage presence; its receiver is unresolved or not a retained container; object identity is partial."
+    },
+    {
+     "node_id": "jsrg_node_ac821a14165a91b92a2d5bf15e694f3cf6e475445ad36d58ec0ee8a5556acedb",
+     "family": "call-flow",
+     "relation_kinds": [
+      "calls"
+     ],
+     "reason": "dynamic-call",
+     "detail": "Unsupported MemberExpression call target."
+    },
+    {
+     "node_id": "jsrg_node_bf979e9a833e78900d7eeb84068f4a95da2dcdcef1b63381ce498d580cff8dba",
+     "family": "data-flow",
+     "relation_kinds": [
+      "defines"
+     ],
+     "reason": "unknown-value",
+     "detail": "Unsupported ArrowFunctionExpression value. Unknown value at binding."
+    },
+    {
+     "node_id": "jsrg_node_ac821a14165a91b92a2d5bf15e694f3cf6e475445ad36d58ec0ee8a5556acedb",
+     "family": "call-flow",
+     "relation_kinds": [
+      "calls"
+     ],
+     "reason": "dynamic-call",
+     "detail": "Unsupported MemberExpression call target."
+    },
+    {
+     "node_id": "jsrg_node_bb77110467de4c83ffaee722c6e33c7afa688da6c0ce2f1fcebf43fd8ffbc4e6",
+     "family": "data-flow",
+     "relation_kinds": [
+      "defines"
+     ],
+     "reason": "unknown-value",
+     "detail": "Binding getter has no constant initializer. Unknown value at binding."
+    }
+   ],
+   "coverage": {
+    "status": "unknown",
+    "truncated": false,
+    "omitted_nodes": 0,
+    "omitted_relations": 0,
+    "limits": [],
+    "families": [
+     {
+      "family": "boundary",
+      "status": "partial",
+      "retained_relations": 1,
+      "omitted_relations": 0
+     },
+     {
+      "family": "call-flow",
+      "status": "partial",
+      "retained_relations": 70,
+      "omitted_relations": 0
+     },
+     {
+      "family": "child-process",
+      "status": "partial",
+      "retained_relations": 0,
+      "omitted_relations": 0
+     },
+     {
+      "family": "closure",
+      "status": "partial",
+      "retained_relations": 81,
+      "omitted_relations": 0
+     },
+     {
+      "family": "configuration",
+      "status": "partial",
+      "retained_relations": 0,
+      "omitted_relations": 0
+     },
+     {
+      "family": "data-flow",
+      "status": "partial",
+      "retained_relations": 622,
+      "omitted_relations": 0
+     },
+     {
+      "family": "event",
+      "status": "partial",
+      "retained_relations": 4,
+      "omitted_relations": 0
+     },
+     {
+      "family": "object-flow",
+      "status": "partial",
+      "retained_relations": 127,
+      "omitted_relations": 0
+     },
+     {
+      "family": "promise-ownership",
+      "status": "partial",
+      "retained_relations": 25,
+      "omitted_relations": 0
+     },
+     {
+      "family": "request",
+      "status": "partial",
+      "retained_relations": 2,
+      "omitted_relations": 0
+     },
+     {
+      "family": "resource-lifecycle",
+      "status": "partial",
+      "retained_relations": 0,
+      "omitted_relations": 0
+     },
+     {
+      "family": "timer",
+      "status": "partial",
+      "retained_relations": 0,
+      "omitted_relations": 0
+     }
+    ]
+   },
+   "graph_id": "jsrg_1198b935b47f916685277751cd1d85e4ae0fa028a4efc380f154efb647a22e4a"
+  }
+ },
+ "confidence": "derived",
+ "authority": "shipped-artifact",
+ "limitations": [
+  "CommonJS and ESM binding relationships were recovered from inert syntax and resolved only within the inventoried artifact container.",
+  "Electron API identity follows proven lexical module aliases and structurally verified module-namespace interop. Other reassignments, dynamic selections, and visibly overwritten namespace members are unresolved; missing findings do not establish absence. Arbitrary call side effects and runtime registration are not evaluated.",
+  "Electron relationships are derived from inert syntax; runtime registration, reachability, defaults, and enforcement remain unproven.",
+  "Graph coverage is incomplete; unavailable facts remain explicit and must not be read as absence.",
+  "JavaScript and HTML were parsed as inert text; bundle bootstrap code was never executed.",
+  "Static imports, entrypoints, workers, endpoints, and storage relationships do not prove runtime execution.",
+  "Static paths and relationships may remain unresolved when expressions are dynamic or obfuscated.",
+  "Webpack/Rspack factories were recovered from AST literals; REA did not invoke push handlers or bundle bootstrap code.",
+  "index.html has 1 inline JavaScript body starting at line 87 that was not analyzed; endpoints, storage, imports and other facts in it are absent from the evidence."
+ ]
+}
