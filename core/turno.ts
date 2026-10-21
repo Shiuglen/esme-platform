@@ -21,6 +21,7 @@
  * Referencia: estandar/turno.spec.yaml, core/talamus/modos.ts.
  */
 import type { ModoContexto } from "./talamus/modos.ts";
+import type { ResultadoCambios } from "./turno/cambios.ts";
 
 /** Un paso de herramienta. */
 export interface PasoTurno {
@@ -32,14 +33,20 @@ export interface PasoTurno {
   detalle?: string;
 }
 
-/** Un fichero que el turno tocó. */
+/**
+ * Un fichero que el turno tocó.
+ *
+ * `anadidos` y `borrados` pueden ser NULL: cuando no se sabe (un binario no
+ * tiene líneas, o el diff era más grande que el tope). Un 0 falso sería una
+ * mentira, y aquí los números se_FALSEAN.
+ */
 export interface CambioTurno {
   /** La ruta. */
   ruta: string;
-  /** Las líneas que se añadieron. */
-  anadidos: number;
-  /** Las líneas que se quitaron. */
-  borrados: number;
+  /** Las líneas que se añadieron (null si no se sabe). */
+  anadidos: number | null;
+  /** Las líneas que se quitaron (null si no se sabe). */
+  borrados: number | null;
 }
 
 /** El turno: lo que pasó. */
@@ -177,6 +184,20 @@ export function limpiezaDeLaSesion(turnos: Turno[]): number {
   const plegada = turnos.reduce((n, t) => n + t.tokens.actividad_plegada, 0);
   if (respuesta + plegada === 0) return 1;
   return respuesta / (respuesta + plegada);
+}
+
+/**
+ * Los cambios de un turno, en la forma del turno.
+ *
+ * Lo que no se sabe, se queda sin saber (null): un binario no tiene líneas
+ * que contar, y un diff enorme tampoco.
+ */
+export function cambiosDe(r: ResultadoCambios): CambioTurno[] {
+  return r.ficheros.map((f) => ({
+    ruta: f.ruta,
+    anadidos: f.anadidos,
+    borrados: f.borrados,
+  }));
 }
 
 /**

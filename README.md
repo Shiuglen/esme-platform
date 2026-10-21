@@ -45,7 +45,9 @@ Entre dos lenguas solo sobrevive lo que está escrito.
 
 Y las otras dos puertas: `npm run verificar:skill -- <carpeta>` (una skill de
 cualquiera, juzgada en local) y `npm run crear:modulo` (un módulo, con su
-juicio y su forma).
+juicio y su forma). Y `npm run cambios -- <antes> <despues>`: qué cambió
+entre dos versiones, con el diff de Myers y los números que no se saben
+dichos (null, no 0).
 | `estandar/` | Las specs abiertas (manifiesto, mente `.mind`, frontera, veredicto…). |
 | `core/mind/` | La mente portable: importadores, troceo, redacción, rumbo, delta, ZIP. |
 | `core/extension-host/` | La cápsula y la puerta de los módulos (qué no puede tocar, qué puede, y sólo si se le concede). |

@@ -37,6 +37,32 @@ limpieza : 89% (listón 60%)
 trabajo  : 2.4× la respuesta
 ```
 
+## Lo que cambió, de verdad (y medido)
+
+Los `cambios` del turno no son una promesa: se calculan. Y el cálculo viene
+de la ingeniería inversa de **PandaCode** (Rust/Tauri, `turn_changes.rs`), que
+resuelve exactamente este problema. Lo que se trajo:
+
+| De PandaCode | En el kit |
+|---|---|
+| instantánea por **hash de contenido** (no por fecha) | `core/turno/cambios.ts` |
+| diff de **Myers** (O(ND)) con tope de 512 ediciones | igual, en TS |
+| `additions: Option` — un número que no se sabe es **null**, no 0 | igual |
+| escaneo con **plazo** (un recorrido infinito es peor que ninguno) | `PLAZO_MS` |
+| binarios y truncados se **marcan** | igual |
+| «concurrent»: si el árbol cambió midiendo, no se puede atribuir | igual |
+
+Y una corrección que salió al aplicarlo: la instantánea guarda el **texto**
+(acotado), no sólo el hash. Con sólo el hash, el diff se calculaba sobre el
+disco ya cambiado y salía vacío — y un diff vacío es una mentira.
+
+```bash
+$ npm run cambios -- ver1 ver2
+     +2     ?  nuevo.txt
+     +1    -0  src/a.ts
+total    : +3 -0 en 2 ficheros
+```
+
 ## Lo que se PLLIEGA y lo que no
 
 Plegar no es esconder: el texto sigue ahí, con su coste. Lo que cambia es lo
