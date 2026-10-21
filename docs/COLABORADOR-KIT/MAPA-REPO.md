@@ -20,6 +20,7 @@ esme/
 │   ├── module-manifest.spec.yaml
 │   ├── motor-capability.spec.yaml
 │   ├── rea.spec.yaml             # la evidencia de REA y su catálogo
+│   ├── indice-tienda.spec.yaml   # el índice de la tienda: lo que se publica
 │   └── mind-format.spec.yaml     # a redactar (ARQUITECTURA §7 tiene el extracto)
 ├── modulos/
 │   ├── ejemplo-hola-mundo/       # el módulo vivo de referencia

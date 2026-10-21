@@ -1,0 +1,89 @@
+# **Spec abierta v1 — el índice de la Tienda.** Lo que se publica, con su firma.
+# Referencia: scripts/publicar-modulo.ts, tienda/firma.ts, tienda/panel.ts.
+#
+# QUÉ ES: el catálogo de módulos que la Tienda publica. Es un documento JSON
+# con una lista de entradas (una por módulo) y una firma encima. El consumidor
+# (la app) lo baja, lo verifica con la raíz congelada, y sólo entonces enseña
+# o instala algo.
+#
+# POR QUÉ ESTÁ ESCRITA: el índice es un contrato entre DOS implementaciones
+# (el kit lo escribe, la app lo lee) y entre DOS casas (este repo y el repo de
+# la tienda, donde se publica). Sin contrato escrito, un campo que se renombra
+# rompe la app en silencio: la tienda sigue «verificando» mientras ya no
+# muestra nada.
+#
+# LAS REGLAS QUE NO SE ROMPEN:
+#
+#   1. **La firma va sobre los bytes del índice entero.** Si un byte cambia,
+#      la firma deja de valer: por eso, cuando una entrada gana sus permisos,
+#      el índice se vuelve a firmar (los artefactos NO cambian).
+#   2. **Lo que pide un módulo se declara ANTES de instalarlo.** Una entrada
+#      lleva sus `permisos`, para que la persona decida en la vitrina y no en
+#      el consentimiento que aparece después.
+#   3. **El veredicto viaja con el módulo.** `bench` (módulos de memoria) o
+#      `bench_ciclo` (herramientas): los números con los que el juez lo dejó
+#      entrar. Sin bench, la entrada no entra.
+#   4. **Las claves que firman se declaran en el índice** (`claves`): sin esa
+#      declaración, el consumidor no puede verificar a un firmante nuevo.
+#   5. **La procedencia es una huella, no un nombre**: el nombre identifica a
+#      la persona; la huella, al firmante.
+
+schema_version: 1
+
+# --- EL DOCUMENTO ---
+indice:
+  schema_version: 1
+  # Cuándo se firmó (lo pone el firmante; null = sin firmar todavía).
+  firmado: "la fecha (ISO) o null"
+  # Las entradas, una por módulo.
+  modulos: []
+  # Las claves que pueden firmar el índice: huella → clave pública.
+  claves: {}
+  # La firma, encima de los bytes enteros.
+  signature:
+    algorithm: "ed25519-sha512"
+    signature: "la firma (base64)"
+    signed_at: "cuándo firmó (ISO)"
+    signed_by: "la huella del firmante"
+
+# --- LA ENTRADA: un módulo del catálogo ---
+entrada:
+  # Quién es (único, minúsculas, con puntos).
+  id: "esme.autor.slug"
+  version: "0.1.0"
+  # La categoría del módulo (tool | agent | theme | memory | integration | thinking).
+  category: "tool"
+  # Qué hace (una frase).
+  descripcion: "qué hace"
+  # Las etiquetas (para buscarlo).
+  etiquetas: []
+  # LO QUE PIDE: sus permisos declarados. Se ve en la vitrina, antes de
+  # instalar. Vacío = no pide nada (y entonces el campo no se pone).
+  permisos: []
+  # El veredicto con sus números: `bench` (memoria) o `bench_ciclo` (herramienta).
+  bench: {}
+  bench_ciclo: {}
+  # Si la firma del artefacto vale.
+  firma_ok: true
+  # El artefacto: el paquete y su huella.
+  artefacto:
+    tar: "la huella sha256 del paquete"
+    bytes: 0
+  # La procedencia: QUIÉN lo publicó (huella) y CUÁNDO.
+  publicado_por: "la huella del firmante"
+  publicado_en: "la fecha (ISO)"
+
+reglas:
+  # 1. la firma va sobre los bytes ENTEROS del índice: un byte cambia y la
+  #    firma deja de valer.
+  firma_sobre_el_indice_entero: true
+  # 2. una entrada sin veredicto (bench) no entra: la tienda no publica lo
+  #    que no ha medido.
+  entrada_sin_veredicto_no_entra: true
+  # 3. lo que un módulo pide se declara en su entrada (permisos).
+  permisos_declarados_en_la_entrada: true
+  # 4. las claves que firman se declaran en el índice (claves).
+  claves_declaradas_en_el_indice: true
+  # 5. el artefacto se verifica por su huella: el `tar` de la entrada es el
+  #    sha256 del paquete, y el paquete se descarga y se comprueba.
+  artefacto_por_huella: true

@@ -38,6 +38,8 @@ Entre dos lenguas solo sobrevive lo que está escrito.
 | `docs/PUNTOS.md` | Los puntos: el estado de tu PC, medido (un punto por agente, con su RAM). |
 | `estandar/RACI.md` | Quién decide qué en las specs (RACI lite). |
 | `estandar/contexto.spec.yaml` | Los tres modos del contexto y el ahorro medido. |
+| `estandar/rea.spec.yaml` | La evidencia de REA y su catálogo: la forma, con nombre. |
+| `estandar/indice-tienda.spec.yaml` | El índice de la tienda: lo que se publica, con su firma. |
 | `docs/TURNOS.md` | El turno: la conversación como dato, y la limpieza del chat medida. |
 | `estandar/equipo.spec.yaml` | El equipo: varios agentes, un presupuesto repartido. |
 | `estandar/bot.spec.yaml` | El bot: la mente desde un mensajero, por la misma puerta. |

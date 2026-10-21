@@ -41,6 +41,9 @@ import {
 } from "../../core/rea/evidencia.ts";
 import { CATEGORIES, RUNTIMES } from "../../core/ipc/module-schema.ts";
 import { LICENCIAS_PERMITIDAS, TOPE_BYTES, TOPE_FICHEROS, TOPE_TOKENS } from "../../tienda/skills.ts";
+import { entradaDe } from "../publicar-modulo.ts";
+import { declaraClave, firmarIndex } from "../../tienda/firma.ts";
+import { generateKeyPairSync } from "node:crypto";
 
 /** Un fallo de conformidad. */
 export interface FalloConformidad {
@@ -339,6 +342,75 @@ export function compruebaConformidad(): FalloConformidad[] {
     for (const d of declarados) {
       if (!claves.includes(d)) {
         anota(fichero, `${seccion}.${d}: la spec lo declara y el código no lo tiene`);
+      }
+    }
+  }
+
+  // 13. el índice de la tienda: la spec y la entrada que se publica de verdad
+  const indice = leeSpec("indice-tienda.spec.yaml");
+  const entradaSpec = (indice.entrada ?? {}) as Record<string, unknown>;
+  const declaradasEntrada = Object.keys(entradaSpec);
+  if (!declaradasEntrada.length) {
+    anota("indice-tienda.spec.yaml", "no declara la forma «entrada»");
+  } else {
+    // la entrada REAL que publica el kit. Se miran las dos formas: una
+    // entrada lleva `bench` (módulo de memoria) o `bench_ciclo` (herramienta),
+    // según lo que diga el informe — y la spec declara las dos.
+    const reales = new Set<string>();
+    for (const informe of [
+      { casos: 12, recall_base: 0.25, recall_con: 1, tokens_base: 100, tokens_con: 50, modulo: "esme.prueba.modulo", version: "0.1.0" },
+      { casos: 3, ciclo_ok: true, tokens_ciclo: 10, modulo: "esme.prueba.modulo", version: "0.1.0" },
+    ]) {
+      const real = entradaDe(
+        "esme.prueba.modulo",
+        "0.1.0",
+        "tool",
+        "una descripción",
+        ["etiqueta"],
+        informe,
+        "a".repeat(64),
+        100,
+        true,
+        { por: "huella", en: "2026-10-21" },
+        ["proc:spawn", "mind:read"]
+      );
+      for (const k of Object.keys(real)) reales.add(k);
+    }
+    for (const d of declaradasEntrada) {
+      if (!reales.has(d)) {
+        anota("indice-tienda.spec.yaml", `la entrada declara «${d}», que la publicación no pone`);
+      }
+    }
+    for (const r of reales) {
+      if (!declaradasEntrada.includes(r)) {
+        anota("indice-tienda.spec.yaml", `la publicación pone «${r}» y la spec no lo declara`);
+      }
+    }
+  }
+
+  // 13-bis. el documento del índice: la spec y lo que se firma de verdad
+  const indiceSpec = (indice.indice ?? {}) as Record<string, unknown>;
+  const declaradasIndice = Object.keys(indiceSpec);
+  if (!declaradasIndice.length) {
+    anota("indice-tienda.spec.yaml", "no declara la forma «indice»");
+  } else {
+    // el documento REAL: se firma con una llave de mentira (el contenido no
+    // importa: lo que se comprueba es la FORMA)
+    const { privateKey } = generateKeyPairSync("ed25519");
+    const privPem = privateKey.export({ type: "pkcs8", format: "pem" }).toString();
+    const firmado = firmarIndex(
+      { schema_version: 1, firmado: null, modulos: [], ...declaraClave({}, "clave", "huella") },
+      privPem,
+      "huella"
+    );
+    for (const d of declaradasIndice) {
+      if (!(d in firmado)) {
+        anota("indice-tienda.spec.yaml", `el índice declara «${d}», que la firma no pone`);
+      }
+    }
+    for (const r of Object.keys(firmado)) {
+      if (!declaradasIndice.includes(r)) {
+        anota("indice-tienda.spec.yaml", `la firma pone «${r}» y la spec no lo declara`);
       }
     }
   }
