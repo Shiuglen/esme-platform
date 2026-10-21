@@ -39,6 +39,7 @@ Entre dos lenguas solo sobrevive lo que está escrito.
 | `estandar/contexto.spec.yaml` | Los tres modos del contexto y el ahorro medido. |
 | `docs/TURNOS.md` | El turno: la conversación como dato, y la limpieza del chat medida. |
 | `estandar/equipo.spec.yaml` | El equipo: varios agentes, un presupuesto repartido. |
+| `estandar/bot.spec.yaml` | El bot: la mente desde un mensajero, por la misma puerta. |
 | `estandar/` | Las specs abiertas (manifiesto, mente `.mind`, frontera, veredicto…). |
 | `core/mind/` | La mente portable: importadores, troceo, redacción, rumbo, delta, ZIP. |
 | `core/extension-host/` | La cápsula y la puerta de los módulos (qué no puede tocar, qué puede, y sólo si se le concede). |

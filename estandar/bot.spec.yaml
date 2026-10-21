@@ -1,0 +1,53 @@
+# **Spec abierta v1 — el bot.** La mente, desde un mensajero, por la puerta.
+# Referencia: core/bot.ts, docs/MODULOS.md.
+#
+# QUÉ ES UN BOT: una puerta hacia la mente desde un canal (telegram, slack,
+# discord, whatsapp, x, email). El bot no es un script suelto en un canal: es
+# un AGENTE con un canal, y por la misma puerta que todo lo demás.
+#
+# POR QUÉ ESTÁ ESCRITO: dos deseos de la era. Uno, que la mente conteste
+# donde la persona está (si Esme vive en tu PC, también vive en tu Telegram).
+# Dos, que el X de la casa sea la lista de deseos de la tienda.
+#
+# Las tres reglas que lo hacen un bot DE LA CASA y no un script:
+#
+#   1. **lo que puede hacer es lo que la persona ha concedido** — los mismos
+#      permisos del manifiesto, ni uno más (la puerta no se lo da);
+#   2. **lo que gasta tiene techo** — por mensaje y por hora (un bot que
+#      contesta a todo lo que le escriben puede gastarse la noche);
+#   3. **lo que hace queda escrito** — como un turno más en la conversación.
+#
+# Y lo que NO se juzga aquí: si el canal tiene sentido para el bot, ni cómo
+# suena su voz. Eso lo decide la persona.
+
+schema_version: 1
+
+bot:
+  id: "esme.<autor>.<slug>"
+  nombre: "lo que ve la persona"
+  canal: "telegram | slack | discord | whatsapp | x | email"
+  # el agente que contesta (la receta del agente: estandar/agente.spec.yaml)
+  agente: "esme.<autor>.<agente>"
+  # lo que el bot puede hacer: los permisos que la persona ha concedido
+  permisos: ["mind:read"]
+  presupuesto:
+    tokens_por_mensaje: 2000
+    tokens_por_hora: 60000
+  # la voz: cómo se presenta (es de la persona, no del kit)
+  voz: "una frase"
+  # si el bot puede escribir en la mente (o sólo leer)
+  escribe: false
+
+reglas:
+  # 1. la puerta: lo concedido manda. Un bot que pide de más, no entra.
+  permisos_concedidos: true
+  # 2. presupuesto con techo: por mensaje y por hora.
+  presupuesto_con_techo: true
+  # 3. si dice que escribe, tiene que tener mind:write (y si no lo tiene, lo
+  #    dice el juez, en vez de fallar luego en un sitio raro).
+  escribir_implica_mind_write: true
+  # 4. la voz es de la persona: el kit no la juzga.
+  voz_no_se_juzga: true
+  # 5. el canal es un dato, no un permiso: abrir un canal nuevo es una spec
+  #    nueva, no un permiso nuevo.
+  canal_es_dato: true
