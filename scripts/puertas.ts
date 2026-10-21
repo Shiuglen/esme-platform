@@ -220,8 +220,76 @@ await puerta("ejecutar (un turno de verdad)", async () => {
   return `${r.turno.tokens.total} tokens, limpieza ${Math.round(r.limpieza * 100)}%`;
 });
 
-await puerta("cambios (el diff de verdad)", async () => {
+// ——— la puerta de los programas (la séptima pieza) ———
+// La puerta se prueba con lo que la persona concede: un programa, un libro y
+// un módulo que lo lance. Sin programa en el libro, la puerta no abre nada.
+await puerta("programas (el libro: la persona decide)", async () => {
   const dir = casa();
+  const { ProgramasPermitidos, rutaProgramasDe } = await import("../core/modulos/programas.ts");
+  const ruta = rutaProgramasDe(join(dir, "consentimientos.json"));
+  const libro = new ProgramasPermitidos(ruta);
+  const sinDescripcion = libro.agrega({ nombre: "rea", descripcion: "" });
+  if (sinDescripcion.ok) throw new Error("se concedió un programa sin descripción");
+  const ok = libro.agrega({ nombre: "rea", descripcion: "el motor de ingeniería inversa" });
+  if (!ok.ok) throw new Error(ok.error);
+  if (!libro.permite("rea")) throw new Error("el programa no quedó en el libro");
+  return "un programa concedido (con su descripción)";
+});
+
+await puerta("proc:spawn (un módulo lanza un programa)", async () => {
+  const dir = casa();
+  const modulosDir = join(dir, "modulos");
+  mkdirSync(modulosDir, { recursive: true });
+  const { modulos } = await import("../core/modulos/api.ts");
+  const { leeModulo } = await import("../tienda/modulos.ts");
+  const carpeta = join(dir, "modulo");
+  mkdirSync(carpeta, { recursive: true });
+  writeFileSync(
+    join(carpeta, "modulo.mjs"),
+    `export async function ciclo() {
+       const r = await globalThis.esme.proc.ejecutar({ programa: "node", args: ["-e", "process.stdout.write('x')"] });
+       return r.stdout;
+     }`,
+    "utf8"
+  );
+  writeFileSync(
+    join(carpeta, "module.yaml"),
+    `schema_version: 1
+id: "esme.prueba.puerta-programas"
+name: "Programas"
+version: "0.1.0"
+category: "tool"
+description: "Un módulo de prueba que lanza un programa."
+author: "esme@prueba"
+license: "MIT"
+entry: "modulo.mjs"
+runtime: "nodejs"
+permissions:
+  - proc:spawn
+`,
+    "utf8"
+  );
+  const leido = leeModulo(carpeta);
+  if (!leido.ok) throw new Error(leido.errores.join("; "));
+  const runtime = modulos({
+    rutaPermisos: join(modulosDir, "consentimientos.json"),
+    rutaLanzamientos: join(modulosDir, "lanzamientos.jsonl"),
+    programas: [{ nombre: "node", descripcion: "node, para la prueba" }],
+  });
+  runtime.registro.registra(leido.modulo!);
+  runtime.concede("esme.prueba.puerta-programas", ["proc:spawn"]);
+  await runtime.activa("esme.prueba.puerta-programas");
+  const r = await runtime.llama("esme.prueba.puerta-programas", "ciclo");
+  await runtime.cierra();
+  if (r !== "x") throw new Error(`el módulo no recibió la salida del programa (${String(r)})`);
+  // y la puerta deja rastro
+  const { leeLanzamientos } = await import("../core/modulos/lanzamientos.ts");
+  const rastros = leeLanzamientos(join(modulosDir, "lanzamientos.jsonl"));
+  if (!rastros.length) throw new Error("la puerta no dejó rastro");
+  return `el hijo contestó «${String(r)}» y quedó anotado`;
+});
+
+await puerta("cambios (el diff de verdad)", async () => {  const dir = casa();
   writeFileSync(join(dir, "a.txt"), "uno\ndos\n");
   const antes = instantanea(dir);
   writeFileSync(join(dir, "a.txt"), "uno\ndos\ntres\n");
