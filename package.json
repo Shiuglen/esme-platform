@@ -77,6 +77,7 @@
     "bot:check": "tsx scripts/bot-check.ts",
     "router": "tsx scripts/router.ts",
     "deseos": "tsx scripts/deseos.ts",
+    "verificar:skill": "tsx scripts/verificar-skill.ts",
     "piel:check": "tsx scripts/estandar/piel-check.ts",
     "agente:check": "tsx scripts/estandar/agente-check.ts",
     "build": "tsc -p tsconfig.build.json",

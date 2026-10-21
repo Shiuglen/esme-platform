@@ -42,6 +42,10 @@ Entre dos lenguas solo sobrevive lo que está escrito.
 | `estandar/bot.spec.yaml` | El bot: la mente desde un mensajero, por la misma puerta. |
 | `estandar/router.spec.yaml` | El router que aprende de los veredictos de la persona. |
 | `estandar/deseo.spec.yaml` | Los deseos: lo que guardaste es lo que falta por construir. |
+
+Y las otras dos puertas: `npm run verificar:skill -- <carpeta>` (una skill de
+cualquiera, juzgada en local) y `npm run crear:modulo` (un módulo, con su
+juicio y su forma).
 | `estandar/` | Las specs abiertas (manifiesto, mente `.mind`, frontera, veredicto…). |
 | `core/mind/` | La mente portable: importadores, troceo, redacción, rumbo, delta, ZIP. |
 | `core/extension-host/` | La cápsula y la puerta de los módulos (qué no puede tocar, qué puede, y sólo si se le concede). |
