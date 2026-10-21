@@ -16,6 +16,22 @@ export interface InstaladoRemoto {
   dir: string;
   entrada: string;
   via: "directa" | "cadena";
+  /**
+   * Lo que el módulo PIDE (los permisos de su manifiesto, ya instalado).
+   *
+   * La persona lo ve antes de instalar (en la vitrina, que los declara) y
+   * después de instalar (aquí, que son los de verdad). Si no coinciden, la
+   * instalación se para: ver `permisosDeclarados`.
+   */
+  permisos: string[];
+  /**
+   * Lo que el ÍNDICE decía que pedía (lo que se enseñó en la vitrina).
+   *
+   * Si el módulo real pide más de lo que el índice decía, no se instala: la
+   * vitrina mentía, y una vitrina que miente sobre lo que pide un módulo no
+   * puede ser la puerta de la decisión de la persona.
+   */
+  permisosDeclarados: string[];
 }
 
 /** Baja índice (y rotaciones si hay) → verifica → baja firma → baja tar → instala. */
@@ -67,11 +83,12 @@ export async function instalarRemoto(
   const claves = ((indice as { claves?: Record<string, string> }).claves ?? {}) as Record<string, string>;
 
   // 4. la entrada del módulo y su artefacto
-  const lista = (indice as { modulos?: Array<{ id: string; version?: string; artefacto?: { tar?: string } }> }).modulos ?? [];
+  const lista = (indice as { modulos?: Array<{ id: string; version?: string; artefacto?: { tar?: string }; permisos?: string[] }> }).modulos ?? [];
   const entrada = lista.find((m) => m.id === id);
   if (!entrada) throw new Error(`${id} no está en el índice que bajé`);
   const version = entrada.version;
   if (!version) throw new Error(`el índice no dice la versión de ${id}`);
+  const permisosDeclarados = [...(entrada.permisos ?? [])].sort();
   const firma = JSON.parse(
     (await bajar(`${baseUrl}/firmas/${id}.artefacto.json`)).toString("utf8")
   ) as { modulo: string; tar: string; firma: Parameters<typeof verificarBytes>[1] };
@@ -96,11 +113,21 @@ export async function instalarRemoto(
   execFileSync("tar", ["-xzf", rutaTar, "-C", dir]);
   const manifiesto = yaml.load(
     readFileSync(join(dir, "module.yaml"), "utf8")
-  ) as { id: string; version: string; entry: string };
+  ) as { id: string; version: string; entry: string; permissions?: string[] };
   if (manifiesto.id !== id || manifiesto.version !== version)
     throw new Error("lo que llegó no es lo que el índice decía");
   if (!existsSync(resolve(dir, manifiesto.entry)))
     throw new Error("la entrada del módulo no está tras desempaquetar");
+
+  // 7. lo que PIDE: el manifiesto manda (es lo que se va a instalar), y tiene
+  //    que ser lo que el índice enseñó. Si no, la vitrina mentía.
+  const permisos = [...(manifiesto.permissions ?? [])].sort();
+  if (permisosDeclarados.length && permisos.join(",") !== permisosDeclarados.join(",")) {
+    throw new Error(
+      `el índice dice que ${id} pide [${permisosDeclarados.join(", ")}] y el módulo pide ` +
+        `[${permisos.join(", ")}]: la vitrina no decía la verdad, no se instala`
+    );
+  }
 
   return {
     id: manifiesto.id,
@@ -108,6 +135,8 @@ export async function instalarRemoto(
     dir,
     entrada: manifiesto.entry,
     via: confianza.via as "directa" | "cadena",
+    permisos,
+    permisosDeclarados,
   };
 }
 

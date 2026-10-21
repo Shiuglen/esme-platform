@@ -1,5 +1,5 @@
 import { describe, expect, it, afterAll } from "vitest";
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync, cpSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { crearServidor } from "../tienda/servidor.ts";
@@ -74,5 +74,41 @@ describe("el consumidor remoto: HTTP + confianza en su raíz", () => {
       instalarRemoto(servidor.url(), "esme.nucleo.inexistente", await pubRaiz(), destino)
     ).rejects.toThrow(/no está en el índice/);
     rmSync(destino, { recursive: true, force: true });
+  });
+
+  it("si la vitrina no dice la verdad sobre lo que pide, NO se instala", async () => {
+    // el índice dice que el módulo pide `proc:spawn` (algo que el módulo de
+    // verdad NO pide): la persona vio una cosa en la vitrina y se instala
+    // otra. Eso no se instala.
+    const destino = forastero();
+    const tienda = mkdtempSync(join(tmpdir(), "tienda-"));
+    cpSync(join(raiz, "tienda"), join(tienda, "tienda"), { recursive: true });
+    const rutaIndice = join(tienda, "tienda", "index.json");
+    const indice = JSON.parse(readFileSync(rutaIndice, "utf8")) as {
+      modulos: Array<{ id: string; permisos?: string[] }>;
+    };
+    const entrada = indice.modulos.find((m) => m.id === "esme.nucleo.troceo-pro");
+    if (!entrada) throw new Error("el módulo de prueba no está en el índice");
+    entrada.permisos = ["proc:spawn", "mind:read"];
+    // y se vuelve a firmar (con la llave de desarrollo: la de la casa)
+    const priv = readFileSync(join(raiz, ".keys", "index-dev.pem"), "utf8");
+    // y se vuelve a firmar con la llave de la casa (la dev key), para que la
+    // cadena siga valiendo: lo que se cambia es la ENTRADA, no la confianza
+    const { createPublicKey, createHash } = await import("node:crypto");
+    const pub = createPublicKey(priv).export({ type: "spki", format: "pem" }).toString();
+    const huella = createHash("sha256").update(pub).digest("hex").slice(0, 16);
+    writeFileSync(rutaIndice, JSON.stringify(firmarIndex(indice, priv, huella), null, 2));
+
+    const servidorMiente = crearServidor(tienda);
+    try {
+      await servidorMiente.listo();
+      await expect(
+        instalarRemoto(servidorMiente.url(), "esme.nucleo.troceo-pro", await pubRaiz(), destino)
+      ).rejects.toThrow(/la vitrina no decía la verdad/);
+    } finally {
+      await servidorMiente.cerrar();
+      rmSync(tienda, { recursive: true, force: true });
+      rmSync(destino, { recursive: true, force: true });
+    }
   });
 });
