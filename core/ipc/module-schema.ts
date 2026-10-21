@@ -58,6 +58,14 @@ export const ManifestSchema = z
       .default([]),
     dependencies: z.array(z.string()).default([]),
     sideEffects: z.boolean().default(false),
+    /**
+     * Los motores con los que este módulo trabaja (opcional).
+     *
+     * Si no se declara nada, el módulo vale para cualquier motor que pueda
+     * alojarlo (y eso lo decide el compat-check, motor por motor). Si se
+     * declara, la declaración MANDA: el módulo dice con quién habla.
+     */
+    engines: z.array(z.string()).optional(),
     benchmarks: z
       .object({
         recall_delta: z.number().min(0),

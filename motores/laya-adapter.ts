@@ -9,9 +9,24 @@
 import * as yaml from "js-yaml";
 import { readFileSync } from "node:fs";
 
-export type Motor =
-  | "claude-code" | "opencode" | "codex" | "gemini"
-  | "shell" | "ollama" | "local";
+/**
+ * Los motores que la casa conoce.
+ *
+ * La lista ES el tipo: una sola verdad. Si el tipo y la spec se contaran por
+ * separado, algún día dirían cosas distintas (y ya lo hicieron: la spec
+ * declaraba tres motores y el código prometía siete).
+ */
+export const MOTORES_CONOCIDOS = [
+  "claude-code",
+  "opencode",
+  "codex",
+  "gemini",
+  "shell",
+  "ollama",
+  "local",
+] as const;
+
+export type Motor = (typeof MOTORES_CONOCIDOS)[number];
 
 export interface LayaDecision {
   route: Motor;
@@ -31,7 +46,17 @@ export interface CognitionMotor {
     local_only: boolean;
     pricing: "api" | "local" | "gratuito";
     cancel_support: boolean;
+    /** Qué runtime puede alojar este motor (`nodejs`, `wasm`, `python`). */
+    runtimes: string[];
+    /** Si el motor llega a la red. */
+    net: boolean;
   };
+  /** El fichero que sabe cómo se habla con este motor. */
+  adapter: string | null;
+  /** De dónde sale lo que este motor declara. */
+  source?: string;
+  /** Cuándo se miró esa fuente. */
+  verificado_en?: string;
 }
 
 /** Construye la cola de preferencia: primero gratuito y local, luego api barato. */
@@ -118,7 +143,14 @@ function validarResp(
   );
 }
 
-/** Cargo las capacidades desde estandar/motor-capability.spec.yaml. */
+/**
+ * Cargo las capacidades desde estandar/motor-capability.spec.yaml.
+ *
+ * Los motores se cargan TODOS (yaml.loadAll): un solo motor no es el caso.
+ * Lo que la spec declara y el código no sabe (el `adapter`, la `source`, la
+ * fecha en que se verificó) también viene: sin eso, la spec y el código
+ * acabarían contando cosas distintas.
+ */
 export function cargaMotorCached(ruta: string): CognitionMotor[] {
   const doc = yaml.loadAll(readFileSync(ruta, "utf8")) as Record<string, any>[];
   return doc
@@ -132,6 +164,11 @@ export function cargaMotorCached(ruta: string): CognitionMotor[] {
         local_only: !!d.capabilities.local_only,
         pricing: d.capabilities.pricing,
         cancel_support: !!d.capabilities.cancel_support,
+        runtimes: Array.isArray(d.capabilities.runtimes) ? d.capabilities.runtimes.map(String) : [],
+        net: !!d.capabilities.net,
       },
+      adapter: d.adapter ? String(d.adapter) : null,
+      source: d.source ? String(d.source) : undefined,
+      verificado_en: d.verificado_en ? String(d.verificado_en) : undefined,
     }));
 }

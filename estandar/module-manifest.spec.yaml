@@ -38,6 +38,12 @@ dependencies:
   - "esme.core@^1.0"
 sideEffects: false                  # sideEffects true exige justificar en description
 
+# --- Motores (opcional) ---
+# Los motores con los que este módulo trabaja. Si no se declara nada, el
+# módulo vale para cualquier motor que pueda alojarlo (y lo decide el
+# compat-check: `npm run compat -- <módulo>`). Referencia: docs/MOTORES.md.
+# engines: ["ollama", "local"]
+
 # --- Prueba 0 (obligatorio para publicar) ---
 benchmarks:
   recall_delta: 0.01                # mínimo +0,01 o -10% tokens en su categoría

@@ -3,6 +3,31 @@
 #
 # Un proveedor = un documento (separados por ---). El adaptador los carga TODOS
 # (yaml.loadAll): un solo motor no es el caso.
+#
+# QUÉ ES UN MOTOR: el motor es el CEREBRO que habla con la mente (claude-code,
+# opencode, codex, gemini, shell, ollama, local). Un MÓDULO es una herramienta
+# que vive en la casa de la persona (se ejecuta en el extension host, no dentro
+# del motor). Por eso la compatibilidad se pregunta al revés: no «qué módulos
+# sabe usar este motor» sino «qué motores pueden alojar este módulo».
+#
+# LOS CAMPOS, y por qué están:
+#   - `runtimes`: qué runtime puede alojar el motor hospeda (nodejs|wasm|python).
+#     Un módulo con runtime `nodejs` no lo aloja un motor que sólo habla wasm.
+#   - `tools`: si el motor puede VER herramientas (módulos que emiten eventos o
+#     pintan vistas necesitan un motor con herramientas).
+#   - `net`: si el motor llega a la red. Un módulo que pide `net:fetch` necesita
+#     un motor con red.
+#   - `max_context`: la ventana de contexto que declara el motor.
+#   - `local_only`: si el motor es local (nada sale de la casa).
+#   - `pricing`: api | local | gratuito.
+#   - `cancel_support`: si se puede CANCELAR la ejecución (un motor que no se
+#     puede parar, para).
+#   - `source` + `verificado_en`: DE DÓNDE sale el número. Un número sin
+#     fuente es una opinión; aquí la fuente es un hecho que se puede revisar.
+#   - `adapter`: el fichero que sabe cómo se habla con este motor.
+#
+# `npm run compat -- <módulo>` cruza esta spec con el manifiesto del módulo y
+# dice, motor por motor, si puede alojarlo y por qué. Referencia: docs/MOTORES.md.
 
 ---
 # Proveedor: claude-code
@@ -14,11 +39,15 @@ capabilities:
   tools: true
   max_context: 200000
   local_only: false
-  pricing: "api"             # api | local | gratuito
+  pricing: "api"
   cancel_support: true
+  runtimes: ["nodejs", "wasm", "python"]
+  net: true
 dialecto_deteccion_herramientas: "locales castellano con su fichero u orden"
 adapter: "motores/acp-motores.ts"   # cuando usa el bucle por ACP
 health_endpoint: null
+source: "https://docs.anthropic.com/en/docs/claude-code/overview"
+verificado_en: "2026-10-21"
 
 ---
 # Proveedor: opencode (por defecto al instalar)
@@ -32,8 +61,95 @@ capabilities:
   local_only: false
   pricing: "gratuito"
   cancel_support: true
+  runtimes: ["nodejs", "wasm", "python"]
+  net: true
 adapter: "motores/acp-motores.ts"
 health_endpoint: null
+source: "https://opencode.ai/docs"
+verificado_en: "2026-10-21"
+
+---
+# Proveedor: codex (CLI de OpenAI)
+schema_version: 1
+id: "codex"
+version: "1.0"
+capabilities:
+  streaming: true
+  tools: true
+  # el tope por defecto del CLI; con bandera se puede pedir 1M (eso lo decide
+  # quien lo lanza, no la casa)
+  max_context: 272000
+  local_only: false
+  pricing: "api"
+  cancel_support: true
+  runtimes: ["nodejs", "wasm", "python"]
+  net: true
+adapter: "motores/acp-motores.ts"
+health_endpoint: null
+source: "https://github.com/openai/codex"
+verificado_en: "2026-10-21"
+
+---
+# Proveedor: gemini (CLI de Google)
+schema_version: 1
+id: "gemini"
+version: "1.0"
+capabilities:
+  streaming: true
+  tools: true
+  max_context: 1000000
+  local_only: false
+  pricing: "api"
+  cancel_support: true
+  runtimes: ["nodejs", "wasm", "python"]
+  net: true
+adapter: "motores/acp-motores.ts"
+health_endpoint: null
+source: "https://ai.google.dev/gemini-api/docs/long-context"
+verificado_en: "2026-10-21"
+
+---
+# Proveedor: shell (el motor sin modelo: el terminal de la persona)
+schema_version: 1
+id: "shell"
+version: "1.0"
+capabilities:
+  streaming: false
+  tools: true
+  # sin modelo no hay ventana de contexto: el motor no guarda nada
+  max_context: 0
+  local_only: true
+  pricing: "gratuito"
+  cancel_support: true
+  runtimes: ["nodejs", "wasm", "python"]
+  # el shell no sale a la red por su cuenta: la red es de la puerta
+  net: false
+adapter: "motores/acp-motores.ts"
+health_endpoint: null
+source: "https://docs/MOTORES.md#el-shell-sin-modelo"
+verificado_en: "2026-10-21"
+
+---
+# Proveedor: ollama (modelos locales)
+schema_version: 1
+id: "ollama"
+version: "1.0"
+capabilities:
+  streaming: true
+  tools: true
+  # la ventana es del MODELO que tú elijas, no del motor: la de un modelo
+  # local típico
+  max_context: 32768
+  local_only: true
+  pricing: "local"
+  cancel_support: true
+  # ollama es un servidor de modelos: aloja herramientas, no módulos
+  runtimes: []
+  net: false
+adapter: "motores/acp-motores.ts"
+health_endpoint: "http://localhost:11434/api/tags"
+source: "https://github.com/ollama/ollama/blob/main/docs/api.md"
+verificado_en: "2026-10-21"
 
 ---
 # Proveedor: local (llamacpp / ONNX dentro del cerebro)
@@ -47,5 +163,10 @@ capabilities:
   local_only: true
   pricing: "local"
   cancel_support: true
-adapter: "core/talamus/laya-adapter.ts"
+  # el cerebro es Python: lo que habla con él es python o wasm
+  runtimes: ["python", "wasm"]
+  net: false
+adapter: "motores/laya-adapter.ts"
 health_endpoint: null
+source: "docs/LAYA.md"
+verificado_en: "2026-10-21"

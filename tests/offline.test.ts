@@ -15,7 +15,10 @@ const capa = (id: string, pricing: "api" | "local" | "gratuito" = "gratuito"): C
     local_only: pricing !== "api",
     pricing,
     cancel_support: true,
+    runtimes: ["nodejs"],
+    net: false,
   },
+  adapter: null,
 });
 
 afterEach(() => {

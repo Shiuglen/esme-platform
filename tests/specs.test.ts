@@ -80,10 +80,36 @@ describe("las specs son contratos (y se pueden leer)", () => {
 
   it("la spec de motores carga de verdad (el adaptador la lee)", () => {
     const motores = cargaMotorCached(resolve(dirSpecs, "motor-capability.spec.yaml"));
-    expect(motores.map((m) => m.id).sort()).toEqual(["claude-code", "local", "opencode"]);
+    // la spec declara TODOS los motores que el código conoce: si el código
+    // promete un motor que la spec no declara, el router no puede y la
+    // promesa es mentira
+    expect(motores.map((m) => m.id).sort()).toEqual([
+      "claude-code",
+      "codex",
+      "gemini",
+      "local",
+      "ollama",
+      "opencode",
+      "shell",
+    ]);
     const local = motores.find((m) => m.id === "local");
     expect(local?.capabilities.local_only).toBe(true);
     expect(local?.capabilities.pricing).toBe("local");
+  });
+
+  it("cada motor dice de dónde sale lo que declara (un número sin fuente es una opinión)", () => {
+    const motores = cargaMotorCached(resolve(dirSpecs, "motor-capability.spec.yaml"));
+    for (const m of motores) {
+      expect(m.source, `${m.id} sin fuente`).toBeTruthy();
+      expect(m.verificado_en, `${m.id} sin fecha de verificación`).toBeTruthy();
+    }
+  });
+
+  it("cada motor declara qué runtimes puede alojar (sin eso no hay compat-check)", () => {
+    const motores = cargaMotorCached(resolve(dirSpecs, "motor-capability.spec.yaml"));
+    for (const m of motores) {
+      expect(Array.isArray(m.capabilities.runtimes), `${m.id} sin runtimes`).toBe(true);
+    }
   });
 });
 

@@ -10,6 +10,7 @@ esme/
 │   ├── LAYA.md                   # motor de decisiones del núcleo
 │   ├── TIENDA.md                 # distribución firmada, sin peajes
 │   ├── ENTRADA.md                # la puerta de entrada: crea y publica un módulo
+│   ├── MOTORES.md                # los motores: la misma mente, muchos cerebros
 │   ├── SYNC.md                   # mente portable (.mind) y sync criptográfico
 │   └── COLABORADOR-KIT/          # ENTRY: COLABORADORES.md, ADRs, runbook
 ├── estandar/                     # las specs abiertas (versionadas)

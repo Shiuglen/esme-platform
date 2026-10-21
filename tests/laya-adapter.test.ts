@@ -19,7 +19,10 @@ const capa = (
     local_only,
     pricing,
     cancel_support: true,
+    runtimes: ["nodejs"],
+    net: false,
   },
+  adapter: null,
 });
 
 const colaLocal = [capa("local", "local", true), capa("claude-code", "api")];

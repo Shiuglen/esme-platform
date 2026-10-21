@@ -64,6 +64,29 @@ jobs:
       - name: la puerta se cierra cuando tiene que cerrarse
         run: npx vitest run tests/entrada.test.ts
 
+  motores:
+    name: motores — cada módulo, en cada motor
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+          cache: npm
+      - run: npm ci
+      # la spec de motores y el código tienen que contar lo mismo, y cada
+      # módulo tiene que poder ser alojado por ALGO (un módulo que ningún
+      # motor puede alojar es un módulo que no sirve)
+      - name: la spec de motores cuadra con el código
+        run: npm run spec:lint
+      - name: cada módulo puede ser alojado por algún motor
+        run: |
+          for d in modulos/*/; do
+            [ -f "$d/module.yaml" ] || continue
+            echo "— $d"
+            npm run compat -- "$d"
+          done
+
   firma:
     name: tienda — la tienda publicada se verifica (sin llaves)
     runs-on: ubuntu-latest
