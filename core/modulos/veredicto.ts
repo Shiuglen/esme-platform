@@ -237,7 +237,14 @@ export function juzgaModulo(
   if (forma === "ciclo") {
     // Un módulo de herramienta: el ciclo tiene que funcionar y noinjectar de más.
     if (cicloOk === false) {
-      return { ...base, nivel: "fuera", entra: false, causa: "el ciclo falló en el examen" };
+      // el porqué va en la causa: «el ciclo falló» no dice qué arreglar.
+      const porque = typeof informe?.error === "string" ? `: ${informe.error}` : "";
+      return {
+        ...base,
+        nivel: "fuera",
+        entra: false,
+        causa: `el ciclo falló en el examen${porque}`,
+      };
     }
     if (casos < MIN_CASOS_CICLO) {
       return {

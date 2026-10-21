@@ -20,6 +20,10 @@ jobs:
       - run: npm test
       - name: la puerta de la Prueba 0 (el número no puede empeorar)
         run: npx vitest run tests/prueba0.test.ts
+      # se construyen TODOS los módulos, también los que llegan de fuera: el
+      # lint de specs mira que la entrada exista, y si no está construida el
+      # fallo es del que llega, no de su módulo
+      - run: npm run build:modulos
       - run: npm run spec:lint
       - name: offline — el router decide sin red
         run: npm run test:offline
@@ -37,8 +41,28 @@ jobs:
         with:
           node-version: 26
       - run: npm ci
-      - run: npm run build:ejemplo
+      - run: npm run build:modulos
       - run: npm run spec:lint
+
+  entrada:
+    name: la puerta de entrada — un módulo cualquiera, de principio a fin
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+          cache: npm
+      - run: npm ci
+      # la puerta se comprueba con un módulo NUEVO, hecho aquí mismo: si
+      # construir, medir y juzgar dejaran de funcionar, la CI lo dice en el
+      # PR — antes de que lo descubra quien publica.
+      - name: el módulo de cualquiera nace y entra
+        run: |
+          npm run crear:modulo -- --id esme.ci.puerta --nombre "Puerta de la CI" --dir /tmp/puerta-ci
+          npm run verificar:modulo -- /tmp/puerta-ci
+      - name: la puerta se cierra cuando tiene que cerrarse
+        run: npx vitest run tests/entrada.test.ts
 
   firma:
     name: tienda — la tienda publicada se verifica (sin llaves)

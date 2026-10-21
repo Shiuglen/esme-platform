@@ -9,6 +9,7 @@ esme/
 │   ├── PRUEBA-0.md               # el examen que regula todo
 │   ├── LAYA.md                   # motor de decisiones del núcleo
 │   ├── TIENDA.md                 # distribución firmada, sin peajes
+│   ├── ENTRADA.md                # la puerta de entrada: crea y publica un módulo
 │   ├── SYNC.md                   # mente portable (.mind) y sync criptográfico
 │   └── COLABORADOR-KIT/          # ENTRY: COLABORADORES.md, ADRs, runbook
 ├── estandar/                     # las specs abiertas (versionadas)

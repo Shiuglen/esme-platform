@@ -31,6 +31,7 @@ Entre dos lenguas solo sobrevive lo que está escrito.
 | `docs/SYNC.md` | La mente portable (`.mind`), en carpeta o en un solo fichero. |
 | `docs/INCIDENTE.md` | El runbook: si una llave se cae, qué se hace. |
 | `docs/MODULOS.md` | Los módulos: la cápsula, la puerta, el juez y el runtime. |
+| `docs/ENTRADA.md` | La puerta de entrada: construir y publicar un módulo, en tres comandos. |
 | `estandar/` | Las specs abiertas (manifiesto, mente `.mind`, frontera, veredicto…). |
 | `core/mind/` | La mente portable: importadores, troceo, redacción, rumbo, delta, ZIP. |
 | `core/extension-host/` | La cápsula y la puerta de los módulos (qué no puede tocar, qué puede, y sólo si se le concede). |
@@ -144,10 +145,19 @@ npm run verificar        # la tienda se verifica: índice y artefactos, byte a b
 
 ## Publicar un módulo (tu primer PR)
 
-No hay scaffolder todavía: se copia [`modulos/ejemplo-hola-mundo`](modulos/ejemplo-hola-mundo),
-se cambia el `module.yaml` (id, versión, categoría, permisos) y se escribe el módulo.
-El contrato del módulo es [`estandar/module-manifest.spec.yaml`](estandar/module-manifest.spec.yaml)
-y `npm run spec:lint` lo comprueba.
+Hay puerta de entrada: **tres comandos** y el módulo nace ya juzgado.
+
+```bash
+npm run crear:modulo -- --id esme.tu.mi-modulo --nombre "Mi módulo"
+npm run verificar:modulo -- modulos/mi-modulo
+```
+
+El primero te deja el módulo entero (manifiesto, código, prueba) y lo pasa por
+el verificador; el segundo lo construye, lo **mide de verdad** (abre su worker,
+le habla por la puerta y cuenta los tokens) y lo juzga. El contrato del módulo
+es [`estandar/module-manifest.spec.yaml`](estandar/module-manifest.spec.yaml)
+y `npm run spec:lint` lo comprueba. Todo el camino está en
+[`docs/ENTRADA.md`](docs/ENTRADA.md).
 
 Un módulo habla con la mente por la puerta (nunca con la mente):
 

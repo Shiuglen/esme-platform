@@ -4,3 +4,4 @@ dist/
 .keys/index-dev.pem
 instalaciones/
 .playwright-mcp/
+salida/

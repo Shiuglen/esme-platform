@@ -32,7 +32,7 @@ export interface DictamenModulo {
 /** Valida un module.yaml en disco: schema + reglas del índice. */
 export function validaModuloFile(
   ruta: string,
-  opts: { exigirBenchmarks?: boolean; exigirFirma?: boolean } = {}
+  opts: { exigirBenchmarks?: boolean; exigirFirma?: boolean; exigirEntrada?: boolean } = {}
 ): DictamenModulo {
   const dir = dirname(ruta);
   let raw: unknown;
@@ -53,8 +53,11 @@ export function validaModuloFile(
 
   if (res.ok) {
     const m = res.manifest!;
-    // entry existe tras el build
-    if (!existsSync(resolve(dir, m.entry))) {
+    // entry existe tras el build.
+    // (`exigirEntrada: false` es para el caso de dos pasos: dictaminar la
+    // FORMA antes de construir, y dictaminar el conjunto después — que es lo
+    // que hace la puerta de entrada: primero la forma, luego el build.)
+    if (opts.exigirEntrada !== false && !existsSync(resolve(dir, m.entry))) {
       errores.push(`entry '${m.entry}' no existe (¿falta build del módulo?)`);
     }
     // licenses de tipo ESME-CL exigen firma
@@ -94,7 +97,7 @@ export function entradaConfineda(dirModulo: string, entry: string): Confinada {
 /** Lee el manifiesto de una carpeta de módulo y lo dictamina. */
 export function leeManifiesto(
   dirModulo: string,
-  opts: { exigirBenchmarks?: boolean; exigirFirma?: boolean } = {}
+  opts: { exigirBenchmarks?: boolean; exigirFirma?: boolean; exigirEntrada?: boolean } = {}
 ): DictamenModulo {
   return validaModuloFile(resolve(dirModulo, "module.yaml"), opts);
 }

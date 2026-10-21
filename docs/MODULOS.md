@@ -269,6 +269,17 @@ rotaciones desde la raíz congelada, la firma de cada artefacto y las
 revocaciones. Eso ya estaba y ya funciona (`npm run instalar:remoto`). Lo que
 faltaba era todo lo demás.
 
+### 6.5 La puerta de entrada
+
+Medir un módulo exige una convención (una sola función, `ciclo(consulta)`) y
+un examen. Sin las dos cosas, un módulo de fuera no puede traer sus números:
+no hay veredicto, y no hay entrada.
+
+Por eso existe [`docs/ENTRADA.md`](ENTRADA.md): `npm run crear:modulo` deja un
+módulo entero y `npm run verificar:modulo` lo construye, lo mide de verdad
+(abre su worker, le habla por la puerta y cuenta los tokens) y lo juzga. Un
+módulo nace juzgado, y el motivo de que no entre está escrito.
+
 ## 7. La regla
 
 > Un límite solo se conserva si es una decisión del creador, nunca un resto de
