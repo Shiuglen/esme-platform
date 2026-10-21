@@ -60,10 +60,12 @@ describe("buscar en la tienda", () => {
   });
 
   it("con texto, salen los que coinciden (y se dice por qué)", () => {
+    // «memoria» está en las etiquetas de los dos que la usan
     const lista = buscaEnTienda(indice, "memoria");
-    expect(lista.length).toBe(1);
-    expect(lista[0].id).toBe("esme.nucleo.troceo-pro");
-    expect(lista[0].porque).toContain("coincide");
+    expect(lista.length).toBe(2);
+    for (const r of lista) expect(r.porque).toContain("coincide");
+    // y lo que NO coincide, no sale
+    expect(lista.find((r) => r.id === "esme.malo")).toBeUndefined();
   });
 
   it("lo que no entró, no sale (si se pide sólo lo que entró)", () => {
