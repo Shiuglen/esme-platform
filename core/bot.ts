@@ -15,7 +15,7 @@
  *
  * Eso es lo que separa a un bot de la casa de unScripts suelto en un canal.
  *
- * Referencia: estandar/bot.spec.yaml, core/turno.ts.
+ * Referencia: estandar/bot.spec.yaml, core/turnos/turno.ts.
  */
 import { CAPABILITIES, type Capability } from "./extension-host/capability.ts";
 
