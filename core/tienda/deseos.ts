@@ -24,7 +24,8 @@
  * Referencia: estandar/deseo.spec.yaml, docs/TIENDA.md.
  */
 import { existsSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { join } from "node:path";
+import { raizDelPaquete } from "../paquete.ts";
 
 /**
  * ¿Existe ese contrato en estandar/?
@@ -34,7 +35,7 @@ import { join, resolve } from "node:path";
  * escribió.
  */
 export function existeContrato(nombre: string): boolean {
-  const raiz = resolve(import.meta.dirname, "..", "..");
+  const raiz = raizDelPaquete();
   const limpio = nombre.replace(/^estandar\//, "").replace(/\.spec\.yaml$/, "");
   const candidatos = [
     join(raiz, "estandar", `${limpio}.spec.yaml`),

@@ -3,10 +3,11 @@
 // nace sola si falta y se queda en .keys/ (ignorada por git). Quien quiera verificar
 // necesita el PEM público, que sí puede ir en el repo.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { join } from "node:path";
 import { createHash, createPublicKey } from "node:crypto";
 import { generarPar } from "./firma.ts";
 import { leeRaiz } from "./raiz.ts";
+import { raizDelPaquete } from "../core/paquete.ts";
 import {
   huellaDePub,
   leerLedger,
@@ -15,7 +16,10 @@ import {
   rutaRotaciones,
 } from "./rotacion.ts";
 
-const raiz = resolve(import.meta.dirname, "..");
+// La raíz se busca por el nombre del paquete: el mismo código compilado a
+// dist/ tiene que seguir llegando a la MISMA casa (si no, la llave de firma
+// se guarda en dist/.keys y el libro de rotaciones no se encuentra).
+const raiz = raizDelPaquete();
 
 export interface ClaveFirma {
   priv: string; // PEM pkcs8 (nunca sale del repo ni del disco del usuario)

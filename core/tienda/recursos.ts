@@ -23,7 +23,8 @@
  * Referencia: estandar/recurso.spec.yaml, core/tienda/deseos.ts.
  */
 import { existsSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { join } from "node:path";
+import { raizDelPaquete } from "../paquete.ts";
 
 /** Los tipos de recurso (cerrados: un tipo nuevo es una spec nueva). */
 export const TIPOS_RECURSO = ["repo", "paquete", "servicio", "patron"] as const;
@@ -209,7 +210,7 @@ export function empareja(
 
 /** ¿Existe este contrato en estandar/ (igual que los deseos)? */
 export function existeContratoDeRecurso(nombre: string): boolean {
-  const raiz = resolve(import.meta.dirname, "..", "..");
+  const raiz = raizDelPaquete();
   const limpio = nombre.replace(/^estandar\//, "").replace(/\.spec\.yaml$/, "");
   return [
     join(raiz, "estandar", `${limpio}.spec.yaml`),

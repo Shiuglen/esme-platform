@@ -13,14 +13,19 @@
  * Referencia: docs/TIENDA.md (la tienda), tienda/rotacion.ts (la estirpe).
  */
 import { existsSync, readFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
+import { raizDelPaqueteSiExiste } from "../core/paquete.ts";
 
 export const NOMBRE_RAIZ = "raiz.pub.pem";
 
 /** La raíz congelada del repo, o null si este repo no la trae. */
 export function leeRaiz(raiz?: string): string | null {
-  const base = raiz ?? resolve(dirname(fileURLToPath(import.meta.url)), "..");
+  // La base se busca por el NOMBRE del paquete, no por la cuenta de niveles:
+  // el mismo código, compilado a dist/, sigue llegando a la raíz (esto se
+  // comprobó: con `resolve(dirname, "..")` el kit publicado no encontraba su
+  // propia raíz y no verificaba nada en silencio).
+  const base = raiz ?? raizDelPaqueteSiExiste();
+  if (!base) return null;
   const ruta = join(base, "tienda", NOMBRE_RAIZ);
   if (!existsSync(ruta)) return null;
   const pem = readFileSync(ruta, "utf8").trim();
