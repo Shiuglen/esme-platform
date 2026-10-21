@@ -11,6 +11,7 @@ import { createHash, createPublicKey } from "node:crypto";
 import { verificarIndex, verificarBytes, type FirmaBytes } from "../tienda/firma.ts";
 import { estaRevocada } from "../tienda/revocacion.ts";
 import { confiaIndexChain } from "../tienda/rotacion.ts";
+import { confiaDeseos } from "../core/tienda/deseos-firmados.ts";
 import { leeRaiz } from "../tienda/raiz.ts";
 
 const raiz = resolve(import.meta.dirname, "..");
@@ -73,6 +74,24 @@ if (!pubKey) {
     pubActiva = confianza.pubActiva ?? null;
   } else {
     console.log("índice    : FALLA ✗ — no viene de la raíz ni de su estirpe");
+    fallos++;
+  }
+}
+
+// 1bis. la lista de deseos: si está, va firmada por la estirpe (la demanda
+//      escrita de la tienda: lo que guardó la gente y lo que falta)
+const rutaDeseos = join(raiz, "tienda", "deseos.json");
+if (existsSync(rutaDeseos)) {
+  const confianzaDeseos = confiaDeseos(
+    readFileSync(rutaDeseos, "utf8"),
+    pubKey ?? "",
+    join(raiz, "tienda", "rotaciones.json")
+  );
+  if (confianzaDeseos.ok) {
+    const etiqueta = confianzaDeseos.via === "directa" ? "" : " — la raíz congelada lo avala por la estirpe";
+    console.log(`deseos    : firma verificada ✓ (${confianzaDeseos.via})${etiqueta}`);
+  } else {
+    console.log("deseos    : FALLA ✗ — la lista no viene de la raíz ni de su estirpe");
     fallos++;
   }
 }

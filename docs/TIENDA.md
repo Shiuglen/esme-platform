@@ -76,6 +76,27 @@ módulo (construir, medir, juzgar) antes de tocar el índice. Un módulo que el
 juez echa, no entra — ni aunque traiga la firma puesta, ni aunque lo traiga
 alguien de confianza.
 
+### Los deseos: lo que guardaste es lo que falta
+
+La lista de deseos es la demanda escrita: lo que la gente guarda (en su X, en
+una nota) y que a Esme le falta. Viaja **FIRMADA** (`tienda/deseos.json`),
+porque una demanda sin firmar no es demanda.
+
+```bash
+$ npm run publicar:deseos
+deseos  : 14 (7 nuevos, 7 resueltos)
+firmante: adaaf799…
+```
+
+Las reglas (las mismas del juez): todo deseo viene de algo (una URL), el
+estado es cerrado (nuevo, en curso, hecho, descartado), y **«hecho» dice con
+qué se cumplió** — un módulo de la tienda o un contrato de la casa — y tiene
+que existir (si no, el deseo miente).
+
+Y un deseo hecho no se borra: se queda, con lo que lo cumplió. Es la historia
+de lo que la casa construyó, y por eso la lista también es un índice: se
+puede ver qué se pidió, qué se hizo y qué falta.
+
 ### La estirpe que delega (la tienda federada de verdad)
 
 Sin delegar, publicar un módulo de un tercero exige que el mantenedor firme

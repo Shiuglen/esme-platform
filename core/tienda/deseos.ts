@@ -15,13 +15,33 @@
  *   1. **todo deseo viene de algo** (una URL: lo que guardaste). Un deseo sin
  *      origen es una opinión, no un deseo;
  *   2. **el estado es cerrado**: nuevo, en curso, hecho, descartado;
- *   3. **«hecho» dice con qué módulo se cumplió** — y ese módulo tiene que
- *      estar en la tienda (si no, el deseo está mintiendo);
+ *   3. **«hecho» dice con qué se cumplió** — un módulo de la tienda o un
+ *      contrato de la casa — y tiene que existir (si no, el deseo está
+ *      mintiendo);
  *   4. y un deseo hecho **no se borra**: se queda, con su módulo (es la
- *      historia de lo que la casa построила).
+ *      historia de lo que la casa construyó).
  *
  * Referencia: estandar/deseo.spec.yaml, docs/TIENDA.md.
  */
+import { existsSync } from "node:fs";
+import { join, resolve } from "node:path";
+
+/**
+ * ¿Existe ese contrato en estandar/?
+ *
+ * El nombre puede venir con o sin el prefijo (`estandar/`), y el fichero tiene
+ * que estar de verdad: un deseo no se cumple con un contrato que nadie
+ * escribió.
+ */
+export function existeContrato(nombre: string): boolean {
+  const raiz = resolve(import.meta.dirname, "..", "..");
+  const limpio = nombre.replace(/^estandar\//, "").replace(/\.spec\.yaml$/, "");
+  const candidatos = [
+    join(raiz, "estandar", `${limpio}.spec.yaml`),
+    join(raiz, "estandar", limpio),
+  ];
+  return candidatos.some((ruta) => existsSync(ruta));
+}
 
 /** Los estados de un deseo (cerrados). */
 export const ESTADOS_DESEO = ["nuevo", "en_curso", "hecho", "descartado"] as const;
@@ -43,6 +63,15 @@ export interface Deseo {
   estado: EstadoDeseo;
   /** Si está hecho: el módulo que lo cumplió. */
   modulo?: string;
+  /**
+   * Si está hecho: el CONTRATO que lo cumplió (una spec de estandar/).
+   *
+   * Porque no todo lo que cumple un deseo es un módulo: una piel es un
+   * documento, un agente es una receta, y hay veces que lo que hace falta es
+   * un contrato (la forma de algo). Los dos caminos son reales, y los dos se
+   * comprueban.
+   */
+  contrato?: string;
   /** Cuándo (epoch ms). */
   ts: number;
 }
@@ -98,14 +127,24 @@ export function juzgaDeseo(x: unknown, modulosPublicados: string[] = []): Veredi
     else etiquetas = r.etiquetas.filter((e): e is string => typeof e === "string");
   }
 
-  // 3. «hecho» dice con qué módulo, y ese módulo está en la tienda
+  // 3. «hecho» dice con qué se cumplió: un módulo de la tienda o un
+  //    contrato de la casa. Y tiene que EXISTIR: un deseo que dice estar
+  //    hecho sin decir con qué, miente.
   let modulo: string | undefined;
+  let contrato: string | undefined;
   if (estado === "hecho") {
     modulo = typeof r.modulo === "string" ? r.modulo.trim() : "";
-    if (!modulo) {
-      errores.push("modulo: un deseo hecho tiene que decir con qué módulo se cumplió");
-    } else if (modulosPublicados.length && !modulosPublicados.includes(modulo)) {
+    contrato = typeof r.contrato === "string" ? r.contrato.trim() : "";
+    if (!modulo && !contrato) {
+      errores.push(
+        "modulo: un deseo hecho tiene que decir con qué se cumplió (un módulo de la tienda o un contrato de la casa)"
+      );
+    }
+    if (modulo && modulosPublicados.length && !modulosPublicados.includes(modulo)) {
       errores.push(`modulo: «${modulo}» no está en la tienda (el deseo dice estar hecho y no lo está)`);
+    }
+    if (contrato && !existeContrato(contrato)) {
+      errores.push(`contrato: «${contrato}» no existe en estandar/`);
     }
   }
 
@@ -120,6 +159,7 @@ export function juzgaDeseo(x: unknown, modulosPublicados: string[] = []): Veredi
     etiquetas,
     estado: (estado as EstadoDeseo) ?? "nuevo",
     ...(modulo ? { modulo } : {}),
+    ...(contrato ? { contrato } : {}),
     ts: Number.isFinite(ts) ? Math.floor(ts) : 0,
   };
 

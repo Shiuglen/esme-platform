@@ -1,0 +1,213 @@
+{
+  "version": 1,
+  "emitido": 1792564806480,
+  "firmante": "adaaf79999a7296f",
+  "deseos": [
+    {
+      "id": "esme.deseo.puntos-memoria",
+      "url": "https://x.com/shuxer/status/2112112691049631945",
+      "autor": "@shuxer",
+      "texto": "Ver la memoria de cada agente mientras trabaja, y ajustarla con un clic en vez de una terminal.",
+      "etiquetas": [
+        "memoria",
+        "panel",
+        "puntos"
+      ],
+      "estado": "hecho",
+      "contrato": "puntos",
+      "ts": 1792550400000,
+      "entra": true
+    },
+    {
+      "id": "esme.deseo.equipo-lider",
+      "url": "https://x.com/noisyb0y1/status/2111215537527365747",
+      "autor": "@noisyb0y1",
+      "texto": "Un equipo de agentes: uno investiga, otro programa, otro revisa, y un líder los dirige a todos.",
+      "etiquetas": [
+        "equipo",
+        "agentes",
+        "lider"
+      ],
+      "estado": "hecho",
+      "contrato": "equipo",
+      "ts": 1792550400000,
+      "entra": true
+    },
+    {
+      "id": "esme.deseo.traza-pasos",
+      "url": "https://x.com/ridark_eth/status/2108901972359131624",
+      "autor": "@ridark_eth",
+      "texto": "Saber qué llamada falló en una ejecución de varios pasos, y poder probarla.",
+      "etiquetas": [
+        "traza",
+        "pruebas"
+      ],
+      "estado": "hecho",
+      "contrato": "turno",
+      "ts": 1792550400000,
+      "entra": true
+    },
+    {
+      "id": "esme.deseo.memoria-buscable",
+      "url": "https://x.com/kawaidgaf/status/2111791226433470670",
+      "autor": "@kawaidgaf",
+      "texto": "Una memoria local buscable: ficheros, repos y sesiones viejas, por significado o por palabras exactas.",
+      "etiquetas": [
+        "memoria",
+        "busqueda"
+      ],
+      "estado": "hecho",
+      "contrato": "contexto",
+      "ts": 1792550400000,
+      "entra": true
+    },
+    {
+      "id": "esme.deseo.carpeta-memoria",
+      "url": "https://x.com/0xbobaaa/status/2111804194042659231",
+      "autor": "@0xbobaaa",
+      "texto": "Una carpeta (el único mundo del agente), un fichero de instrucciones en la raíz y una carpeta MEMORY donde cada corrección se vuelve un fichero.",
+      "etiquetas": [
+        "contexto",
+        "memoria",
+        "ficheros"
+      ],
+      "estado": "hecho",
+      "contrato": "mind-format",
+      "ts": 1792550400000,
+      "entra": true
+    },
+    {
+      "id": "esme.deseo.modo-ahorrador",
+      "url": "https://x.com/aicodeking/status/2112371824696901818",
+      "autor": "@aicodeking",
+      "texto": "Un modo ahorrador que recorta el contexto sin perder lo importante, y que se puede medir.",
+      "etiquetas": [
+        "contexto",
+        "coste",
+        "ahorro"
+      ],
+      "estado": "hecho",
+      "contrato": "contexto",
+      "ts": 1792550400000,
+      "entra": true
+    },
+    {
+      "id": "esme.deseo.chat-limpio",
+      "url": "https://x.com/aicodeking/status/2112371824696901818",
+      "autor": "@aicodeking",
+      "texto": "Los pasos de las herramientas se pliegan: el chat queda limpio y los cambios de cada turno se ven.",
+      "etiquetas": [
+        "chat",
+        "turno",
+        "ui"
+      ],
+      "estado": "hecho",
+      "contrato": "turno",
+      "ts": 1792550400000,
+      "entra": true
+    },
+    {
+      "id": "esme.deseo.escritorio-puntos",
+      "url": "https://x.com/usedotai/status/2110794529309634612",
+      "autor": "@usedotai",
+      "texto": "Un escritorio de puntos: el agente ve su propia interfaz, la maneja y hace automatizaciones en ella.",
+      "etiquetas": [
+        "escritorio",
+        "puntos",
+        "automatizacion"
+      ],
+      "estado": "nuevo",
+      "ts": 1792550400000,
+      "entra": true
+    },
+    {
+      "id": "esme.deseo.ventana-completa",
+      "url": "https://x.com/aicodeking/status/2112371824696901818",
+      "autor": "@aicodeking",
+      "texto": "Un escritorio entero dentro de la app (o una VM), para que el agente vea la pantalla, pulse y pruebe.",
+      "etiquetas": [
+        "vm",
+        "agente",
+        "pantalla"
+      ],
+      "estado": "nuevo",
+      "ts": 1792550400000,
+      "entra": true
+    },
+    {
+      "id": "esme.deseo.arbol-literal",
+      "url": "https://x.com/FinnoTaylor/status/2112286571999428676",
+      "autor": "@FinnoTaylor",
+      "texto": "Dibujar el árbol de ficheros como lo que es: un árbol, y no una lista sangrada.",
+      "etiquetas": [
+        "arbol",
+        "visual"
+      ],
+      "estado": "nuevo",
+      "ts": 1792550400000,
+      "entra": true
+    },
+    {
+      "id": "esme.deseo.decorado-ascii",
+      "url": "https://x.com/kail_designs/status/2112181119760376066",
+      "autor": "@kail_designs",
+      "texto": "Un decorado de arte ASCII y tramado, que se incruste en dos líneas y se pueda cambiar delook.",
+      "etiquetas": [
+        "decorado",
+        "ascii"
+      ],
+      "estado": "nuevo",
+      "ts": 1792550400000,
+      "entra": true
+    },
+    {
+      "id": "esme.deseo.chat-terminal",
+      "url": "https://x.com/orca_build/status/2112225656549634216",
+      "autor": "@orca_build",
+      "texto": "El chat y la terminal son la misma conversación: las imágenes se quedan en su sitio al cambiar de uno a otro.",
+      "etiquetas": [
+        "chat",
+        "terminal",
+        "conversacion"
+      ],
+      "estado": "nuevo",
+      "ts": 1792550400000,
+      "entra": true
+    },
+    {
+      "id": "esme.deseo.catalogo-recursos",
+      "url": "https://x.com/noisyb0y1/status/2111215537527365747",
+      "autor": "@noisyb0y1",
+      "texto": "Un catálogo de recursos y piezas (repos, plantillas, skills) para montar un equipo de agentes que trabaja solo.",
+      "etiquetas": [
+        "catalogo",
+        "recursos",
+        "equipo"
+      ],
+      "estado": "nuevo",
+      "ts": 1792550400000,
+      "entra": true
+    },
+    {
+      "id": "esme.deseo.ligero-sin-chromium",
+      "url": "https://x.com/aicodeking/status/2112371824696901818",
+      "autor": "@aicodeking",
+      "texto": "Una ventana de agentes que no arrastre un navegador entero: 12 MB y 180 MB en reposo con treinta agentes.",
+      "etiquetas": [
+        "ligero",
+        "memoria",
+        "ventana"
+      ],
+      "estado": "nuevo",
+      "ts": 1792550400000,
+      "entra": true
+    }
+  ],
+  "firma": {
+    "algorithm": "ed25519-sha512",
+    "signature": "zaNMcsTXkkpP2LzUQCb+lEHHJskbB3nFobNHelcufwxtlWJoVFDzumismACV2tudkvAhZJvRGy0fi93i6seACQ==",
+    "signed_at": "2026-10-21T06:40:06.482Z",
+    "signed_by": "adaaf79999a7296f",
+    "hash": "dfVI0QwyDZqNw+QOme5LxoywNqhnURM8p3FpnjnwhnI="
+  }
+}

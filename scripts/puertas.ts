@@ -269,6 +269,40 @@ await puerta("router (lo aprendido de tus veredictos)", async () => {
   return "lo aprendido va por delante";
 });
 
+await puerta("publicar:deseos (la lista firmada)", async () => {
+  const raiz = casa();
+  const tienda = join(raiz, "tienda");
+  mkdirSync(join(tienda, "paquetes"), { recursive: true });
+  mkdirSync(join(tienda, "firmas"), { recursive: true });
+  const { generarPar } = await import("../tienda/firma.ts");
+  const clave = generarPar();
+  writeFileSync(join(tienda, "raiz.pub.pem"), clave.pub);
+  const { firmarIndex } = await import("../tienda/firma.ts");
+  writeFileSync(
+    join(tienda, "index.json"),
+    JSON.stringify(firmarIndex({ schema_version: 1, modulos: [] }, clave.priv, clave.huella), null, 2) + "\n"
+  );
+  const lista = join(tienda, "lista.json");
+  writeFileSync(
+    lista,
+    JSON.stringify([
+      {
+        id: "esme.deseo.prueba",
+        url: "https://x.com/alguien/status/1",
+        autor: "@alguien",
+        texto: "Quiero que los puntos se puedan ver desde la ventana.",
+        etiquetas: ["puntos"],
+        estado: "nuevo",
+        ts: 1,
+      },
+    ])
+  );
+  const { publicaDeseos } = await import("./publicar-deseos.ts");
+  const r = publicaDeseos(lista, tienda, clave);
+  if (!r.ok) throw new Error(r.razon ?? "no se publicó");
+  return `${r.deseos} deseos firmados por ${r.firmante.slice(0, 8)}…`;
+});
+
 await puerta("puntos (el estado de tu PC, medido)", async () => {
   const lista = puntos({ pids: [process.pid] });
   if (!lista.length) throw new Error("no se midió nada");

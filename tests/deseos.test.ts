@@ -49,7 +49,7 @@ describe("los deseos", () => {
   it("un deseo «hecho» dice con qué módulo, y ese módulo tiene que estar en la tienda", () => {
     const sinModulo = juzgaDeseo(deseo({ estado: "hecho" }));
     expect(sinModulo.ok).toBe(false);
-    expect(sinModulo.errores.join(" ")).toContain("con qué módulo");
+    expect(sinModulo.errores.join(" ")).toContain("con qué se cumplió");
 
     const conModuloFalso = juzgaDeseo(
       deseo({ estado: "hecho", modulo: "esme.inventado.nada" }),
@@ -63,6 +63,18 @@ describe("los deseos", () => {
       ["esme.nucleo.hola-mundo"]
     );
     expect(conModuloBueno.ok).toBe(true);
+  });
+
+  it("un deseo puede cumplirse con un CONTRATO de la casa (no todo es un módulo)", () => {
+    const conContrato = juzgaDeseo(deseo({ estado: "hecho", contrato: "puntos" }));
+    expect(conContrato.ok).toBe(true);
+    expect(conContrato.deseo?.contrato).toBe("puntos");
+
+    const conContratoInexistente = juzgaDeseo(
+      deseo({ estado: "hecho", contrato: "no-existe-este-contrato" })
+    );
+    expect(conContratoInexistente.ok).toBe(false);
+    expect(conContratoInexistente.errores.join(" ")).toContain("no existe en estandar/");
   });
 
   it("un deseo hecho no se borra: se queda, con su módulo", () => {
