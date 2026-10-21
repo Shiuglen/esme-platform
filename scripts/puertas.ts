@@ -303,6 +303,27 @@ await puerta("publicar:deseos (la lista firmada)", async () => {
   return `${r.deseos} deseos firmados por ${r.firmante.slice(0, 8)}…`;
 });
 
+await puerta("actualizar (el plan de versiones)", async () => {
+  const { planDeActualizacion } = await import("../core/modulos/actualiza.ts");
+  const plan = planDeActualizacion(
+    [{ id: "esme.a", version: "0.1.0", dir: "/tmp/a" }],
+    [{ id: "esme.a", version: "0.2.0" }]
+  );
+  if (plan.actualizaciones.length !== 1) throw new Error("el plan no vio la versión nueva");
+  return `ve ${plan.actualizaciones[0].de} → ${plan.actualizaciones[0].a}`;
+});
+
+await puerta("doctor (¿está todo bien aquí?)", async () => {
+  const { doctorDeLaCasa } = await import("../core/modulos/doctor.ts");
+  const e = doctorDeLaCasa({
+    instalados: [{ id: "esme.a", version: "0.1.0", dir: "/tmp/a" }],
+    pendientes: { "esme.a": ["mind:write"] },
+    tienda: [{ id: "esme.a", version: "0.2.0" }],
+  });
+  if (!e.avisos.some((a) => a.includes("PIDIENDO PALABRA"))) throw new Error("no avisó de los permisos");
+  return `${e.avisos.length} avisos`;
+});
+
 await puerta("puntos (el estado de tu PC, medido)", async () => {
   const lista = puntos({ pids: [process.pid] });
   if (!lista.length) throw new Error("no se midió nada");

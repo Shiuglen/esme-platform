@@ -76,6 +76,18 @@ módulo (construir, medir, juzgar) antes de tocar el índice. Un módulo que el
 juez echa, no entra — ni aunque traiga la firma puesta, ni aunque lo traiga
 alguien de confianza.
 
+### Actualizar (la tienda publica, el módulo instalado se queda viejo)
+
+`npm run modulos -- actualiza` dice qué hay versión nueva y **qué cambia de
+verdad** (con el mismo diff de Myers que los turnos: ficheros y líneas, no un
+«cambió algo»). Sin `--sí` es un plan; con `--sí` se aplica, y la firma se
+verifica igual que al instalar (una versión nueva no es más creíble por ser
+nueva).
+
+Y una regla: **actualizar no es consentir**. Los permisos que concediste
+siguen concedidos (el libro es por módulo, no por versión) y los que no
+habías concedido siguen sin conceder.
+
 ### Los deseos: lo que guardaste es lo que falta
 
 La lista de deseos es la demanda escrita: lo que la gente guarda (en su X, en

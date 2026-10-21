@@ -16,7 +16,9 @@
  */
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
-import { creaRuntimeTienda, leeModulo, instaladosEn } from "../tienda/modulos.ts";
+import { creaRuntimeTienda, leeModulo, instaladosEn, TIENDA_PUBLICA } from "../tienda/modulos.ts";
+import { planDeActualizacion } from "../core/modulos/actualiza.ts";
+import { bajar } from "../tienda/servidor.ts";
 import { mideModulo } from "../core/bench/modulos.ts";
 import { juzgaModulo } from "../core/modulos/veredicto.ts";
 import { leeRaiz } from "../tienda/raiz.ts";
@@ -81,6 +83,38 @@ switch (comando) {
     console.log(`✓ ${m.id} v${m.version} instalado en ${m.dir}`);
     console.log(`  entrada: ${m.entrada}`);
     console.log(`  pide: ${m.manifiesto.permissions.join(", ") || "nada"}`);
+    break;
+  }
+
+  case "actualiza": {
+    // el plan: qué hay versión nueva, y qué cambia de verdad
+    const base = process.env.ESME_TIENDA_URL ?? TIENDA_PUBLICA;
+    let indice: { modulos?: Array<{ id: string; version: string }> } = {};
+    try {
+      indice = JSON.parse((await bajar(`${base}/index.json`)).toString("utf8"));
+    } catch (e) {
+      console.error(`no se pudo leer la tienda: ${String((e as Error).message)}`);
+      process.exit(1);
+    }
+    const instalados = runtime.lista().map((m) => ({ id: m.id, version: m.version, dir: m.dir }));
+    const plan = planDeActualizacion(instalados, indice.modulos ?? []);
+    if (!plan.actualizaciones.length) {
+      console.log("todo está al día ✓");
+      break;
+    }
+    for (const u of plan.actualizaciones) {
+      console.log(`· ${u.id}: v${u.de} → v${u.a}`);
+    }
+    if (!resto.includes("--sí")) {
+      console.log("");
+      console.log("esto es un plan: con --sí se aplica (la firma se verifica igual que al instalar)");
+      break;
+    }
+    for (const u of plan.actualizaciones) {
+      const m = await runtime.instala(u.id, { baseUrl: base });
+      console.log(`✓ ${m.id} v${m.version} actualizado`);
+    }
+    console.log("los permisos no se han tocado: lo que concediste, concedido");
     break;
   }
 
@@ -186,6 +220,7 @@ switch (comando) {
     console.log("la puerta de los módulos");
     console.log("");
     console.log("  lista                            qué hay instalado y con qué permisos");
+  console.log("  actualiza [--sí]                 qué hay versión nueva (y la aplica con --sí)");
     console.log("  instala <id>                    baja de la Tienda, verifica la firma y registra");
     console.log("  concede <id> <cap...>           la persona dice qué permisos da");
     console.log("  revoca <id> <cap...>            la persona cambia de idea");

@@ -82,6 +82,7 @@
     "cambios": "tsx scripts/cambios.ts",
     "ejecutar": "tsx scripts/ejecutar.ts",
     "puertas": "tsx scripts/puertas.ts",
+    "doctor": "tsx scripts/doctor.ts",
     "piel:check": "tsx scripts/estandar/piel-check.ts",
     "agente:check": "tsx scripts/estandar/agente-check.ts",
     "build": "tsc -p tsconfig.build.json",
