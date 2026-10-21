@@ -114,6 +114,7 @@
     "skills:publicar": "tsx scripts/publicar-veredictos.ts",
     "tienda:publicar": "tsx scripts/publicar-catalogo.ts",
     "tienda:publicar-modulos": "tsx scripts/publicar-modulos.ts",
+    "tienda:permisos": "tsx scripts/tienda-permisos.ts",
     "tienda": "npm run bench && npm run verificar",
     "casa": "tsx scripts/casa.ts",
     "banco": "tsx scripts/banco.ts",

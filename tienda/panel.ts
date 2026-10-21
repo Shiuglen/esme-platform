@@ -12,6 +12,14 @@ export interface FilaPanel {
   publicado_por: string | null;
   /** Cuándo lo publicó. */
   publicado_en: string | null;
+  /**
+   * Lo que el módulo PIDE (sus permisos).
+   *
+   * Por qué está aquí y no sólo en el manifiesto: la persona decide si
+   * instala antes de instalar. Un módulo que pide lanzar programas tiene que
+   * decirlo en la vitrina, no en el consentimiento que aparece después.
+   */
+  permisos: string[];
 }
 
 export interface Panel {
@@ -30,6 +38,7 @@ interface EntradaIndice {
   firma_ok?: unknown;
   publicado_por?: unknown;
   publicado_en?: unknown;
+  permisos?: unknown;
 }
 
 interface BenchIndice {
@@ -66,9 +75,13 @@ export function panelDe(
   const filas: FilaPanel[] = [];
   const modulos = Array.isArray(indice.modulos) ? (indice.modulos as EntradaIndice[]) : [];
   // la procedencia de cada entrada: quién lo publicó y cuándo
-  const procedencia = (m: EntradaIndice): { publicado_por: string | null; publicado_en: string | null } => ({
+  const procedencia = (
+    m: EntradaIndice
+  ): { publicado_por: string | null; publicado_en: string | null; permisos: string[] } => ({
     publicado_por: typeof m.publicado_por === "string" ? m.publicado_por : null,
     publicado_en: typeof m.publicado_en === "string" ? m.publicado_en : null,
+    // lo que el módulo pide: se ve en la vitrina, antes de instalar
+    permisos: Array.isArray(m.permisos) ? (m.permisos as unknown[]).map(String) : [],
   });
   for (const m of modulos) {
     const id = typeof m.id === "string" ? m.id : "<sin id>";
@@ -156,10 +169,12 @@ export function render(p: Panel): string {
     const quien = f.publicado_por
       ? ` — publicado por ${f.publicado_por.slice(0, 8)}…${f.publicado_en ? ` el ${f.publicado_en}` : ""}`
       : "";
+    // lo que pide, en la vitrina: una puerta se pide antes de abrirla
+    const pide = f.permisos.length ? ` · pide ${f.permisos.join(", ")}` : "";
     lineas.push(
       `- ${f.entra ? "✓ ENTRA" : "✗ FUERA"} \`${f.id}\`` +
         (f.version ? ` @${f.version}` : "") +
-        ` — ${f.causa}${quien}`
+        ` — ${f.causa}${pide}${quien}`
     );
   }
   lineas.push("");

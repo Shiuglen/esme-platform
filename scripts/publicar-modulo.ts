@@ -67,6 +67,24 @@ export interface ResultadoPublicar {
 const escribir = (ruta: string, dato: unknown): void =>
   writeFileSync(ruta, JSON.stringify(dato, null, 2) + "\n");
 
+/**
+ * Los permisos que el módulo pide (los de su manifiesto).
+ *
+ * Si el manifiesto no se puede leer, se devuelven los que el veredicto
+ * guardó: lo que se publica nunca es menos de lo que se pidió.
+ */
+export function permisosDe(dirModulo: string): string[] {
+  try {
+    const m = leeManifiesto(dirModulo);
+    if (m.ok && Array.isArray(m.manifest?.permissions)) {
+      return (m.manifest.permissions as string[]).map(String);
+    }
+  } catch {
+    // sin manifiesto legible: lo dice el veredicto
+  }
+  return [];
+}
+
 /** La entrada de un módulo en el índice, con la forma que la tienda usa. */
 export function entradaDe(
   id: string,
@@ -78,7 +96,8 @@ export function entradaDe(
   tar: string,
   bytes: number,
   firmaOk: boolean,
-  procedencia?: { por?: string; en?: string }
+  procedencia?: { por?: string; en?: string },
+  permisos?: string[]
 ): Record<string, unknown> {
   const forma = informe?.ciclo_ok !== undefined ? "ciclo" : "memoria";
   return {
@@ -87,6 +106,9 @@ export function entradaDe(
     category: categoria,
     ...(descripcion ? { descripcion } : {}),
     ...(etiquetas.length ? { etiquetas } : {}),
+    // lo que el módulo PIDE, en la vitrina: la persona decide antes de
+    // instalar, no en el consentimiento que aparece después
+    ...(permisos?.length ? { permisos: [...permisos].sort() } : {}),
     ...(forma === "ciclo" ? { bench_ciclo: informe } : { bench: informe }),
     firma_ok: firmaOk,
     artefacto: { tar, bytes },
@@ -161,7 +183,8 @@ export async function publicaModulo(
     {
       por: artefacto.firma.signed_by,
       en: new Date().toISOString().slice(0, 10),
-    }
+    },
+    permisosDe(dir)
   );
 
   // el paquete va a la tienda con el nombre que el receptor busca

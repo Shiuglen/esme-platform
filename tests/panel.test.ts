@@ -23,8 +23,29 @@ describe("panel — el juez de la tienda", () => {
     expect(p.filas[0].causa).toContain("+0.015");
   });
 
-  it("con bench flojo queda fuera con razones legibles", () => {
+  it("lo que el módulo PIDE se ve en la vitrina (antes de instalar, no después)", () => {
     const p = panelDe({
+      modulos: [
+        {
+          id: "esme.nucleo.rea",
+          version: "0.1.0",
+          bench: bueno,
+          permisos: ["proc:spawn"],
+        },
+      ],
+    });
+    expect(p.filas[0].permisos).toEqual(["proc:spawn"]);
+    const texto = render(p);
+    expect(texto).toContain("pide proc:spawn");
+  });
+
+  it("y un módulo que no pide nada, no lo dice (no hay ruido en la vitrina)", () => {
+    const p = panelDe({ modulos: [{ id: "x.modulo.debido", version: "1.0.0", bench: bueno }] });
+    expect(p.filas[0].permisos).toEqual([]);
+    expect(render(p)).not.toContain("pide ");
+  });
+
+  it("con bench flojo queda fuera con razones legibles", () => {    const p = panelDe({
       modulos: [{ id: "x.modulo.debido", version: "1.0.0", bench: malo }],
     });
     expect(p.filas[0].entra).toBe(false);

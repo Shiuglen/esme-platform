@@ -27,7 +27,12 @@
         "bytes": 2483
       },
       "publicado_por": "adaaf79999a7296f",
-      "publicado_en": "2026-10-21"
+      "publicado_en": "2026-10-21",
+      "permisos": [
+        "mind:read",
+        "mind:write",
+        "ui:render"
+      ]
     },
     {
       "id": "esme.nucleo.troceo-pro",
@@ -58,7 +63,10 @@
         "bytes": 2488
       },
       "publicado_por": "adaaf79999a7296f",
-      "publicado_en": "2026-10-21"
+      "publicado_en": "2026-10-21",
+      "permisos": [
+        "mind:write"
+      ]
     },
     {
       "id": "esme.nucleo.puerta",
@@ -85,15 +93,22 @@
         "bytes": 2390
       },
       "publicado_por": "adaaf79999a7296f",
-      "publicado_en": "2026-10-21"
+      "publicado_en": "2026-10-21",
+      "permisos": [
+        "fs:project",
+        "ipc:emit",
+        "mind:read",
+        "mind:write",
+        "ui:render"
+      ]
     }
   ],
   "signature": {
     "algorithm": "ed25519-sha512",
-    "signature": "jibE+zZYnLkRp/rKimqWP/I3a25ehjpxUUZIy2fXDcOercHlqLR7rUSdv30c0NDsbaWY4KlH80tuBip6FH30CA==",
-    "signed_at": "2026-10-21T07:07:42.059Z",
+    "signature": "1nXafiO9eqatLezfDo4ZSByD3jWQymn1OBZjoJwp30ONPBMPm/SWTZvfTNDiD9PrCmS4eyolEmjqG5rqWqH6CA==",
+    "signed_at": "2026-10-21T19:44:20.137Z",
     "signed_by": "adaaf79999a7296f",
-    "hash": "4CISs3pXoO0vbU7GyZpX3Oo1/Jda3d6ZeFxJV6t7BGY="
+    "hash": "n/1E5G0D3V/uJrOH8jEQtt+CIgiTdpGpITVJMzt9Xu8="
   },
   "claves": {
     "62304bfd9e441c73": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAWMd+6VJIBCckRb2ZcjZ/oEAv/upjD5OWPxR6Gm97yEE=\n-----END PUBLIC KEY-----\n",

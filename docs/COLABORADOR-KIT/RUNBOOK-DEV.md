@@ -11,7 +11,8 @@
 | `npm run test:offline` | la garantía: funciona sin red |
 | `npm run bench` | mide (Prueba 0 + ciclo), empaqueta, firma y publica |
 | `npm run tienda` | bench + verificar: la tienda se comprueba |
-| `npm run panel` | el panel de la tienda, en markdown |
+| `npm run panel` | el panel de la tienda, en markdown (con lo que pide cada módulo) |
+| `npm run tienda:permisos` | declara en el índice lo que pide cada módulo, y lo vuelve a firmar |
 | `npm run firma:index` | firma el índice y lo verifica (en un paso) |
 | `npm run rotar` | certifica una llave nueva: la vieja atestigua, la nueva firma |
 | `npm run delegar -- <pub.pem>` | da derecho a publicar a otra llave (la tienda federada) |
