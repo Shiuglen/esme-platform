@@ -26,6 +26,7 @@
 | `npm run publicar:modulo -- <carpeta>` | lo publica en el índice firmado (vuelve a juzgarlo antes) |
 | `npm run puntos` | el estado de tu PC, medido: un punto por agente, con su RAM |
 | `npm run talamo` | el contexto en tres modos, y el ahorro MEDIDO |
+| `npm run turno -- <turno.json>` | la limpieza del chat, en un número (listón 60 %) |
 | `npm run piel:check -- <piel.json>` | juzga una piel (opciones cerradas y que se lea) |
 | `npm run agente:check -- <agente.json>` | juzga una receta de agente (motor real y presupuesto con techo) |
 | `npm run compat -- <carpeta>` | qué motores pueden alojar ese módulo, y por qué no los otros |

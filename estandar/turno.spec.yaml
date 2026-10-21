@@ -1,0 +1,69 @@
+# **Spec abierta v1 — el turno.** Una conversación es una lista de DATOS.
+# Referencia: core/turno.ts, docs/MODULOS.md.
+#
+# QUÉ ES UN TURNO: lo que pasó entre una pregunta y su respuesta, escrito
+# como un documento. La respuesta es lo que ve la persona; la actividad (los
+# pasos de las herramientas) se PLEGA; los ficheros que cambió el turno van
+# con él; y los tokens y el coste van escritas, no se estiman.
+#
+# POR QUÉ ESTÁ ESCRITO: dos reglas de la casa que, sin contrato, se
+# incumplen sin que nadie lo note:
+#
+#   1. **«Los pasos se pliegan, el chat queda limpio».** Hay una regla que se
+#      puede MEDIR: la respuesta es la mayor parte de lo que la persona lee.
+#      Si los pasos pesan más que la respuesta, el chat se ensucia — y eso se
+#      tiene que ver en un número, no en una impresión.
+#   2. **«Lo que cambió en cada turno».** Un turno que no dice qué tocó no es
+#      un turno: es un mensaje.
+#
+# Lo que este contrato NO es: un formato de chat. La ventana decide cómo lo
+# dibuja; aquí sólo está lo que pasó.
+
+schema_version: 1
+
+turno:
+  id: "estable"
+  motor: "el motor que respondió (motor-capability.spec.yaml)"
+  modo: "estandar | ahorrador | equipo (contexto.spec.yaml)"
+  pregunta: "lo que se preguntó"
+  # lo que ve la persona: la respuesta, y NADA más
+  respuesta: "el texto"
+  # los pasos de las herramientas: van plegados (la persona los abre si quiere)
+  actividad:
+    - paso: "qué se hizo"
+      estado: "ok | fallo"
+      detalle: "el resultado en una línea (opcional)"
+  # lo que el turno tocó (por turno, no por la vida entera)
+  cambios:
+    - ruta: "el fichero"
+      anadidos: 0
+      borrados: 0
+  # los tokens: del contexto (lo que se metió), de la respuesta y de los pasos
+  tokens:
+    contexto: 0
+    respuesta: 0
+    actividad: 0
+    actividad_plegada: 0   # lo que la persona ve de los pasos: una línea
+    total: 0
+  # el coste, si el motor es de API (y si no, no está)
+  coste_usd: 0.0
+  # el presupuesto que este turno respeta
+  presupuesto:
+    tokens: 0
+    segundos: 0
+
+reglas:
+  # 1. la limpieza se mide: `limpiezaDelTurno` dice qué porcentaje de lo que
+  #    se lee es la respuesta. Lo que se lee es la respuesta y los pasos
+  #    PLEGADOS (una línea): plegar es lo que mantiene el chat limpio, y su
+  #    beneficio se mide. Si baja del listón (60 %), el chat se ensució.
+  limpieza_medida: true
+  limpieza_minima: 0.6
+  # 2. el total es la suma: si el total no cuadra con las partes, el turno
+  #    está mal escrito (y se dice, no se corrige en silencio).
+  total_coincide: true
+  # 3. nada de ocultar el coste: si el turno costó, se escribe.
+  coste_visible: true
+  # 4. lo que cambió va con el turno: sin cambios, `cambios` va vacío (y eso
+  #    también es información).
+  cambios_explicitos: true
