@@ -1,0 +1,176 @@
+{
+  "version": 1,
+  "emitido": 1792566067761,
+  "firmante": "adaaf79999a7296f",
+  "recursos": [
+    {
+      "id": "crewai",
+      "nombre": "CrewAI",
+      "url": "https://github.com/crewAIInc/crewAI",
+      "tipo": "repo",
+      "para_que": "Equipos de agentes con roles: uno investiga, otro programa, otro revisa, y un líder los dirige.",
+      "etiquetas": [
+        "equipo",
+        "agentes",
+        "lider",
+        "roles"
+      ],
+      "licencia": "MIT",
+      "veredicto": "sin-mirar"
+    },
+    {
+      "id": "langgraph",
+      "nombre": "LangGraph",
+      "url": "https://github.com/langchain-ai/langgraph",
+      "tipo": "repo",
+      "para_que": "Orquestación de agentes como un grafo: estados, transiciones y reintentos.",
+      "etiquetas": [
+        "equipo",
+        "grafo",
+        "orquestacion",
+        "agentes"
+      ],
+      "licencia": "MIT",
+      "veredicto": "probado"
+    },
+    {
+      "id": "wshobson-agents",
+      "nombre": "The agents catalogue",
+      "url": "https://github.com/wshobson/agents",
+      "tipo": "repo",
+      "para_que": "Diez piezas montadas para armar un equipo de agentes que trabaja solo, con subagentes especializados.",
+      "etiquetas": [
+        "equipo",
+        "agentes",
+        "catalogo",
+        "24-7"
+      ],
+      "licencia": "MIT",
+      "veredicto": "sin-mirar"
+    },
+    {
+      "id": "openrig",
+      "nombre": "OpenRig",
+      "url": "https://github.com/mvschwarz/openrig",
+      "tipo": "repo",
+      "para_que": "Un runtime de agentes cuyos pasos se pueden RASTREAR y PROBAR: la traza es el producto.",
+      "etiquetas": [
+        "traza",
+        "pruebas",
+        "equipo",
+        "agentes"
+      ],
+      "licencia": "MIT",
+      "veredicto": "probado"
+    },
+    {
+      "id": "mem0",
+      "nombre": "mem0",
+      "url": "https://github.com/mem0ai/mem0",
+      "tipo": "repo",
+      "para_que": "La capa de memoria de agentes (y el rival con el que se mide la Prueba 0 de Esme).",
+      "etiquetas": [
+        "memoria",
+        "busqueda",
+        "agentes"
+      ],
+      "licencia": "Apache-2.0",
+      "veredicto": "probado"
+    },
+    {
+      "id": "pensieve",
+      "nombre": "Pensieve",
+      "url": "https://pensieve.tools",
+      "tipo": "servicio",
+      "para_que": "Una memoria local buscable de ficheros, repos y sesiones viejas: una pregunta, el fichero y la línea.",
+      "etiquetas": [
+        "memoria",
+        "busqueda",
+        "local",
+        "sesiones"
+      ],
+      "licencia": "desconocida",
+      "veredicto": "sin-mirar"
+    },
+    {
+      "id": "pandacode",
+      "nombre": "PandaCode",
+      "url": "https://github.com/aicodeking/pandacode",
+      "tipo": "repo",
+      "para_que": "Una ventana para todos los agentes: 12 MB en Rust, sin Chromium, y un panel de uso donde cada agente muestra su memoria.",
+      "etiquetas": [
+        "ventana",
+        "ligero",
+        "memoria",
+        "puntos",
+        "equipo"
+      ],
+      "licencia": "MIT",
+      "veredicto": "mirado"
+    },
+    {
+      "id": "dot-desktop",
+      "nombre": "Dot Desktop",
+      "url": "https://x.com/usedotai/status/2110794529309634612",
+      "tipo": "servicio",
+      "para_que": "El escritorio de puntos: el agente ve su propia interfaz, la maneja y hace automatizaciones en ella.",
+      "etiquetas": [
+        "escritorio",
+        "puntos",
+        "automatizacion",
+        "agente"
+      ],
+      "licencia": "desconocida",
+      "veredicto": "sin-mirar"
+    },
+    {
+      "id": "ascii-magic-art",
+      "nombre": "ASCII Magic",
+      "url": "https://www.npmjs.com/package/ascii-magic-art",
+      "tipo": "paquete",
+      "para_que": "Arte ASCII y tramado que se incruste en dos líneas y se pueda cambiar delook.",
+      "etiquetas": [
+        "decorado",
+        "ascii",
+        "tramado"
+      ],
+      "licencia": "MIT",
+      "veredicto": "mirado"
+    },
+    {
+      "id": "rea-agents",
+      "nombre": "REA (el espejo)",
+      "url": "https://github.com/Panniantong/agent-reach",
+      "tipo": "paquete",
+      "para_que": "El espejo: mira un programa y devuelve la evidencia de cómo está hecho (y lo que no se pudo ver).",
+      "etiquetas": [
+        "espejo",
+        "ingenieria-inversa",
+        "memoria"
+      ],
+      "licencia": "MIT",
+      "veredicto": "probado"
+    },
+    {
+      "id": "zyzz",
+      "nombre": "Zyzz",
+      "url": "https://x.com/_jxom/status/2112631418090352684",
+      "tipo": "repo",
+      "para_que": "El estilo web reescrito en Rust, con sintaxis estándar de CSS: el cliente que no pesa.",
+      "etiquetas": [
+        "ligero",
+        "rust",
+        "web"
+      ],
+      "licencia": "desconocida",
+      "veredicto": "sin-mirar"
+    }
+  ],
+  "firma": {
+    "algorithm": "ed25519-sha512",
+    "signature": "DxBEESDftwa0H6QKLWjiAQWhZIkZ98ODk1InKY4BvLZ6FF5qWdXGeGEOCTawn2FFgcnaExcVDwAfJK2gMXkKDA==",
+    "signed_at": "2026-10-21T07:01:07.763Z",
+    "signed_by": "adaaf79999a7296f",
+    "hash": "OAdNy9JkNMQhgiEKOtFIyudt56r5ut+IHaQ9/WYW38k="
+  }
+}

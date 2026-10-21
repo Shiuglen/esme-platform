@@ -88,6 +88,31 @@ Y una regla: **actualizar no es consentir**. Los permisos que concediste
 siguen concedidos (el libro es por módulo, no por versión) y los que no
 habías concedido siguen sin conceder.
 
+### Los recursos: las piezas con las que se construye
+
+El catálogo de recursos es la **oferta**: repos, paquetes, servicios y patrones
+que sirven para construir lo que falta. Va firmado como todo lo demás (y el
+verificador lo comprueba con la estirpe).
+
+Lo que lo hace útil no es la lista: es el **emparejamiento**. Cada deseo
+dice qué recursos lo iluminan, y explica por qué:
+
+```
+$ npm run publicar:recursos
+recursos: 11
+firmante: adaaf799…
+
+qué recursos iluminan cada deseo:
+  · esme.deseo.traza-pasos: OpenRig
+  · esme.deseo.escritorio-puntos: Dot Desktop, PandaCode
+  · esme.deseo.catalogo-recursos: The agents catalogue, CrewAI, LangGraph, OpenRig…
+```
+
+Y cada recurso dice **cuánto lo ha mirado la casa**: `probado` (corre y lo
+hemos medido — como los que han pasado por el espejo de REA), `mirado` (le
+hemos leído el código) o `sin-mirar` (sólo un enlace). Un catálogo que finge
+que se lo conoce todo no sirve para decidir nada.
+
 ### Los deseos: lo que guardaste es lo que falta
 
 La lista de deseos es la demanda escrita: lo que la gente guarda (en su X, en

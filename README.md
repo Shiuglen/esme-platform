@@ -42,6 +42,7 @@ Entre dos lenguas solo sobrevive lo que está escrito.
 | `estandar/bot.spec.yaml` | El bot: la mente desde un mensajero, por la misma puerta. |
 | `estandar/router.spec.yaml` | El router que aprende de los veredictos de la persona. |
 | `estandar/deseo.spec.yaml` | Los deseos: lo que guardaste es lo que falta por construir (y va firmado). |
+| `estandar/recurso.spec.yaml` | Los recursos: las piezas con las que se construye (y a qué deseo iluminan). |
 
 Y las otras dos puertas: `npm run verificar:skill -- <carpeta>` (una skill de
 cualquiera, juzgada en local) y `npm run crear:modulo` (un módulo, con su

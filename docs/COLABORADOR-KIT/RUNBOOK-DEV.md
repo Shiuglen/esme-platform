@@ -32,6 +32,7 @@
 | `npm run router -- <registro.jsonl>` | lo que el router aprendió de tus veredictos, y la concordancia |
 | `npm run deseos -- <deseos.json>` | la lista de deseos de la tienda, y lo que pide la gente |
 | `npm run publicar:deseos` | firma la lista de deseos (la demanda, con su firma) |
+| `npm run publicar:recursos` | firma el catálogo de piezas (la oferta) y muestra el emparejamiento |
 | `npm run doctor` | cómo está esta máquina: módulos, permisos, tienda y memoria |
 | `npm run modulos -- actualiza` | el plan de actualización (con `--sí`, se aplica) |
 | `npm run verificar:skill -- <carpeta>` | juzga una skill en local (hechos, norecall) |

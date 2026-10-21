@@ -8,6 +8,7 @@
  *   firmas/*.artefacto.json       la firma de cada paquete (vive FUERA del tar)
  *   rotaciones.json               la estirpe: quién avala al firmante de hoy
  *   deseos.json                   la lista de deseos, firmada (la demanda)
+ *   recursos.json                 el catálogo de piezas, firmado (la oferta)
  *
  * Por qué fuera del tar: si la firma viviera dentro, el paquete cambiaría en
  * cada firma y su sha nunca se estabilizaría (elInfierno del churn).
@@ -50,6 +51,8 @@ if (existsSync(join(raiz, "tienda", "rotaciones.json")))
   copiar(join(raiz, "tienda", "rotaciones.json"), "rotaciones.json");
 if (existsSync(join(raiz, "tienda", "deseos.json")))
   copiar(join(raiz, "tienda", "deseos.json"), "deseos.json");
+if (existsSync(join(raiz, "tienda", "recursos.json")))
+  copiar(join(raiz, "tienda", "recursos.json"), "recursos.json");
 if (existsSync(join(raiz, "tienda", "revocaciones.json")))
   copiar(join(raiz, "tienda", "revocaciones.json"), "revocaciones.json");
 // el veredicto del juez (firmado): lo que la app verifica antes de activar

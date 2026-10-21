@@ -78,6 +78,7 @@
     "router": "tsx scripts/router.ts",
     "deseos": "tsx scripts/deseos.ts",
     "publicar:deseos": "tsx scripts/publicar-deseos.ts",
+    "publicar:recursos": "tsx scripts/publicar-recursos.ts",
     "verificar:skill": "tsx scripts/verificar-skill.ts",
     "cambios": "tsx scripts/cambios.ts",
     "ejecutar": "tsx scripts/ejecutar.ts",

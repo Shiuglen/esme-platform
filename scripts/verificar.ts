@@ -12,6 +12,7 @@ import { verificarIndex, verificarBytes, type FirmaBytes } from "../tienda/firma
 import { estaRevocada } from "../tienda/revocacion.ts";
 import { confiaIndexChain } from "../tienda/rotacion.ts";
 import { confiaDeseos } from "../core/tienda/deseos-firmados.ts";
+import { confiaCatalogo } from "../core/tienda/recursos-firmados.ts";
 import { leeRaiz } from "../tienda/raiz.ts";
 
 const raiz = resolve(import.meta.dirname, "..");
@@ -92,6 +93,23 @@ if (existsSync(rutaDeseos)) {
     console.log(`deseos    : firma verificada ✓ (${confianzaDeseos.via})${etiqueta}`);
   } else {
     console.log("deseos    : FALLA ✗ — la lista no viene de la raíz ni de su estirpe");
+    fallos++;
+  }
+}
+
+// 1ter. el catálogo de recursos: si está, va firmado por la estirpe (las
+//        piezas con las que se construye)
+const rutaRecursos = join(raiz, "tienda", "recursos.json");
+if (existsSync(rutaRecursos)) {
+  const confianzaRecursos = confiaCatalogo(
+    readFileSync(rutaRecursos, "utf8"),
+    pubKey ?? "",
+    join(raiz, "tienda", "rotaciones.json")
+  );
+  if (confianzaRecursos.ok) {
+    console.log(`recursos : firma verificada ✓ (${confianzaRecursos.via})`);
+  } else {
+    console.log("recursos : FALLA ✗ — el catálogo no viene de la raíz ni de su estirpe");
     fallos++;
   }
 }

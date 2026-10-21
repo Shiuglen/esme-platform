@@ -1,0 +1,44 @@
+# **Spec abierta v1 — el recurso.** Las piezas con las que se construye.
+# Referencia: core/tienda/recursos.ts, docs/TIENDA.md.
+#
+# QUÉ ES UN RECURSO: una pieza de fuera que sirve para construir lo que
+# falta — un repositorio, un paquete, un servicio o un patrón. No es un
+# producto de la casa (eso es el índice) ni una demanda (eso son los deseos):
+# es la OFERTA de piezas.
+#
+# POR QUÉ ESTÁ ESCRITA: sin emparejamiento, un catálogo es un blog. Con
+# emparejamiento (las palabras y las etiquetas), cada deseo dice qué recursos
+# lo iluminan — y eso es lo que decide qué se construye.
+#
+# Y una regla de honestidad: cada recurso dice **cuánto lo ha mirado la casa**
+# (probado = corre y lo hemos medido; mirado = le hemos leído el código;
+# sin-mirar = sólo un enlace). Un catálogo que finge que se lo conoce todo no
+# sirve para decidir nada.
+
+schema_version: 1
+
+recurso:
+  id: "identificador estable (letras, números, punto, guion y barra)"
+  nombre: "lo que se llama"
+  url: "https://... (un recurso sin enlace no se puede consultar)"
+  # el tipo (cerrado: un tipo nuevo es una spec nueva)
+  tipo: "repo | paquete | servicio | patron"
+  # qué resuelve, en una frase
+  para_que: "una frase"
+  etiquetas: ["palabra"]
+  # la licencia: si no se sabe, se pone «desconocida» (no se inventa una)
+  licencia: "MIT | Apache-2.0 | ... | desconocida"
+  # cuánto lo ha mirado la casa
+  veredicto: "probado | mirado | sin-mirar"
+
+reglas:
+  # 1. el tipo es cerrado y el veredicto también (son tres estados, no
+  #    «casi mirado»).
+  cerrados: true
+  # 2. la licencia se puede no saber; lo que no se puede es inventarla.
+  licencia_se_puede_ignorar: true
+  # 3. el emparejamiento con los deseos es de palabras y etiquetas, y
+  #    EXPLICA por qué cada recurso encaja.
+  emparejamiento_explicado: true
+  # 4. lo que se publica va firmado (como el índice y los deseos).
+  firmado: true

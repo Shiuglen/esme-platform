@@ -352,6 +352,57 @@ await puerta("escribe (nada a medias)", async () => {
   return "el fichero queda entero";
 });
 
+await puerta("publicar:recursos (el catálogo firmado)", async () => {
+  const raiz = casa();
+  const tienda = join(raiz, "tienda");
+  mkdirSync(join(tienda, "paquetes"), { recursive: true });
+  mkdirSync(join(tienda, "firmas"), { recursive: true });
+  const { generarPar } = await import("../tienda/firma.ts");
+  const clave = generarPar();
+  writeFileSync(join(tienda, "raiz.pub.pem"), clave.pub);
+  const lista = join(tienda, "lista.json");
+  writeFileSync(
+    lista,
+    JSON.stringify([
+      {
+        id: "openrig",
+        nombre: "OpenRig",
+        url: "https://github.com/mvschwarz/openrig",
+        tipo: "repo",
+        para_que: "Un runtime de agentes cuyos pasos se pueden rastrear y probar.",
+        etiquetas: ["traza"],
+        licencia: "MIT",
+        veredicto: "probado",
+      },
+    ])
+  );
+  const { publicaRecursos } = await import("./publicar-recursos.ts");
+  const r = publicaRecursos(lista, tienda, clave);
+  if (!r.ok) throw new Error(r.razon ?? "no se publicó");
+  return `${r.recursos} recursos firmados por ${r.firmante.slice(0, 8)}…`;
+});
+
+await puerta("emparejar (qué recursos iluminan cada deseo)", async () => {
+  const { empareja } = await import("../core/tienda/recursos.ts");
+  const pares = empareja(
+    [{ id: "d1", texto: "Saber qué llamada falló en una ejecución", etiquetas: ["traza"] }],
+    [
+      {
+        id: "openrig",
+        nombre: "OpenRig",
+        url: "https://github.com/mvschwarz/openrig",
+        tipo: "repo",
+        para_que: "Un runtime de agentes cuyos pasos se pueden rastrear y probar.",
+        etiquetas: ["traza"],
+        licencia: "MIT",
+        veredicto: "probado",
+      },
+    ]
+  );
+  if (!pares[0].recursos.length) throw new Error("no emparejó nada");
+  return `${pares[0].recursos[0].nombre} (${pares[0].recursos[0].porque})`;
+});
+
 await puerta("puntos (el estado de tu PC, medido)", async () => {
   const lista = puntos({ pids: [process.pid] });
   if (!lista.length) throw new Error("no se midió nada");
