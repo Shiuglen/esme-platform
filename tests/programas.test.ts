@@ -287,6 +287,8 @@ describe("el módulo de ejemplo de REA (la puerta, en un módulo de verdad)", ()
   // con REA de verdad: el módulo habla con el programa por la puerta
   const tieneRea = existsSync(join(dirname(process.execPath), "rea")) ||
     existsSync(join(process.env.HOME ?? "", ".local", "bin", "rea"));
+  // el tope es generoso: REA arranca su servidor y contesta en unos 3 s, y
+  // con la batería entera en paralelo puede tardar más
   it.skipIf(!tieneRea)("con REA en el libro, el módulo habla con el motor de verdad", async () => {
     const leido = leeModulo(dirEjemplo);
     const runtime = modulos({
@@ -299,7 +301,7 @@ describe("el módulo de ejemplo de REA (la puerta, en un módulo de verdad)", ()
     const r = (await runtime.llama("esme.nucleo.rea", "ciclo", "¿qué?")) as { respuesta: string };
     expect(r.respuesta).toContain("REA declara");
     await runtime.cierra();
-  });
+  }, 120_000);
 });
 
 describe("la herramienta de REA no esquiva la puerta", () => {  it("sin REA en el libro, la herramienta se niega (y dice cómo abrirla)", () => {

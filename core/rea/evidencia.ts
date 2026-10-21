@@ -102,6 +102,42 @@ export type LecturaEvidencia =
   | { ok: false; errores: string[] };
 
 
+/**
+ * Las claves que el kit lee de cada elemento del grafo.
+ *
+ * Para qué. La spec (`estandar/rea.spec.yaml`) declara la forma de un nodo,
+ * de una relación y de un desconocido; aquí están las que el kit lee de
+ * verdad. La conformidad comprueba que las dos cosas digan lo mismo: si la
+ * spec declara una clave que nadie lee, es ruido; si el kit lee una clave
+ * que la spec no declara, es un agujero entre dos lenguas.
+ */
+export const CLAVES_NODO = [
+  "kind",
+  "node_id",
+  "label",
+  "properties",
+  "identity.module_path",
+  "identity.source_range.start.line",
+  "evidence.context_id",
+] as const;
+
+export const CLAVES_RELACION = [
+  "source_node_id",
+  "target_node_id",
+  "relation",
+  "resolution",
+] as const;
+
+export const CLAVES_DESCONOCIDO = [
+  "node_id",
+  "family",
+  "reason",
+  "detail",
+  "relation_kinds",
+] as const;
+
+export const CLAVES_CONTEXTO = ["context_id", "confidence", "authority"] as const;
+
 /* ------------------------------------------------------------------ *
  * La normalización. Los nodos, las relaciones y los desconocidos       *
  * llegan «crudos»; aquí se les quita lo que sobra. 33.000 nodos       *

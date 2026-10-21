@@ -32,6 +32,13 @@ import { MINIMO_CATAS } from "../../core/arena/paladar.ts";
 import { CAPABILITIES } from "../../core/extension-host/capability.ts";
 import { EFECTOS_REA, MAPA_EFECTOS, PEOR_EFECTO } from "../../core/rea/capacidades.ts";
 import { TIPOS_HECHO } from "../../core/rea/conocimiento.ts";
+import { clavesDeLaEvidencia } from "../../core/rea/forma.ts";
+import {
+  CLAVES_CONTEXTO,
+  CLAVES_DESCONOCIDO,
+  CLAVES_NODO,
+  CLAVES_RELACION,
+} from "../../core/rea/evidencia.ts";
 import { CATEGORIES, RUNTIMES } from "../../core/ipc/module-schema.ts";
 import { LICENCIAS_PERMITIDAS, TOPE_BYTES, TOPE_FICHEROS, TOPE_TOKENS } from "../../tienda/skills.ts";
 
@@ -251,6 +258,66 @@ export function compruebaConformidad(): FalloConformidad[] {
       "rea.spec.yaml",
       `el peor efecto es «${PEOR_EFECTO}» en el código y «${String(reglasRea.peor_efecto ?? "nada")}» en la spec`
     );
+  }
+
+  // 11-bis. la forma de la evidencia: la spec y el validador son la misma cosa
+  const specRea = leeSpec("rea.spec.yaml");
+  const seccionEvidencia = (specRea.evidencia ?? {}) as Record<string, unknown>;
+  const rutasDeSpec = (d: unknown, prefijo = ""): string[] => {
+    if (!d || typeof d !== "object") return [];
+    if (Array.isArray(d)) return [];
+    const salida: string[] = [];
+    for (const [k, v] of Object.entries(d as Record<string, unknown>)) {
+      const camino = prefijo ? `${prefijo}.${k}` : k;
+      salida.push(camino);
+      salida.push(...rutasDeSpec(v, camino));
+    }
+    return salida;
+  };
+  /** Las hojas: las claves que no son el prefijo de otra (un grupo no es una hoja). */
+  const hojas = (rutas: string[]): string[] =>
+    rutas.filter((c) => !rutas.some((otra) => otra !== c && otra.startsWith(`${c}.`)));
+  const declaradas = rutasDeSpec(seccionEvidencia);
+  const delValidador = clavesDeLaEvidencia();
+  // la spec no puede declarar una clave que el validador no conoce
+  for (const c of declaradas) {
+    if (!delValidador.includes(c)) {
+      anota("rea.spec.yaml", `declara «${c}», que el validador no tiene`);
+    }
+  }
+  // y el validador no puede tener una clave que la spec no declara (las
+  // HOJAS: una clave que es el prefijo de otra es un grupo, no una hoja)
+  for (const c of hojas(delValidador)) {
+    if (!declaradas.includes(c)) {
+      anota("rea.spec.yaml", `el validador tiene «${c}» y la spec no la declara`);
+    }
+  }
+
+  // 11-ter. las formas de cada elemento: la spec y el kit dicen lo mismo
+  const formasRea = (specRea.formas ?? {}) as Record<string, unknown>;
+  const paresForma: Array<[string, readonly string[]]> = [
+    ["nodo", CLAVES_NODO],
+    ["relacion", CLAVES_RELACION],
+    ["desconocido", CLAVES_DESCONOCIDO],
+    ["contexto", CLAVES_CONTEXTO],
+  ];
+  for (const [seccion, claves] of paresForma) {
+    const declarada = (formasRea[seccion] ?? {}) as Record<string, unknown>;
+    const deSpec = hojas(rutasDeSpec(declarada));
+    if (!deSpec.length) {
+      anota("rea.spec.yaml", `no declara la forma «${seccion}»`);
+      continue;
+    }
+    for (const c of claves) {
+      if (!deSpec.includes(c)) {
+        anota("rea.spec.yaml", `la forma «${seccion}» no declara «${c}», que el kit lee`);
+      }
+    }
+    for (const c of deSpec) {
+      if (!claves.includes(c)) {
+        anota("rea.spec.yaml", `la forma «${seccion}» declara «${c}», que el kit no lee`);
+      }
+    }
   }
 
   // 12. las formas: los campos de la spec son los del código

@@ -51,6 +51,7 @@ const fixture = resolve(raizKit, "tests", "fixtures", "rea-evidencia-real.json")
  */
 const CLAVES_DEL_CEREBRO = [
   "architecture",
+  "evidence_id",
   "coverage",
   "detail",
   "digest",

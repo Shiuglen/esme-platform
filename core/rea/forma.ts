@@ -131,6 +131,40 @@ const CatalogoSchema = z
   })
   .passthrough();
 
+/**
+ * Las claves de la forma de la Evidencia, con su camino (`subject.name`).
+ *
+ * Para qué. Para que la spec y el validador no se separen: la spec dice qué
+ * claves tiene el documento, y el validador las comprueba. Si uno de los dos
+ * cambia sin el otro, la casa tiene dos verdades — y entre dos lenguas sólo
+ * sobrevive lo que está escrito.
+ */
+export function clavesDeLaEvidencia(): string[] {
+  return clavesDe(ZodObject(EvidenciaSchema), "");
+}
+
+/** Las claves de un objeto de zod, con su camino. */
+function clavesDe(schema: unknown, prefijo: string): string[] {
+  const shape = (schema as { shape?: Record<string, unknown> }).shape;
+  if (!shape) return [];
+  const salida: string[] = [];
+  for (const [k, v] of Object.entries(shape)) {
+    const camino = prefijo ? `${prefijo}.${k}` : k;
+    salida.push(camino);
+    // los opcionales envuelven el tipo: se baja al interior
+    const def = (v as { def?: { innerType?: unknown } }).def;
+    const interior = (def?.innerType as { shape?: unknown }) ?? (v as { shape?: unknown });
+    salida.push(...clavesDe(interior, camino));
+  }
+  return salida;
+}
+
+/** El objeto de zod de un schema (los wrappers se desenvuelven). */
+function ZodObject(schema: unknown): unknown {
+  const def = (schema as { def?: { innerType?: unknown } }).def;
+  return (def?.innerType as { shape?: unknown }) ?? schema;
+}
+
 /* ------------------------------------------------------------------ *
  * La lectura.                                                          *
  * ------------------------------------------------------------------ */

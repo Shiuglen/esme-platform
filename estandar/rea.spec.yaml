@@ -36,6 +36,8 @@ schema_version: 1
 # renombra las claves no es un contrato: es un resumen. Entre dos lenguas
 # sólo sobrevive lo que está escrito, y lo que está escrito son estas claves.
 evidencia:
+  # La identidad de esta evidencia (para citarla y compararla).
+  evidence_id: "la identidad de la evidencia"
   # Quién es el analizado. Sin nombre no hay evidencia: no se sabe de quién.
   subject:
     name: "el nombre del programa"
