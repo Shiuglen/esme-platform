@@ -14,6 +14,7 @@
  */
 import { abreHost, type Host, type OpcionesHost } from "../extension-host/host.ts";
 import type { VistaModulo } from "../extension-host/puerta.ts";
+import type { EntradaProc } from "../extension-host/proc.ts";
 import type { Manifest } from "../ipc/module-schema.ts";
 import type { MenteViva } from "../ipc/mind-schema-types.ts";
 import { Consentimientos, type EstadoPermisos } from "./consentimiento.ts";
@@ -58,6 +59,14 @@ export interface OpcionesRegistro {
   proyecto?: string;
   /** Los dominios que `net:fetch` puede tocar. */
   dominios?: string[];
+  /**
+   * Los programas que `proc:spawn` puede lanzar (por nombre lógico).
+   *
+   * Sin esta lista, la puerta de los programas existe pero está cerrada: un
+   * módulo con `proc:spawn` concedido recibe un «programa no permitido» con
+   * la lista de los permitidos. Quien concede decide también QUÉ se lanza.
+   */
+  programas?: EntradaProc[];
   /** Quién recibe los eventos. */
   onEvento?: (evento: string, carga: unknown) => void;
   /** Quién recibe las vistas. */
@@ -140,6 +149,7 @@ export class Registro {
       mente: this.opts.mente,
       proyecto: this.opts.proyecto,
       dominios: this.opts.dominios,
+      programas: this.opts.programas,
       onEvento: this.opts.onEvento,
       onVista: this.opts.onVista,
       id: m.id,

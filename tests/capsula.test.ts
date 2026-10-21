@@ -275,3 +275,68 @@ describe("la puerta de los eventos: con namespace", () => {
     }
   });
 });
+
+describe("la puerta de los programas: sólo los que el anfitrión concede", () => {
+  it("sin `proc:spawn` concedido, la pieza no existe (no hay función que falle)", async () => {
+    const ruta = moduloCon(`return globalThis.esme.proc === undefined ? "NO HAY PUERTA" : "HAY";`);
+    const host = abreHost(ruta, { permisos: ["proc:spawn"], concedidas: [] });
+    try {
+      expect(await host.call("prueba")).toBe("NO HAY PUERTA");
+    } finally {
+      await host.cerrar();
+    }
+  });
+
+  it("concedida pero SIN lista de programas, no se lanza nada (y se dice)", async () => {
+    const ruta = moduloCon(
+      `try { await globalThis.esme.proc.ejecutar({ programa: "node", args: ["-e", "1"] }); return "LANZADO"; }
+       catch (e) { return "RECHAZADO:" + e.message; }`
+    );
+    const host = abreHost(ruta, { permisos: ["proc:spawn"], concedidas: ["proc:spawn"] });
+    try {
+      const r = (await host.call("prueba")) as string;
+      expect(r).toContain("RECHAZADO");
+      expect(r).toContain("programa no permitido");
+    } finally {
+      await host.cerrar();
+    }
+  });
+
+  it("con la lista puesta, el programa se lanza y su salida vuelve al módulo", async () => {
+    const ruta = moduloCon(
+      `const r = await globalThis.esme.proc.ejecutar({ programa: "node", args: ["-e", "process.stdout.write('hola')"] });
+       return { codigo: r.codigo, salida: r.stdout };`
+    );
+    const host = abreHost(ruta, {
+      permisos: ["proc:spawn"],
+      concedidas: ["proc:spawn"],
+      programas: [{ nombre: "node", descripcion: "node" }],
+    });
+    try {
+      const r = (await host.call("prueba")) as { codigo: number | null; salida: string };
+      expect(r.codigo).toBe(0);
+      expect(r.salida).toBe("hola");
+    } finally {
+      await host.cerrar();
+    }
+  });
+
+  it("un nombre que el anfitrión no concedió no se ejecuta", async () => {
+    const ruta = moduloCon(
+      `try { await globalThis.esme.proc.ejecutar({ programa: "sh", args: ["-c", "echo pwned"] }); return "LANZADO"; }
+       catch (e) { return "RECHAZADO:" + e.message; }`
+    );
+    const host = abreHost(ruta, {
+      permisos: ["proc:spawn"],
+      concedidas: ["proc:spawn"],
+      programas: [{ nombre: "node", descripcion: "node" }],
+    });
+    try {
+      const r = (await host.call("prueba")) as string;
+      expect(r).toContain("RECHAZADO");
+      expect(r).toContain("programa no permitido: «sh»");
+    } finally {
+      await host.cerrar();
+    }
+  });
+});

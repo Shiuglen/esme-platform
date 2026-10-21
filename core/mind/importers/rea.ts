@@ -13,9 +13,8 @@
 import { readFileSync } from "node:fs";
 import { excluido, EXCLUSION_MINIMA } from "../redaction.ts";
 import { redacta } from "../redaction.ts";
-import type { Trozo } from "../troceo.ts";
-import { leeEvidenciaReaJson } from "../../rea/evidencia.ts";
-import { absorbeEvidencia } from "../../rea/absorbe.ts";
+import { leeEvidenciaReaJson } from "../../rea/forma.ts";
+import { absorbeEvidencia, type FilaRea } from "../../rea/absorbe.ts";
 
 export interface OpcionesImportaRea {
   vaultNombre?: string;
@@ -28,7 +27,8 @@ export interface RecuerdosImportadosRea {
   vault: string;
   ficheros: string[];
   excluidos: string[];
-  trozos: Trozo[];
+  /** Las filas: `Trozo` más la clase del hecho (para filtrar después). */
+  trozos: FilaRea[];
   secretosRedactados: number;
   /** Cuántos hechos se construyeron (0 si la evidencia no se pudo leer). */
   hechos: number;

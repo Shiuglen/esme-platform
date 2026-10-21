@@ -34,7 +34,11 @@ export interface AbsorcionRea {
   vault: string;
   ficheros: string[];
   excluidos: string[];
-  trozos: Trozo[];
+  /**
+   * Las filas. Son `Trozo` (la forma de la mente) y además llevan la clase
+   * del hecho, para poder filtrar después («dame sólo los endpoints»).
+   */
+  trozos: FilaRea[];
   secretosRedactados: number;
   /** Cuántos hechos se construyeron. */
   hechos: number;
@@ -75,6 +79,10 @@ export function absorbeEvidencia(ev: EvidenciaRea, opts: OpcionesAbsorbeRea = {}
     if (filas.length >= maxTrozos) break;
     const { texto: limpio, hallazgos } = redacta(hecho.texto);
     secretos += hallazgos.length;
+    // La clave también se redacta: el id de la fila sale de ella, y un id con
+    // un secreto dentro es un secreto guardado (con otro nombre).
+    const { texto: claveLimpia, hallazgos: hallazgosClave } = redacta(hecho.clave);
+    secretos += hallazgosClave.length;
     const t = tokensDe(limpio);
     if (tokens + t > budgetTokens) {
       cortadasPorTokens += 1;
@@ -82,13 +90,13 @@ export function absorbeEvidencia(ev: EvidenciaRea, opts: OpcionesAbsorbeRea = {}
     }
     tokens += t;
     filas.push({
-      id: `${vault}/${hecho.clave}`,
+      id: `${vault}/${claveLimpia}`,
       fuente: `${vault}/${hecho.tipo}`,
       texto: limpio,
       tokens: t,
       tipo: "parrafo",
       clase: hecho.tipo,
-      clave: hecho.clave,
+      clave: claveLimpia,
     });
   }
 

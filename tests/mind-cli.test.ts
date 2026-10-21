@@ -69,4 +69,44 @@ describe("mind-cli — los cuatro verbos", () => {
     expect(s.code).toBe(1);
     expect(s.out).toContain("uso");
   });
+
+  it("absorber: una evidencia de REA se absorbe como REA (no como un JSON cualquiera)", () => {
+    const d = tmp();
+    const evidencia = join(d, "evidencia.json");
+    writeFileSync(
+      evidencia,
+      JSON.stringify({
+        subject: { name: "MiApp" },
+        provider: { id: "rea", name: "REA" },
+        limitations: ["no se vio el código nativo"],
+        normalized_result: {
+          summary: { browser_windows: 1 },
+          semantic_graph: {
+            nodes: [{ kind: "module", node_id: "n1", label: "principal" }],
+            relations: [],
+            unknowns: [],
+          },
+        },
+      })
+    );
+    const s = cli(["absorber", evidencia, join(d, "absorbido.json")]);
+    expect(s.code).toBe(0);
+    const j = JSON.parse(readFileSync(join(d, "absorbido.json"), "utf8")) as {
+      vault: string;
+      trozos: Array<{ texto: string }>;
+    };
+    expect(j.vault).toBe("rea");
+    expect(j.trozos.length).toBeGreaterThan(0);
+    expect(j.trozos.some((t) => t.texto.includes("MiApp"))).toBe(true);
+  });
+
+  it("absorber: un JSON que NO es evidencia sigue siendo un JSON normal", () => {
+    const d = tmp();
+    const dump = join(d, "dump.json");
+    writeFileSync(dump, JSON.stringify({ recuerdos: [{ texto: "la mente es local" }] }));
+    const s = cli(["absorber", dump, join(d, "absorbido.json")]);
+    expect(s.code).toBe(0);
+    const j = JSON.parse(readFileSync(join(d, "absorbido.json"), "utf8")) as { vault: string };
+    expect(j.vault).toBe("json");
+  });
 });

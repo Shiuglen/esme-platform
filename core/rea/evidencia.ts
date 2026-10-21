@@ -9,79 +9,20 @@
  * Por qué un contrato y no un `any`. Un análisis real de una app de Electron
  * pesa 58 MB y trae 33.436 nodos, 25.173 relaciones y 10.061 desconocidos. Sin
  * forma verificada, ese documento entra en la mente y nadie sabe qué de él es
- * cierto. Aquí la forma se comprueba EN LA FRONTERA con zod, y lo que no
- * encaja se dice en vez de adivinarse.
+ * cierto. La forma se comprueba EN LA FRONTERA (en `forma.ts`, que es donde
+ * vive zod), y lo que no encaja se dice en vez de adivinarse.
+ *
+ * Aquí no hay validadores: sólo los TIPOS y la normalización. Quien importa
+ * estos tipos no carga zod —la regla de peso del kit—; quien valida, importa
+ * `core/rea/forma.ts`.
  *
  * La honestidad es parte de la forma: `limitations`, `unknowns` y `coverage`
  * no son campos opcionales de adorno. Son lo que separa «lo que REA vio» de
  * «lo que REA no pudo ver». Si no se leen, la mente afirma cosas que nadie
  * comprobó.
  *
- * Referencia: docs/REA.md, estandar/rea.spec.yaml.
+ * Referencia: docs/REA.md, estandar/rea.spec.yaml, core/rea/forma.ts.
  */
-import { z } from "zod";
-
-/* ------------------------------------------------------------------ *
- * La forma (zod). El sobre se valida entero; los nodos, a mano:      *
- * 33.000 nodos pasando por zod cuesta más que el análisis.          *
- * ------------------------------------------------------------------ */
-
-const AsuntoSchema = z
-  .object({
-    name: z.string(),
-    format: z.string().optional(),
-    digest: z.object({ sha256: z.string().optional() }).passthrough().optional(),
-    local_path: z.string().optional(),
-    architecture: z.string().nullable().optional(),
-  })
-  .passthrough();
-
-const ProveedorSchema = z
-  .object({
-    id: z.string(),
-    name: z.string().optional(),
-    version: z.string().nullable().optional(),
-  })
-  .passthrough();
-
-const GrafoSchema = z
-  .object({
-    nodes: z.array(z.unknown()).default([]),
-    relations: z.array(z.unknown()).default([]),
-    unknowns: z.array(z.unknown()).default([]),
-    evidence_contexts: z.array(z.unknown()).default([]),
-    coverage: z
-      .object({
-        status: z.string().optional(),
-        truncated: z.boolean().optional(),
-        omitted_nodes: z.number().optional(),
-        omitted_relations: z.number().optional(),
-        families: z.array(z.unknown()).default([]),
-      })
-      .passthrough()
-      .optional(),
-  })
-  .passthrough();
-
-const EvidenciaSchema = z
-  .object({
-    evidence_id: z.string().optional(),
-    subject: AsuntoSchema,
-    provider: ProveedorSchema,
-    operation: z.string().optional(),
-    confidence: z.string().optional(),
-    authority: z.string().optional(),
-    limitations: z.array(z.string()).default([]),
-    normalized_result: z
-      .object({
-        summary: z.record(z.string(), z.unknown()).default({}),
-        statistics: z.record(z.string(), z.unknown()).default({}),
-        semantic_graph: GrafoSchema.optional(),
-      })
-      .passthrough()
-      .optional(),
-  })
-  .passthrough();
 
 /* ------------------------------------------------------------------ *
  * Los tipos que usa el resto del kit.                                 *
@@ -160,171 +101,92 @@ export type LecturaEvidencia =
   | { ok: true; evidencia: EvidenciaRea }
   | { ok: false; errores: string[] };
 
+
 /* ------------------------------------------------------------------ *
- * Lectura.                                                             *
+ * La normalización. Los nodos, las relaciones y los desconocidos       *
+ * llegan «crudos»; aquí se les quita lo que sobra. 33.000 nodos       *
+ * pasando por zod cuesta más que el análisis entero.                  *
  * ------------------------------------------------------------------ */
 
-const str = (v: unknown): string | null => (typeof v === "string" ? v : null);
-const num = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : null);
+/** El texto de un valor, o null si no es texto. */
+export const textoDe = (v: unknown): string | null => (typeof v === "string" ? v : null);
 
-const objeto = (v: unknown): Record<string, unknown> =>
+/** El número de un valor, o null si no es un número finito. */
+export const numeroDe = (v: unknown): number | null =>
+  typeof v === "number" && Number.isFinite(v) ? v : null;
+
+/** Un valor como objeto plano; lo que no lo es, se lee como vacío. */
+export const objetoDe = (v: unknown): Record<string, unknown> =>
   v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : {};
 
 /** Normaliza un nodo del grafo: lo que se usa, en la forma que se usa. */
-function normalizaNodo(v: unknown, contextos: Map<string, { confianza: string | null; autoridad: string | null }>): NodoRea | null {
-  const o = objeto(v);
-  const kind = str(o.kind);
-  const node_id = str(o.node_id);
+export function normalizaNodo(
+  v: unknown,
+  contextos: Map<string, { confianza: string | null; autoridad: string | null }>
+): NodoRea | null {
+  const o = objetoDe(v);
+  const kind = textoDe(o.kind);
+  const node_id = textoDe(o.node_id);
   if (!kind || !node_id) return null;
-  const identidad = objeto(o.identity);
-  const rango = objeto(identidad.source_range);
-  const inicio = objeto(rango.start);
-  const ctx = contextos.get(str(objeto(o.evidence).context_id) ?? "");
+  const identidad = objetoDe(o.identity);
+  const rango = objetoDe(identidad.source_range);
+  const inicio = objetoDe(rango.start);
+  const ctx = contextos.get(textoDe(objetoDe(o.evidence).context_id) ?? "");
   return {
     kind,
     node_id,
-    label: str(o.label),
-    properties: objeto(o.properties),
-    modulo: str(identidad.module_path),
-    linea: num(inicio.line),
+    label: textoDe(o.label),
+    properties: objetoDe(o.properties),
+    modulo: textoDe(identidad.module_path),
+    linea: numeroDe(inicio.line),
     confianza: ctx?.confianza ?? null,
     autoridad: ctx?.autoridad ?? null,
   };
 }
 
-function normalizaRelacion(v: unknown): RelacionRea | null {
-  const o = objeto(v);
-  const source_node_id = str(o.source_node_id);
-  const target_node_id = str(o.target_node_id);
-  const relation = str(o.relation);
+/** Normaliza una relación: sin origen, destino y verbo no hay relación. */
+export function normalizaRelacion(v: unknown): RelacionRea | null {
+  const o = objetoDe(v);
+  const source_node_id = textoDe(o.source_node_id);
+  const target_node_id = textoDe(o.target_node_id);
+  const relation = textoDe(o.relation);
   if (!source_node_id || !target_node_id || !relation) return null;
-  return { source_node_id, target_node_id, relation, resolution: str(o.resolution) };
+  return { source_node_id, target_node_id, relation, resolution: textoDe(o.resolution) };
 }
 
-function normalizaDesconocido(v: unknown): DesconocidoRea | null {
-  const o = objeto(v);
-  const family = str(o.family);
-  const reason = str(o.reason);
+/** Normaliza un desconocido: sin familia y motivo no se sabe qué se perdió. */
+export function normalizaDesconocido(v: unknown): DesconocidoRea | null {
+  const o = objetoDe(v);
+  const family = textoDe(o.family);
+  const reason = textoDe(o.reason);
   if (!family || !reason) return null;
-  const kinds = Array.isArray(o.relation_kinds) ? o.relation_kinds.filter((k): k is string => typeof k === "string") : [];
+  const kinds = Array.isArray(o.relation_kinds)
+    ? o.relation_kinds.filter((k): k is string => typeof k === "string")
+    : [];
   return {
-    node_id: str(o.node_id) ?? "",
+    node_id: textoDe(o.node_id) ?? "",
     family,
     reason,
-    detail: str(o.detail),
+    detail: textoDe(o.detail),
     relation_kinds: kinds,
   };
 }
 
-function normalizaCobertura(v: unknown): CoberturaFamilia[] {
-  const o = objeto(v);
+/** Normaliza la cobertura por familia de relaciones. */
+export function normalizaCobertura(v: unknown): CoberturaFamilia[] {
+  const o = objetoDe(v);
   if (!Array.isArray(o.families)) return [];
   const salida: CoberturaFamilia[] = [];
   for (const f of o.families) {
-    const fo = objeto(f);
-    const family = str(fo.family);
+    const fo = objetoDe(f);
+    const family = textoDe(fo.family);
     if (!family) continue;
     salida.push({
       family,
-      status: str(fo.status),
-      retained_relations: num(fo.retained_relations) ?? 0,
-      omitted_relations: num(fo.omitted_relations) ?? 0,
+      status: textoDe(fo.status),
+      retained_relations: numeroDe(fo.retained_relations) ?? 0,
+      omitted_relations: numeroDe(fo.omitted_relations) ?? 0,
     });
   }
   return salida;
-}
-
-/**
- * Lee la Evidencia de REA y la verifica.
- *
- * Si la forma no encaja, lo dice con sus motivos: un `ok: false` con la lista
- * de errores es más útil que una evidencia a medias que parece entera.
- */
-export function leeEvidenciaRea(raw: unknown): LecturaEvidencia {
-  const parsed = EvidenciaSchema.safeParse(raw);
-  if (!parsed.success) {
-    return {
-      ok: false,
-      errores: parsed.error.issues.map((i) =>
-        i.path.length ? `${i.path.join(".")}: ${i.message}` : i.message
-      ),
-    };
-  }
-  const d = parsed.data;
-  const nr = d.normalized_result ?? {};
-  const grafo = nr.semantic_graph ?? { nodes: [], relations: [], unknowns: [], evidence_contexts: [] };
-
-  const contextos = new Map<string, { confianza: string | null; autoridad: string | null }>();
-  for (const c of grafo.evidence_contexts) {
-    const co = objeto(c);
-    const id = str(co.context_id);
-    if (!id) continue;
-    contextos.set(id, { confianza: str(co.confidence), autoridad: str(co.authority) });
-  }
-
-  const nodos: NodoRea[] = [];
-  for (const n of grafo.nodes) {
-    const norm = normalizaNodo(n, contextos);
-    if (norm) nodos.push(norm);
-  }
-
-  const relaciones: RelacionRea[] = [];
-  for (const r of grafo.relations) {
-    const norm = normalizaRelacion(r);
-    if (norm) relaciones.push(norm);
-  }
-
-  const desconocidos: DesconocidoRea[] = [];
-  for (const u of grafo.unknowns) {
-    const norm = normalizaDesconocido(u);
-    if (norm) desconocidos.push(norm);
-  }
-
-  const cov = grafo.coverage ?? {};
-
-  return {
-    ok: true,
-    evidencia: {
-      evidence_id: d.evidence_id ?? null,
-      subject: {
-        name: d.subject.name,
-        format: d.subject.format ?? null,
-        sha256: d.subject.digest?.sha256 ?? null,
-        local_path: d.subject.local_path ?? null,
-        architecture: d.subject.architecture ?? null,
-      },
-      provider: {
-        id: d.provider.id,
-        name: d.provider.name ?? null,
-        version: d.provider.version ?? null,
-      },
-      operation: d.operation ?? null,
-      confidence: d.confidence ?? null,
-      authority: d.authority ?? null,
-      limitations: d.limitations,
-      summary: nr.summary ?? {},
-      statistics: nr.statistics ?? {},
-      nodes: nodos,
-      relations: relaciones,
-      unknowns: desconocidos,
-      coverage: {
-        status: cov.status ?? null,
-        truncated: cov.truncated ?? false,
-        omitted_nodes: cov.omitted_nodes ?? 0,
-        omitted_relations: cov.omitted_relations ?? 0,
-        families: normalizaCobertura(cov),
-      },
-    },
-  };
-}
-
-/** Lee la Evidencia desde un JSON en texto. */
-export function leeEvidenciaReaJson(texto: string): LecturaEvidencia {
-  let crudo: unknown;
-  try {
-    crudo = JSON.parse(texto);
-  } catch (e) {
-    return { ok: false, errores: [`el JSON no se puede leer: ${String((e as Error)?.message || e)}`] };
-  }
-  return leeEvidenciaRea(crudo);
 }

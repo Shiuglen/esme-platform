@@ -124,10 +124,13 @@ describe("el kit se puede consumir", () => {
     // zod entra SOLO en los ficheros de contrato (los validadores de forma),
     // nunca en la lógica. Si aparece zod en otra parte, el kit ya no se
     // consume sin arrastrarlo.
+    // `core/rea/forma.ts` es el validador de REA: los TIPOS de la evidencia
+    // (`core/rea/evidencia.ts`) se importan sin cargar zod.
     expect([...ajenos.keys()]).toEqual(["zod"]);
     expect(ajenos.get("zod")).toEqual([
       "core/ipc/mind-schema.ts",
       "core/ipc/module-schema.ts",
+      "core/rea/forma.ts",
     ]);
   });
 

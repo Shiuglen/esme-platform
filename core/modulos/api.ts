@@ -81,6 +81,7 @@ export function modulos(opts: OpcionesRuntime): RuntimeModulos {
     mente: opts.mente,
     proyecto: opts.proyecto,
     dominios: opts.dominios,
+    programas: opts.programas,
     onEvento: opts.onEvento,
     onVista: opts.onVista,
   });

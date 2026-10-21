@@ -11,6 +11,7 @@ import { readFileSync, writeFileSync, existsSync, statSync } from "node:fs";
 import { importaVault } from "../core/mind/importers/obsidian.ts";
 import { importaMarkdown } from "../core/mind/importers/markdown.ts";
 import { importaJson } from "../core/mind/importers/json.ts";
+import { importaRea } from "../core/mind/importers/rea.ts";
 import { escribeMind, leeMind, type MenteAExportar, type RecuerdoPortatil } from "../core/mind/mind-file.ts";
 import { escribeMindZip, leeMindZip } from "../core/mind/mind-zip.ts";
 import { rumboAPng } from "../core/mind/rumbo.ts";
@@ -20,18 +21,38 @@ export interface Salida {
   out: string;
 }
 
+/**
+ * ¿Es este JSON una Evidencia de REA?
+ *
+ * Sin esto, una evidencia acabaría en el importador de JSON y saldría vacía
+ * sin decir nada: una absorción que se equivoca de fichero en silencio es
+ * peor que ninguna.
+ */
+export function esEvidenciaRea(ruta: string): boolean {
+  try {
+    const crudo = JSON.parse(readFileSync(ruta, "utf8")) as Record<string, unknown> | null;
+    if (!crudo || typeof crudo !== "object") return false;
+    const nr = crudo.normalized_result as Record<string, unknown> | undefined;
+    return typeof crudo.provider === "object" && crudo.provider !== null && !!nr;
+  } catch {
+    return false;
+  }
+}
+
 export function cli(argv: string[]): Salida {
   const [verbo, ...args] = argv;
   switch (verbo) {
     case "absorber": {
       const [ruta, destino] = args;
-      if (!ruta || !destino) return fail("uso: absorber <ruta vault|nota.md|dump.json> <out.json>");
+      if (!ruta || !destino) return fail("uso: absorber <ruta vault|nota.md|dump.json|evidencia.json> <out.json>");
       if (!existsSync(ruta)) return fail(`no existe ${ruta}`);
       // el pipeline es el mismo (excluir → redactar → trocear); lo que cambia
       // es de dónde viene el conocimiento
       const esJson = ruta.toLowerCase().endsWith(".json");
       const r = esJson
-        ? importaJson(ruta, { vaultNombre: "json" })
+        ? esEvidenciaRea(ruta)
+          ? importaRea(ruta, { vaultNombre: "rea" })
+          : importaJson(ruta, { vaultNombre: "json" })
         : statSync(ruta).isDirectory()
           ? importaVault(ruta, { vaultNombre: "vault" })
           : importaMarkdown(ruta, { vaultNombre: "markdown" });

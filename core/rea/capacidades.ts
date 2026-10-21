@@ -17,9 +17,8 @@
  * concede. Y una operación sin efectos declarados no se presume inocua: se
  * trata como la que peor efecto declara.
  *
- * Referencia: docs/REA.md, core/extension-host/capability.ts.
+ * Referencia: docs/REA.md, core/extension-host/capability.ts, core/rea/forma.ts.
  */
-import { z } from "zod";
 import type { Capability } from "../extension-host/capability.ts";
 
 /** Los efectos que REA declara. Cerrados: si aparece otro, se dice. */
@@ -40,6 +39,13 @@ export interface OperacionRea {
   proveedor: string;
   /** Los efectos que declara. */
   efectos: EfectoRea[];
+  /**
+   * Los efectos que declara y el kit NO conoce.
+   *
+   * No es un adorno: es lo que impide que una versión nueva de REA se cuele
+   * por la puerta sin que nadie lo mire. Se cuentan y se dicen.
+   */
+  efectos_desconocidos: string[];
   /** Si está disponible en esta máquina. */
   disponible: boolean;
   /** Por qué no está disponible (si no lo está). */
@@ -56,44 +62,6 @@ export interface CatalogoRea {
   /** Las limitaciones compartidas por los proveedores. */
   limitaciones: string[];
 }
-
-/* ------------------------------------------------------------------ *
- * La forma.                                                           *
- * ------------------------------------------------------------------ */
-
-const EfectoSchema = z.string();
-const GrupoSchema = z
-  .object({
-    operations: z.array(z.string()).default([]),
-    effects: z.array(EfectoSchema).default([]),
-    limitations: z.array(z.string()).default([]),
-    available: z.boolean().default(false),
-    reason: z.string().nullable().optional(),
-    availability_code: z.string().nullable().optional(),
-  })
-  .passthrough();
-
-const ProveedorSchema = z
-  .object({
-    provider: z
-      .object({
-        id: z.string(),
-        name: z.string().optional(),
-        version: z.string().nullable().optional(),
-      })
-      .passthrough(),
-    shared_limitations: z.array(z.string()).default([]),
-    groups: z.array(GrupoSchema).default([]),
-  })
-  .passthrough();
-
-const CatalogoSchema = z
-  .object({
-    open: z.boolean().default(false),
-    cleanup_pending: z.boolean().optional(),
-    capabilities: z.array(ProveedorSchema).default([]),
-  })
-  .passthrough();
 
 /* ------------------------------------------------------------------ *
  * El mapa: de efecto de REA a capacidad del kit.                      *
@@ -143,6 +111,17 @@ export const MAPA_EFECTOS: readonly MapaEfecto[] = [
   },
 ] as const;
 
+/**
+ * El efecto que se presume cuando una operación no declara ninguno.
+ *
+ * Por qué este y no otro. Una operación que no declara efectos es una
+ * operación de la que no se sabe qué hace: no se presume inocua. Se presume
+ * la PEOR: lanzar procesos. Es el único efecto que da ejecución de código en
+ * la máquina, y el único que no se puede condicionar con una lista (la red se
+ * condiciona por dominios, la UI por una ventana; un proceso, no).
+ */
+export const PEOR_EFECTO: EfectoRea = "launches_process";
+
 /** El mapa de un efecto (null si REA declara un efecto que el kit no conoce). */
 export function mapaDe(efecto: string): MapaEfecto | null {
   return MAPA_EFECTOS.find((m) => m.efecto === efecto) ?? null;
@@ -152,46 +131,6 @@ export function mapaDe(efecto: string): MapaEfecto | null {
  * Lectura y resumen.                                                  *
  * ------------------------------------------------------------------ */
 
-/** Lee el catálogo de REA (`rea capabilities --format json`). */
-export function leeCatalogoRea(raw: unknown): { ok: true; catalogo: CatalogoRea } | { ok: false; errores: string[] } {
-  const parsed = CatalogoSchema.safeParse(raw);
-  if (!parsed.success) {
-    return {
-      ok: false,
-      errores: parsed.error.issues.map((i) =>
-        i.path.length ? `${i.path.join(".")}: ${i.message}` : i.message
-      ),
-    };
-  }
-  const operaciones: OperacionRea[] = [];
-  for (const prov of parsed.data.capabilities) {
-    const compartidas = prov.shared_limitations ?? [];
-    for (const g of prov.groups) {
-      const limitaciones = [...compartidas, ...(g.limitations ?? [])];
-      for (const op of g.operations) {
-        operaciones.push({
-          operacion: op,
-          proveedor: prov.provider.id,
-          efectos: (g.effects ?? []).filter((e): e is EfectoRea =>
-            (EFECTOS_REA as readonly string[]).includes(e)
-          ),
-          disponible: g.available === true,
-          razon: g.reason ?? null,
-          limitaciones,
-        });
-      }
-    }
-  }
-  return {
-    ok: true,
-    catalogo: {
-      abierto: parsed.data.open === true,
-      operaciones,
-      limitaciones: [...new Set(parsed.data.capabilities.flatMap((p) => p.shared_limitations ?? []))],
-    },
-  };
-}
-
 /** Lo que exige una operación: capacidades, condiciones y efectos desconocidos. */
 export type Exigencia =
   | { ok: true; capacidades: Capability[]; condiciones: string[]; desconocidos: string[] }
@@ -200,9 +139,13 @@ export type Exigencia =
 /**
  * Qué capacidades del kit exige una operación de REA.
  *
- * Regla: la operación exige lo que declaran sus efectos. Un efecto desconocido
- * (una versión nueva de REA con un efecto que el kit no conoce) NO se presume
- * inocuo: se cuenta como el que peor se comporta.
+ * Regla: la operación exige lo que declaran sus efectos. Y hay dos casos en
+ * los que NO se presume bondad:
+ *
+ *   - Una operación SIN efectos declarados: no se sabe qué hace, así que se
+ *     trata como la del peor efecto (`PEOR_EFECTO`).
+ *   - Un efecto desconocido (una versión nueva de REA con un efecto que el kit
+ *     no conoce): no se presume inocuo; se cuenta y se dice.
  */
 export function capacidadesExigidas(cat: CatalogoRea, operacion: string): Exigencia {
   const op = cat.operaciones.find((o) => o.operacion === operacion);
@@ -211,8 +154,10 @@ export function capacidadesExigidas(cat: CatalogoRea, operacion: string): Exigen
   }
   const capacidades = new Set<Capability>();
   const condiciones: string[] = [];
-  const desconocidos: string[] = [];
-  for (const e of op.efectos) {
+  const desconocidos: string[] = [...op.efectos_desconocidos];
+  // Sin efectos conocidos, se presume el peor: no se presume inocua.
+  const efectos = op.efectos.length > 0 ? op.efectos : [PEOR_EFECTO];
+  for (const e of efectos) {
     const m = mapaDe(e);
     if (!m) {
       desconocidos.push(e);

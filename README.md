@@ -31,6 +31,7 @@ Entre dos lenguas solo sobrevive lo que está escrito.
 | `docs/SYNC.md` | La mente portable (`.mind`), en carpeta o en un solo fichero. |
 | `docs/INCIDENTE.md` | El runbook: si una llave se cae, qué se hace. |
 | `docs/MODULOS.md` | Los módulos: la cápsula, la puerta, el juez y el runtime. |
+| `docs/REA.md` | REA: los ojos de la mente — mirar dentro de un programa, con forma y con precio. |
 | `docs/ENTRADA.md` | La puerta de entrada: construir y publicar un módulo, en tres comandos. |
 | `docs/MOTORES.md` | Los motores: la misma mente, muchos cerebros (y qué motor aloja qué módulo). |
 | `docs/PIELES.md` | Las pieles: el tema es un documento, y hay un juez que lo comprueba. |

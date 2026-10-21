@@ -1,0 +1,129 @@
+# **Spec abierta v1 — la Evidencia de REA.** Lo que el motor vio, con nombre.
+# Referencia: core/rea/evidencia.ts, core/rea/forma.ts, core/rea/capacidades.ts,
+# docs/REA.md.
+#
+# QUÉ ES REA: el motor de ingeniería inversa que el kit usa como sensor. Analiza
+# un programa (una app de Electron, un binario) y devuelve un documento JSON: la
+# «Evidencia». Dice qué ha visto —módulos, funciones, canales, endpoints,
+# procesos hijos— y, tan importante como eso, lo que NO ha podido ver.
+#
+# POR QUÉ ESTÁ ESCRITA: un análisis real pesa 58 MB y trae 33.436 nodos, 25.173
+# relaciones y 10.061 desconocidos. Sin un contrato, ese documento entra en la
+# mente y nadie sabe qué de él es cierto. Con contrato, tres cosas quedan
+# dichas de antemano:
+#
+#   1. **La forma se comprueba en la frontera.** Si el documento no encaja, se
+#      dice con sus motivos; no se rellena a medias. Una evidencia a medias que
+#      parece entera es peor que ninguna.
+#   2. **La honestidad es parte de la forma.** `limitations`, `unknowns` y
+#      `coverage` no son adorno: son lo que separa «lo que REA vio» de «lo que
+#      REA no pudo ver». Una mente que sabe lo que no puede afirmar vale más
+#      que una que afirma de más.
+#   3. **Un hecho por entidad, no por nodo.** De un módulo se dice qué módulo
+#      es y qué funciones con nombre declara; de los 22.510 nodos de expresión,
+#      un número en la composición y nada más. Decenas de filas, no decenas de
+#      miles.
+#
+# Lo que este contrato NO es: cómo funciona REA por dentro, ni qué sabe hacer.
+# Eso es el CATÁLOGO (abajo), que se declara operación por operación.
+
+schema_version: 1
+
+# --- LA EVIDENCIA: el documento que REA entrega ---
+evidencia:
+  # Quién es el analizado. Sin nombre no hay evidencia: no se sabe de quién.
+  sujeto:
+    name: "el nombre del programa"
+    format: "el formato (asar, elf, pe…)"
+    digest:
+      sha256: "la huella del binario"
+    local_path: "dónde estaba"
+    architecture: "x64, arm64…"
+  # Quién lo miró. Un análisis sin proveedor declarado no se puede repetir.
+  proveedor:
+    id: "rea"
+    name: "REA"
+    version: "la versión"
+  # Qué se hizo: la operación concreta del catálogo.
+  operacion: "la operación"
+  # Con qué confianza se observó, y con qué autoridad.
+  confianza: "exact | derived | inferred…"
+  autoridad: "la autoridad de la fuente"
+  # Lo que el análisis NO pudo hacer. Siempre presente: una lista puede estar
+  # vacía, pero el campo no.
+  limitaciones:
+    - "lo que este análisis no vio"
+  # El resultado normalizado: el resumen, las estadísticas y el grafo.
+  resultado:
+    resumen: {}
+    estadisticas: {}
+    grafo:
+      nodos: []
+      relaciones: []
+      desconocidos: []
+      contextos: []
+      cobertura:
+        estado: "el estado de la cobertura"
+        truncado: false
+        omitidos_nodos: 0
+        omitidas_relaciones: 0
+        familias: []
+
+# --- EL CATÁLOGO: lo que REA dice que sabe hacer ---
+catalogo:
+  # Si REA está abierto (listo para recibir trabajo).
+  abierto: false
+  # Las operaciones, con sus efectos.
+  operaciones:
+    - nombre: "la operación"
+      proveedor: "rea"
+      efectos: []
+      disponible: false
+      razon: "por qué no está disponible (si no lo está)"
+      limitaciones: []
+  # Las limitaciones que comparten todos los proveedores.
+  limitaciones_compartidas: []
+
+reglas:
+  # 1. los efectos son CERRADOS: si REA declara otro, se cuenta como desconocido
+  #    y NO se presume inocuo (se trata como el que peor se comporta).
+  efectos_cerrados:
+    - launches_process
+    - may_write_filesystem
+    - may_access_network
+    - may_show_ui
+  # 2. cada efecto exige una capacidad del kit. Así, un módulo que quiera
+  #    analizar una app no pide «REA»: pide `proc:spawn` + `fs:project`.
+  efecto_por_capacidad:
+    launches_process: "proc:spawn"
+    may_write_filesystem: "fs:project"
+    may_access_network: "net:fetch"
+    may_show_ui: "ui:render"
+  # 3. una operación que no esté en el catálogo NO se concede.
+  operacion_fuera_del_catalogo: "denegada"
+  # 3-bis. una operación SIN efectos declarados no se presume inocua: se trata
+  #       como la del peor efecto. Y un efecto desconocido (una versión nueva
+  #       de REA) NO se presume inocuo: se cuenta y se dice.
+  peor_efecto: "launches_process"
+  # 4. los tipos de hecho son CERRADOS: un hecho es de un tipo y de uno solo.
+  tipos_hecho_cerrados:
+    - sujeto
+    - composicion
+    - limite
+    - desconocido
+    - cobertura
+    - superficie
+    - modulo
+    - funcion
+    - endpoint
+    - proceso
+    - configuracion
+    - evento
+    - temporizador
+    - frontera
+  # 5. lo que no se vio también es conocimiento: los límites, los desconocidos
+  #    y la cobertura salen como hechos propios.
+  lo_que_no_se_vio_es_conocimiento: true
+  # 6. el presupuesto se CONTA: si los hechos no caben, se dice cuántos
+  #    quedaron fuera. Un recorte silencioso es una mentira con forma de dato.
+  presupuesto_contado: true

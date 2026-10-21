@@ -30,6 +30,8 @@ import { CLAVES_DECISION } from "../../core/router/aprende.ts";
 import { CATEGORIAS_ARENA, CLAVES_ARENA } from "../../core/arena/arena.ts";
 import { MINIMO_CATAS } from "../../core/arena/paladar.ts";
 import { CAPABILITIES } from "../../core/extension-host/capability.ts";
+import { EFECTOS_REA, MAPA_EFECTOS, PEOR_EFECTO } from "../../core/rea/capacidades.ts";
+import { TIPOS_HECHO } from "../../core/rea/conocimiento.ts";
 import { CATEGORIES, RUNTIMES } from "../../core/ipc/module-schema.ts";
 import { LICENCIAS_PERMITIDAS, TOPE_BYTES, TOPE_FICHEROS, TOPE_TOKENS } from "../../tienda/skills.ts";
 
@@ -211,7 +213,47 @@ export function compruebaConformidad(): FalloConformidad[] {
     );
   }
 
-  // 11. las formas: los campos de la spec son los del código
+  // 11. REA: los efectos cerrados, el mapa de capacidades y los tipos de hecho
+  const rea = leeSpec("rea.spec.yaml");
+  const efectosSpec = opciones(rea, "reglas", "efectos_cerrados");
+  if (efectosSpec.join(",") !== [...EFECTOS_REA].join(",")) {
+    anota(
+      "rea.spec.yaml",
+      `los efectos no cuadran: spec [${efectosSpec.join(", ")}] · código [${EFECTOS_REA.join(", ")}]`
+    );
+  }
+  const reglasRea = (rea.reglas ?? {}) as Record<string, unknown>;
+  const mapaSpec = (reglasRea.efecto_por_capacidad ?? {}) as Record<string, string>;
+  for (const m of MAPA_EFECTOS) {
+    const declarado = mapaSpec[m.efecto];
+    const enCodigo = m.capacidad ?? "";
+    if (declarado !== enCodigo) {
+      anota(
+        "rea.spec.yaml",
+        `el efecto «${m.efecto}» exige «${enCodigo || "nada"}» en el código y «${declarado ?? "nada"}» en la spec`
+      );
+    }
+  }
+  for (const efecto of Object.keys(mapaSpec)) {
+    if (!MAPA_EFECTOS.some((m) => m.efecto === efecto)) {
+      anota("rea.spec.yaml", `el efecto «${efecto}» está en la spec y el código no lo conoce`);
+    }
+  }
+  const tiposSpec = opciones(rea, "reglas", "tipos_hecho_cerrados");
+  if (tiposSpec.join(",") !== [...TIPOS_HECHO].join(",")) {
+    anota(
+      "rea.spec.yaml",
+      `los tipos de hecho no cuadran: spec [${tiposSpec.join(", ")}] · código [${TIPOS_HECHO.join(", ")}]`
+    );
+  }
+  if (String(reglasRea.peor_efecto ?? "") !== PEOR_EFECTO) {
+    anota(
+      "rea.spec.yaml",
+      `el peor efecto es «${PEOR_EFECTO}» en el código y «${String(reglasRea.peor_efecto ?? "nada")}» en la spec`
+    );
+  }
+
+  // 12. las formas: los campos de la spec son los del código
   const formas: Array<[string, string, readonly string[]]> = [
     ["agente.spec.yaml", "agente", CLAVES_RECETA_AGENTE],
     ["turno.spec.yaml", "turno", CLAVES_TURNO],

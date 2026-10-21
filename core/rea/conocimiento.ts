@@ -110,7 +110,7 @@ export function conocimientoDe(ev: EvidenciaRea, maxHechos = 400): ConocimientoR
     else porKind.set(n.kind, [n]);
   }
 
-  /* --- 1. el sujeto: qué se analysingó y con qué autoridad ----------- */
+  /* --- 1. el sujeto: qué se analizó y con qué autoridad -------------- */
   const s = ev.subject;
   push({
     tipo: "sujeto",

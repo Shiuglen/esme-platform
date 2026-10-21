@@ -45,9 +45,15 @@ opción. Tres capas, todas verificables (`tests/capsula.test.ts`):
 Los núcleos prohibidos están en `NUCLEOS_PROHIBIDOS` (`core/extension-host/sandbox.ts`).
 Son una decisión de seguridad, no de comodidad: se conservan y se explican.
 
+`child_process` sigue prohibido, y `proc:spawn` no lo contradice: el módulo no
+importa `node:child_process` nunca. Pide al anfitrión que lance un programa
+**que el anfitrión ya ha concedido**, por su nombre lógico. La diferencia es
+la misma que la de `esme.fs`: no se le da la llave, se le da una puerta. Ver
+[`docs/REA.md`](REA.md).
+
 ## 2. La puerta: lo que el módulo ve
 
-`globalThis.esme` es la puerta. Tiene seis piezas, y cada una existe sólo si
+`globalThis.esme` es la puerta. Tiene siete piezas, y cada una existe sólo si
 el módulo la **declaró** en su manifiesto **y** la persona la **concedió**:
 
 | Pieza | Capacidad | Qué puede hacer (y qué no) |
@@ -57,6 +63,7 @@ el módulo la **declaró** en su manifiesto **y** la persona la **concedió**:
 | `esme.net` | `net:fetch` | Sólo a los **dominios concedidos**, con tope de tiempo, y cada salto de redirección se comprueba. |
 | `esme.ipc` | `ipc:emit` | Emitir eventos, **con namespace del módulo**: `esme.x.y:listo`. Un módulo no puede hablar en nombre de otro. |
 | `esme.ui` | `ui:render` | Proponer una vista. El módulo propone; la app decide si se ve. |
+| `esme.proc` | `proc:spawn` | Lanzar un programa **que el anfitrión ha concedido**, por su nombre lógico («rea»), con argumentos en array, dentro del proyecto, sin las llaves de la persona, con tope de tiempo y de salida. Ver [`docs/REA.md`](REA.md). |
 | `esme.entorno` | — | Plataforma, versión de Node y la **huella** de la máquina (hash), nunca su nombre: el nombre identifica a la persona. |
 
 ### El permiso tiene tres estados, no dos
