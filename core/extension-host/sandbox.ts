@@ -215,6 +215,13 @@ if (capacidades.ui) {
     render: (vista) => pedir("ui", { vista }),
   };
 }
+if (capacidades.proc) {
+  // Los programas: el módulo pide, el anfitrión lanza. El módulo no sabe
+  // ni la ruta ni el entorno: sólo el nombre lógico y los argumentos.
+  puerta.proc = {
+    ejecutar: (peticion) => pedir("proc", peticion || {}),
+  };
+}
 globalThis.esme = Object.freeze(puerta);
 
 // --- 4. EL MÓDULO ---

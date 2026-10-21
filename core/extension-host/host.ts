@@ -21,6 +21,7 @@ import { MindMethods, CAPACIDAD_POR_METODO, type MindMethod, type MenteViva } fr
 import { BOOTSTRAP } from "./sandbox.ts";
 import { confinaRuta } from "../modulos/rutas.ts";
 import type { VistaModulo } from "./puerta.ts";
+import { ejecutaPrograma, type EntradaProc } from "./proc.ts";
 
 export interface Respuesta {
   nonce: string;
@@ -54,6 +55,13 @@ export interface OpcionesHost {
   proyecto?: string;
   /** Los dominios que `net:fetch` puede tocar. Vacío = la red está cerrada. */
   dominios?: string[];
+  /**
+   * Los programas que `proc:spawn` puede lanzar (por nombre lógico).
+   *
+   * Sin esta lista, `proc:spawn` no lanza nada: la puerta existe, pero está
+   * cerrada. Quien concede decide también QUÉ se puede lanzar.
+   */
+  programas?: EntradaProc[];
   /** Quién recibe los eventos que emite el módulo. */
   onEvento?: (evento: string, carga: unknown) => void;
   /** Quién recibe las vistas que el módulo propone. */
@@ -121,6 +129,7 @@ export function abreHost(
         net: efecto("net:fetch"),
         ipc: efecto("ipc:emit"),
         ui: efecto("ui:render"),
+        proc: efecto("proc:spawn"),
       },
       entorno,
     },
@@ -238,6 +247,8 @@ export function abreHost(
         result = sirveIpc(carga);
       } else if (op === "ui") {
         result = sirveUi(carga);
+      } else if (op === "proc") {
+        result = await sirveProc(carga);
       } else {
         throw new Error(`puerta desconocida: ${op}`);
       }
@@ -350,6 +361,40 @@ export function abreHost(
     vistas.push(vista);
     opts.onVista?.(vista);
     return { id: `vista-${vistas.length}` };
+  };
+
+  /**
+   * `proc:spawn` — los programas, por nombre lógico.
+   *
+   * El módulo no sabe la ruta: la resuelve el anfitrión, que sólo resuelve los
+   * nombres que están en la lista concedida. El hijo nace dentro del proyecto,
+   * con un entorno mínimo, un tope de tiempo y un tope de salida.
+   */
+  const sirveProc = async (carga: Record<string, unknown>): Promise<unknown> => {
+    usa("proc:spawn");
+    const programa = String(carga.programa ?? "");
+    if (!programa) throw new Error("proc:spawn sin programa: hay que decir cuál, por su nombre lógico");
+    const args = Array.isArray(carga.args) ? (carga.args as unknown[]).map((a) => String(a)) : [];
+    const env =
+      carga.env && typeof carga.env === "object" && !Array.isArray(carga.env)
+        ? Object.fromEntries(
+            Object.entries(carga.env as Record<string, unknown>).map(([k, v]) => [k, String(v)])
+          )
+        : undefined;
+    return await ejecutaPrograma(
+      {
+        programa,
+        args,
+        env,
+        cwd: typeof carga.cwd === "string" ? carga.cwd : undefined,
+        timeoutMs: typeof carga.timeoutMs === "number" ? carga.timeoutMs : undefined,
+        maxBytes: typeof carga.maxBytes === "number" ? carga.maxBytes : undefined,
+      },
+      {
+        permitidos: opts.programas ?? [],
+        proyecto: opts.proyecto ?? null,
+      }
+    );
   };
 
   const listo = new Promise<void>((res, rej) => {

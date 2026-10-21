@@ -68,6 +68,38 @@ export interface PuertaUi {
 }
 
 /**
+ * Los programas: lanzar un ejecutable que el anfitrión ha concedido.
+ *
+ * El módulo pide por NOMBRE LÓGICO («rea»), nunca por ruta: la ruta la
+ * resuelve el anfitrión, que sabe qué tiene permitido. Los argumentos van en
+ * array (sin shell no hay metacarácter) y el hijo nace dentro del proyecto.
+ */
+export interface PuertaProc {
+  /** Lanza un programa permitido y devuelve su salida. */
+  ejecutar(peticion: {
+    /** El nombre lógico del programa («rea»). */
+    programa: string;
+    /** Los argumentos, en array. */
+    args?: string[];
+    /** Variables de entorno: sólo valen las permitidas para ese programa. */
+    env?: Record<string, string>;
+    /** El directorio de trabajo, dentro del proyecto. */
+    cwd?: string;
+    /** Tope de tiempo (ms). */
+    timeoutMs?: number;
+    /** Tope de bytes de salida. */
+    maxBytes?: number;
+  }): Promise<{
+    codigo: number | null;
+    stdout: string;
+    stderr: string;
+    truncado: boolean;
+    timeout: boolean;
+    ms: number;
+  }>;
+}
+
+/**
  * La puerta entera. Lo que falta, falta de verdad: una capacidad no concedida
  * NO aparece (no aparece como `undefined` con un error dentro: no aparece).
  */
@@ -90,6 +122,8 @@ export interface EsmeDelModulo {
   readonly ipc?: PuertaIpc;
   /** La UI, si tiene `ui:render`. */
   readonly ui?: PuertaUi;
+  /** Los programas, si tiene `proc:spawn`. */
+  readonly proc?: PuertaProc;
 }
 
 /**

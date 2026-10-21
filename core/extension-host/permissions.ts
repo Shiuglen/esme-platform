@@ -2,7 +2,7 @@
  * Permisos del extension host: deny-all por defecto, siempre declarativos.
  * Referencia: docs/ARQUITECTURA.md §2. Laya opina; esto aplica.
  */
-import type { Capability } from "../extension-host/capability.ts";
+import { CAPABILITIES, type Capability } from "../extension-host/capability.ts";
 
 export interface PeticionPermisos {
   id: string;                       // id del módulo
@@ -12,14 +12,12 @@ export interface PeticionPermisos {
 
 export type EstadoPermisos = "concedido" | "pendiente-consentimiento" | "denegado";
 
-const CAPS_VALIDAS = new Set<string>([
-  "mind:read",
-  "mind:write",
-  "ipc:emit",
-  "fs:project",
-  "net:fetch",
-  "ui:render",
-]);
+/**
+ * La lista válida es LA MISMA que la del manifiesto: una sola verdad.
+ * (Antes estaba duplicada aquí, y una capability nueva llegaba a la puerta
+ * sin llegar a la matriz.)
+ */
+const CAPS_VALIDAS = new Set<string>(CAPABILITIES);
 
 /**
  * La matriz: lo que el módulo DECLARA se puede conceder; lo que NO declaró,
