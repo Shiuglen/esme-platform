@@ -68,6 +68,28 @@ npm run rotar "rotación trimestral"
 npm run bench   # re-firma con la nueva
 ```
 
+## Incidente: accidentalidad en el guard de rotación (23-oct-2026)
+
+**Qué pasó.** Se llamó `npm run rotar --ayuda` esperando un texto de uso.
+El guion no filtraba sus argumentos: el flag `--ayuda` se usó como *motivo*
+y la ceremonia CORRIÓ — la llave viva rotó (`adaaf799 → b85925e4`) y la
+privada vieja se reescribió sin copia.
+
+**Consecuencia en el estado de confianza.** Certificado dual-firmado con
+motivo «--ayuda» en el ledger (append-only: queda, no se corrige). El índice
+y los veredictos se re-firman con la llave viva nueva; los artefactos que
+firmara la vieja siguen verificando por la cadena de sucesiones. Ningún
+consumidor se rompe: caminan la estirpe como siempre.
+
+**La lección en la casa (cómo se hace imposible que vuelva):** `rotar`
+ahora se niega si el argumento huele a flag (`--…`) y EXIGE el motivo por
+escrito (una llave no muere sin causa): `tests/rotar-guard.test.ts`.
+
+**Por qué esto importa:** una ceremonia irreversible que ve ejecutada por
+un argumento que nadie entendió es un incidente de seguridad que aún está
+esperando su caso. El guard vale para la persona y para la IA que la usa.
+
+
 ## Reproducir cada pieza (para auditar a mano)
 
 | Verificar | Cómo |

@@ -11,6 +11,31 @@ npm run release:check     # el pre-vuelo: dice lo que falta (ver más abajo)
 git tag v0.2.0 && git push --tags   # y el workflow hace el resto
 ```
 
+### Antes de etiquetar: la llave de release tiene que estar avalada
+
+El workflow firma con `ESME_RELEASE_KEY_PEM` (un secret de GitHub, el PEM
+nunca vive en el repo ni en esta máquina). Pero una llave que la estirpe no
+avala no firma: el paso 3 de la release se cae a propósito. La primera vez,
+el derecho se otorga **por delegación** (no hace falta rotar la dev key):
+
+```bash
+# 1. genera el par FUERA de la máquina (la privada es sagrada: va al secret)
+openssl genpkey -algorithm ed25519 -out esme-release.pem
+openssl pkey -in esme-release.pem -pubout -out esme-release.pub.pem
+
+# 2. la llave viva de la casa avala la de release (una vez, queda en el ledger
+#    público con su motivo — el cert lleva la pub dentro, nada más que copiar)
+npm run delegar -- esme-release.pub.pem \
+    --motivo "la primera release: la llave de release firma en la CI"
+
+# 3. el contenido de esme-release.pem va al secret ESME_RELEASE_KEY_PEM
+#    y los ficheros locales se destruyen (shred -u esme-release.pem esme-release.pub.pem)
+```
+
+El consumidor acepta el índice por la vía «delegada»: la raíz sigue siendo
+la raíz, y la delegación se puede revocar con `npm run revocar <huella>`
+si la llave de release se compromete.
+
 Qué comprueba el pre-vuelo (todo lo que se puede comprobar SIN la llave de
 release, que nunca vive en el repo):
 
