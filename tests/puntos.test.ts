@@ -12,7 +12,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { platform } from "node:os";
-import { puntos, motorDe, renderPuntos, TOPE_MB } from "../core/motores/puntos.ts";
+import { puntos, motorDe, renderPuntos, renderArbolPuntos, TOPE_MB, type Punto } from "../core/motores/puntos.ts";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -71,6 +71,7 @@ describe("la medida", () => {
           motor: "opencode",
           proceso: "opencode",
           pid: 1,
+          papa: null,
           estado: "vivo",
           memoria_mb: 3000,
           cpu_pct: 12.5,
@@ -86,10 +87,68 @@ describe("la medida", () => {
   });
 });
 
+describe("la familia", () => {
+  it("cada punto trae su papa MEDIDO (el ppid del sistema, no una invención)", async () => {
+    // el propio proceso de la prueba: su papa en la medida tiene que cuadrar
+    // con lo que /proc self/stat dice (misma fuente, misma verdad)
+    const lista = puntos({ pids: [process.pid] });
+    expect(lista.length).toBe(1);
+    const papaMedido = lista[0].papa;
+    const self = readFileSync(`/proc/${process.pid}/stat`, "utf8");
+    const campos = self.slice(self.lastIndexOf(")") + 2).split(" ");
+    expect(papaMedido).toBe(Number(campos[1]));
+  });
+
+  it("el árbol conecta cada punto con su papa (y lo que nació fuera, raíz)", () => {
+    const punto = (pid: number, papa: number | null, proceso: string, memoria_mb: number, motor: string | null = null): Punto =>
+      ({
+        id: `${motor ?? proceso}:${pid}:0`,
+        motor,
+        proceso,
+        pid,
+        papa,
+        estado: "vivo",
+        memoria_mb,
+        cpu_pct: 0,
+        desde: 0,
+        pasado: false,
+        carga: { pesos_mb: null, cache_mb: null, libre_mb: null },
+      }) as Punto;
+    // la casa de pruebas: un agente que engendró a dos hijos, y un proceso
+    // que nació fuera de la lista (su papa no está entre los puntos)
+    const lista = [
+      punto(12, null, "opencode", 30, "opencode"),
+      punto(13, 12, "hijo-busy", 400),
+      punto(14, 12, "hijo-quieto", 5),
+      punto(20, 13, "nieto", 1),
+      punto(99, 7, "externo", 120),
+    ];
+    const texto = renderArbolPuntos(lista);
+    // el hijo gordo sale primero (la familia se lee como la lista: lo que más come)
+    const desdeOpencode = texto.indexOf("opencode");
+    const desdeBusy = texto.indexOf("hijo-busy");
+    const desdeQuieto = texto.indexOf("hijo-quieto");
+    expect(desdeOpencode).toBeGreaterThan(-1);
+    expect(desdeBusy).toBeGreaterThan(desdeOpencode);
+    expect(desdeQuieto).toBeGreaterThan(desdeBusy);
+    // el nieto cuelga de su papa con la sangría del nivel siguiente
+    const indentPadre = texto.indexOf("hijo-busy") - texto.lastIndexOf("\n", texto.indexOf("hijo-busy")) - 1;
+    const indentNieto = texto.indexOf("nieto") - texto.lastIndexOf("\n", texto.indexOf("nieto")) - 1;
+    expect(indentNieto).toBeGreaterThan(indentPadre);
+    // el externo es SU raíz: su papa no está, y no se inventa que cuelga de nadie
+    const desdeExterno = texto.indexOf("externo");
+    expect(texto.slice(0, desdeExterno)).not.toContain("│ ");
+  });
+
+  it("sin familia: árbols vacíos se dicen, no se dibujan", () => {
+    expect(renderArbolPuntos([])).toContain("nadie");
+  });
+});
+
 describe("el contrato está escrito", () => {
   it("la spec declara los campos del punto (entre dos lenguajes, lo escrito)", () => {
     const spec = readFileSync(join(raiz, "estandar", "puntos.spec.yaml"), "utf8");
-    for (const campo of ["id:", "motor:", "proceso:", "pid:", "memoria_mb:", "cpu_pct:", "estado:"]) {
+    for (const campo of ["id:", "motor:", "proceso:", "pid:", "papa:", "memoria_mb:", "cpu_pct:", "estado:", "familia:"]) {
       expect(spec, `la spec no declara ${campo}`).toContain(campo);
     }
     expect(spec).toContain("medido: true");

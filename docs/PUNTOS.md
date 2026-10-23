@@ -33,6 +33,30 @@ $ npm run puntos -- --todos --tope 500
     opencode     4003544   416 MiB   3.3%  opencode
 ```
 
+## La familia: ver quién engendró a quién
+
+Un agente no vive solo: engendró hijos (un servidor, un worker, un deploy en
+otra cola), y cada hijo tiene sus propios procesos. Con `--arbol` la lista
+se mira **como lo que es**: una familia.
+
+```bash
+$ npm run puntos -- --arbol
+árbol (413 puntos; 4 en motor de la casa)
+├─ opencode (pid 8733, 113 MiB, opencode)
+│ └─ opencode (pid 8742, 436 MiB, opencode)
+│   └─ node (pid 8860, 272 MiB)
+```
+
+Cada punto trae su **papa** (el PPID, medido del sistema: 4.° campo del
+`/proc/<pid>/stat`; lo que no se mide, `null`). Con eso:
+
+- **nada de suposición**: la rama que se ve es la que el sistema escribió;
+- **lo que nació fuera de la lista se ve como raíz** (su progenitor no está
+  en la medida — y lo que no está, no se inventa);
+- **la familia se ordena como la lista**: primero el que más come. Una rama
+  que se está comiendo la RAM se ve (firefox abajo de un agente a 2 GB, ahí
+  está la razón).
+
 ## El contrato
 
 [`estandar/puntos.spec.yaml`](../estandar/puntos.spec.yaml) es el escrito
@@ -44,6 +68,7 @@ $ npm run puntos -- --todos --tope 500
 | `motor` | el id del motor, o `null` si no se sabe |
 | `proceso` | el nombre del proceso |
 | `pid` | el proceso |
+| `papa` | el pid del progenitor, **medido** (null si el sistema no lo dice) |
 | `estado` | `vivo` \| `zombi` \| `desconocido` |
 | `memoria_mb` | MiB residentes, **medidos** |
 | `cpu_pct` | el uso de CPU **de ahora** (dos muestras, no la media histórica) |
@@ -69,13 +94,14 @@ De los marcadores de X: **PandaCode** (una GUI de agentes de 12 MB en Rust, sin
 Chromium y sin servidor Node: 180 MB en reposo con 30 agentes) y su
 alternativa a **Dots**, que se integra con las apps de mensajería; y de
 **Shuh**, que hizo visual la gestión de GPUs («cada tarjeta muestra su
-memoria, y con un clic se ajusta la configuración para que encaje»).
+memoria, y con un clic se ajusta la configuración para que encaje»). Y la
+familia viene de **el componente de árbol de agentes** (flohoeller: «ve
+quién inició a quién»): la genealogía de los agentes no es un adorno, es
+la manera de saber de WHOM la RAM se está comiendo.
 
 La idea que se absorbe no es la herramienta: es la forma de pensar. **Lo que
 pasa en tu máquina, se ve en tu máquina, en un punto, con un número al lado.**
-Y nada de eso necesita un navegador entero para verse.
-
-## El desglose y el desbordamiento
+Y nada de eso necesita un navegador entero para verse.## El desglose y el desbordamiento
 
 Dos reglas que la idea de las tarjetas de GPU trajo consigo (el gestor visual
 de GPUs que había en los marcadores: «cada tarjeta muestra su memoria, y con un

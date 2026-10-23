@@ -27,6 +27,7 @@ export const CLAVES_PUNTO = [
   "motor",
   "proceso",
   "pid",
+  "papa",
   "estado",
   "memoria_mb",
   "cpu_pct",
@@ -45,6 +46,8 @@ export interface Punto {
   proceso: string;
   /** El pid. */
   pid: number;
+  /** El pid del progenitor, MEDIDO del sistema (quien lo engendró). */
+  papa: number | null;
   /** El estado. */
   estado: "vivo" | "zombi" | "desconocido";
   /** La memoria residente, en MiB (null si no se pudo medir). */
@@ -106,6 +109,8 @@ export function motorDe(proceso: string): string | null {
 interface Lectura {
   proceso: string;
   pid: number;
+  /** El ppid: quien lo engendró (el sistema lo dice; si no, null). */
+  papa: number | null;
   estado: Punto["estado"];
   memoria_mb: number | null;
   cpu_pct: number | null;
@@ -147,6 +152,9 @@ function leeLinux(): Lectura[] {
       const campos = stat.slice(corte + 2).split(" ");
       const starttime = Number(campos[19] ?? 0);
       const state = campos[0] ?? "R";
+      // el ppid (campos: [0]=state, [1]=ppid): quien lo engendró — el árbol
+      // de la casa sale de esto, no de suposiciones
+      const papa = Number(campos[1] ?? 0) || null;
 
       const ticks = leerTicks(pid);
       const antes = primera.get(Number(pid));
@@ -177,6 +185,7 @@ function leeLinux(): Lectura[] {
       salida.push({
         proceso: comm,
         pid: Number(pid),
+        papa,
         estado: state === "Z" ? "zombi" : "vivo",
         memoria_mb: rss,
         cpu_pct: cpu,
@@ -225,6 +234,7 @@ function leeMac(): Lectura[] {
     salida.push({
       proceso: m[5].trim().split("/").pop() ?? m[5].trim(),
       pid: Number(m[1]),
+      papa: null,
       estado: "vivo",
       memoria_mb: Number(m[3]) / 1024,
       cpu_pct: Number(m[2]),
@@ -262,6 +272,7 @@ export function puntos(opts: OpcionesPuntos = {}): Punto[] {
       motor,
       proceso: l.proceso,
       pid: l.pid,
+      papa: l.papa,
       estado: l.estado,
       memoria_mb: memoria,
       cpu_pct: l.cpu_pct,
@@ -291,4 +302,65 @@ export function renderPuntos(lista: Punto[], tope = TOPE_MB): string {
     lineas.push(`  ${pasado.length} punto(s) por encima del tope`);
   }
   return lineas.join("\n");
+}
+/**
+ * LA FAMILIA — ver quién engendró a quién.
+ *
+ * Cada punto trae su papa (el ppid, medido del sistema, no adivinado). Con
+ * eso la casa puede dibujar el árbol de SUS agentes: quién arrancó a quién,
+ * y qué rama está comiéndose la memoria. Lo que nació fuera de la medida
+ * (el terminal, un supervisor) aparece tal cual: su progenitor no está en
+ * la lista, y lo que no está no se inventa.
+ *
+ * Referencia: estandar/puntos.spec.yaml §reglas, docs/PUNTOS.md, scripts/puntos.ts (--arbol).
+ */
+export function renderArbolPuntos(lista: Punto[]): string {
+  if (!lista.length) return "árbol: nadie (no hay puntos que medir)";
+
+  const porPid = new Map<number, Punto>();
+  for (const p of lista) porPid.set(p.pid, p);
+  const ramaDe = new Map<number, Punto[]>();
+  const raices: Punto[] = [];
+  for (const p of lista) {
+    const progenitor = p.papa !== null ? porPid.get(p.papa) : undefined;
+    if (progenitor) {
+      const rama = ramaDe.get(progenitor.pid) ?? [];
+      rama.push(p);
+      ramaDe.set(progenitor.pid, rama);
+    } else {
+      raices.push(p);
+    }
+  }
+
+  // la familia se lee igual que la lista: primero lo que más come
+  const come = (a: Punto, b: Punto) => (b.memoria_mb ?? -1) - (a.memoria_mb ?? -1);
+  raices.sort(come);
+  for (const rama of ramaDe.values()) rama.sort(come);
+
+  const mem = (p: Punto) => (p.memoria_mb === null ? "?" : `${Math.round(p.memoria_mb)} MiB`);
+  const lineas: string[] = [
+    `árbol (${lista.length} puntos; ${lista.filter((p) => p.motor).length} en motor de la casa)`,
+  ];
+
+  const caminar = (p: Punto, prefijo: string, conector: string): void => {
+    lineas.push(
+      `${prefijo}${conector}${p.proceso} (pid ${p.pid}, ${mem(p)}${p.motor ? `, ${p.motor}` : ""})`
+    );
+    const rama = ramaDe.get(p.pid) ?? [];
+    rama.forEach((h, i) => {
+      const esUltimo = i === rama.length - 1;
+      // el hijo que sigue contaminando la columna: sólo si este no era el último
+      caminar(h, `${prefijo}${conector ? (esUltimoHeredado(conector) ? "  " : "│ ") : ""}`, esUltimo ? "└─ " : "├─ ");
+    });
+  };
+
+  raices.forEach((p) => {
+    caminar(p, "", "");
+  });
+  return lineas.join("\n");
+}
+
+/** ¿El conector heredado ya era el de un último hijo? (su rama ya terminó) */
+function esUltimoHeredado(conector: string): boolean {
+  return conector === "└─ " || conector === "";
 }

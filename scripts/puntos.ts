@@ -1,11 +1,14 @@
 /**
  * puntos — el estado de tu PC, medido.
- *   npm run puntos [-- --json] [--motor opencode] [--pid 1234] [--tope 2048] [--todos]
+ *   npm run puntos [-- --json] [--motor opencode] [--pid 1234] [--tope 2048] [--todos] [--arbol]
  *
  * La pregunta de todos los días: «¿qué se está comiendo la memoria ahora
  * mismo?». Aquí se responde con números: un punto por proceso, con su
  * memoria residente y su CPU, MEDIDOS por el sistema operativo (no
  * estimados).
+ *
+ * Con `--arbol` se ve la FAMILIA: quién engendró a quién (cada punto trae
+ * su papa, medida del sistema). Referencia: docs/PUNTOS.md.
  *
  * Con `--todos`, la máquina entera (no sólo los motores): la pregunta de la
  * RAM no es «cuánto usa el agente», es «qué se está comiendo la máquina».
@@ -17,7 +20,7 @@
  *
  * Referencia: docs/PUNTOS.md, estandar/puntos.spec.yaml.
  */
-import { puntos, renderPuntos, TOPE_MB } from "../core/motores/puntos.ts";
+import { puntos, renderPuntos, renderArbolPuntos, TOPE_MB } from "../core/motores/puntos.ts";
 
 // ——— la línea de comandos ———
 if (import.meta.url === new URL(`file://${process.argv[1]}`).href) {
@@ -32,6 +35,7 @@ if (import.meta.url === new URL(`file://${process.argv[1]}`).href) {
   const motores = arg("--motor");
   const pid = arg("--pid");
   const tope = Number(arg("--tope") ?? TOPE_MB);
+  const arbol = tiene("--arbol");
 
   const lista = puntos({
     ...(motores ? { motores: motores.split(",").map((m) => m.trim()) } : {}),
@@ -40,7 +44,12 @@ if (import.meta.url === new URL(`file://${process.argv[1]}`).href) {
     tope_mb: Number.isFinite(tope) ? tope : TOPE_MB,
   });
 
-  if (tiene("--json")) console.log(JSON.stringify(lista, null, 2));
+  if (arbol) {
+    // el árbol necesita la familia entera: si los padres están filtrados
+    // fuera, todos parecen raíz y la genealogía se pierde
+    const familia = puntos({ todos: true, tope_mb: Number.isFinite(tope) ? tope : TOPE_MB });
+    console.log(renderArbolPuntos(familia));
+  } else if (tiene("--json")) console.log(JSON.stringify(lista, null, 2));
   else console.log(renderPuntos(lista, Number.isFinite(tope) ? tope : TOPE_MB));
   process.exit(0);
 }

@@ -25,6 +25,10 @@ punto:
   motor: "el id del motor (motor-capability.spec.yaml), o null si no se sabe"
   proceso: "el nombre del proceso"
   pid: "entero"
+  # la genealogía: ver quién engendró a quién. El sistema lo dice de gratis
+  # (el ppid); con esto el árbol de TU familia de agentes sale de la medida,
+  # no de suposiciones. null si el sistema no lo sabe.
+  papa: "el pid del progenitor (null si no se mide)"
   estado: "vivo | zombi | desconocido"
   memoria_mb: "MiB residentes, MEDIDOS"
   # el desglose (cuando el proceso lo sabe): de qué se compone esa memoria.
@@ -56,6 +60,11 @@ reglas:
   tope_mb_por_defecto: 2048
   # 4. esto es LOCAL: leer el consumo de tus procesos no sale de tu PC.
   local: true
+  # 4b. la familia es una LISTA que se puede mirar como árbol: quien
+  #     renderiza conecta cada punto con su papa. Si el progenitor no está
+  #     en la lista, el punto se ve como raíz (lo que no está, no se
+  #     inventa): `npm run puntos -- --arbol`.
+  familia: "árbol desde lo medido"
   # 5. el desglose se muestra con la barra: pesos, caché y libre, cada uno con
   #    su número (así se sabe qué se puede soltar).
   desglose: true
