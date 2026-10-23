@@ -130,27 +130,56 @@ export function llevaDeRaiz(
   certs: CertRotacion[],
   pubAncla?: string
 ): { ok: boolean; pasos: string[] } {
-  const pasos: string[] = [];
-  let actual = huellaInicial;
-  let pubActual: string | null = pubAncla ?? null;
-  for (let i = 0; i < 16; i++) {
-    // max 16 saltos: si hay más, algo está podrido
-    // el ancla se compara por HUELLA canónica, no por texto del pem
-    // (env y ficheros no siempre traen el mismo salto de línea)
-    const huellaAncla = pubActual ? huellaDePub(pubActual) : null;
-    const salto = certs.find(
-      (c) =>
-        c.vieja.huella === actual &&
-        certificadoValido(c) &&
-        (!huellaAncla || huellaDePub(c.vieja.pub) === huellaAncla)
-    );
-    if (!salto) return { ok: actual === huellaObjetivo, pasos };
-    actual = salto.nueva.huella;
-    pubActual = salto.nueva.pub;
-    pasos.push(`${salto.vieja.huella.slice(0, 8)}→${salto.nueva.huella.slice(0, 8)}`);
-    if (actual === huellaObjetivo) return { ok: true, pasos };
+  const inicial = huellaInicial === huellaObjetivo;
+  // La estirpe ya no es un hilo: de una misma llave pueden certificar Varias
+  // sucesoras (la de release de la CI y la nueva de una rotación, por
+  // ejemplo). Caminarla profundidad primera cogiendo «el primer salto» era
+  // coger un hijo al azar y quedarse en él: se llegaba a la llave que manda
+  // o no se llegaba. Se camina en ANCHURA probando TODAS las sucesiones
+  // válidas; las delegaciones no entran aquí (eso es otra mancha:
+  // llevaDeRaizConDelegados). Cada salto se ANCLA: la pub que el certificado
+  // declara tiene que tener la misma huella que la pub conocida de esa
+  // llave (env y ficheros no siempre traen el mismo salto de línea).
+  const pubs = new Map<string, string | null>([[huellaInicial, pubAncla ?? null]]);
+  const padre = new Map<string, CertRotacion>();
+  const sinAncla = pubAncla == null;
+
+  if (inicial) return { ok: true, pasos: [] };
+
+  let frontera: string[] = [huellaInicial];
+  for (let saltos = 0; saltos < 16 && frontera.length > 0; saltos++) {
+    const siguiente: string[] = [];
+    for (const actual of frontera) {
+      const pubConocida = pubs.get(actual);
+      for (const c of certs) {
+        if (c.vieja.huella !== actual || !certificadoValido(c)) continue;
+        if (
+          !sinAncla &&
+          pubConocida &&
+          huellaDePub(c.vieja.pub) !== huellaDePub(pubConocida)
+        )
+          continue;
+        if (padre.has(c.nueva.huella)) continue; // ya se llegó por otro camino
+        padre.set(c.nueva.huella, c);
+        pubs.set(c.nueva.huella, c.nueva.pub);
+        siguiente.push(c.nueva.huella);
+        if (c.nueva.huella === huellaObjetivo) {
+          // el camino REAL: se reconstruye hacia atrás, sin ramas muertas
+          const pasosDeVuelta: string[] = [];
+          for (let paso = huellaObjetivo; paso !== huellaInicial; ) {
+            const cert = padre.get(paso) as CertRotacion;
+            pasosDeVuelta.push(
+              `${cert.vieja.huella.slice(0, 8)}→${cert.nueva.huella.slice(0, 8)}`
+            );
+            paso = cert.vieja.huella;
+          }
+          return { ok: true, pasos: pasosDeVuelta.reverse() };
+        }
+      }
+    }
+    frontera = siguiente;
   }
-  return { ok: false, pasos };
+  return { ok: false, pasos: [] };
 }
 
 export function leerLedger(ruta: string): LedgerRotaciones {

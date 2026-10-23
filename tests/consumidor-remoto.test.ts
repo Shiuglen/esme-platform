@@ -5,7 +5,7 @@ import { join, resolve } from "node:path";
 import { crearServidor } from "../tienda/servidor.ts";
 import { instalarRemoto } from "../tienda/cliente.ts";
 import { abreHost } from "../core/extension-host/host.ts";
-import { firmarIndex, generarPar } from "../tienda/firma.ts";
+import { firmarIndex, generarPar, declaraClave } from "../tienda/firma.ts";
 import { leeRaiz } from "../tienda/raiz.ts";
 
 const raiz = resolve(import.meta.dirname, "..");
@@ -90,14 +90,16 @@ describe("el consumidor remoto: HTTP + confianza en su raíz", () => {
     const entrada = indice.modulos.find((m) => m.id === "esme.nucleo.troceo-pro");
     if (!entrada) throw new Error("el módulo de prueba no está en el índice");
     entrada.permisos = ["proc:spawn", "mind:read"];
-    // y se vuelve a firmar (con la llave de desarrollo: la de la casa)
-    const priv = readFileSync(join(raiz, ".keys", "index-dev.pem"), "utf8");
-    // y se vuelve a firmar con la llave de la casa (la dev key), para que la
+    // y se vuelve a firmar con la llave de la casa (la dev key): el firmante
+    // se DECLARA dentro del índice (la misma regla que firma:index usa —
+    // si no, el consumidor no sabe con quién mirar la firma) para que la
     // cadena siga valiendo: lo que se cambia es la ENTRADA, no la confianza
+    const priv = readFileSync(join(raiz, ".keys", "index-dev.pem"), "utf8");
     const { createPublicKey, createHash } = await import("node:crypto");
     const pub = createPublicKey(priv).export({ type: "spki", format: "pem" }).toString();
     const huella = createHash("sha256").update(pub).digest("hex").slice(0, 16);
-    writeFileSync(rutaIndice, JSON.stringify(firmarIndex(indice, priv, huella), null, 2));
+    const declarado = declaraClave(indice as unknown as Record<string, unknown>, pub, huella);
+    writeFileSync(rutaIndice, JSON.stringify(firmarIndex(declarado, priv, huella), null, 2));
 
     const servidorMiente = crearServidor(tienda);
     try {

@@ -42,6 +42,45 @@ describe("la sucesión entre claves mandantes", () => {
     expect(r.pasos).toHaveLength(2);
   });
 
+  it("una llave con DOS sucesoras certificadas: la estirpe llega a LAS DOS", () => {
+    // caso real de la casa: de una sola llave sale la sucesora dev y, además,
+    // la llave de release que certifica la CI (también sucesora de la misma).
+    // Un paseo que cogía «el primer salto» se quedaba en un hijo y la otra
+    // llave dejaba de ser avalada: el ledger no es un hilo, es un árbol.
+    const raiz = generarPar();
+    const dev = generarPar();
+    const release = generarPar();
+    const certificadaDev = crearCertificado(
+      raiz.huella, raiz.pub, dev.huella, dev.pub, raiz.priv, dev.priv, "la nueva dev"
+    );
+    const certificadaRelease = crearCertificado(
+      raiz.huella, raiz.pub, release.huella, release.pub, raiz.priv, release.priv,
+      "la llave con la que la CI firma las releases"
+    );
+    const enOrdenNormal = [certificadaDev, certificadaRelease];
+    const enOrdenInverso = [certificadaRelease, certificadaDev];
+    // la rama primero o la sucesora dev primero: da igual, ambas se alcanzan
+    expect(llevaDeRaiz(raiz.huella, dev.huella, enOrdenNormal).ok).toBe(true);
+    expect(llevaDeRaiz(raiz.huella, release.huella, enOrdenNormal).ok).toBe(true);
+    expect(llevaDeRaiz(raiz.huella, dev.huella, enOrdenInverso).ok).toBe(true);
+    expect(llevaDeRaiz(raiz.huella, release.huella, enOrdenInverso).ok).toBe(true);
+    // y cuyo camino dice por dónde (el de la dev coge SU rama, no la otra)
+    const r = llevaDeRaiz(raiz.huella, dev.huella, enOrdenInverso);
+    expect(r.pasos.join(" ")).toContain(raiz.huella.slice(0, 8));
+    expect(r.pasos.join(" ")).toContain(dev.huella.slice(0, 8));
+    expect(r.pasos.join(" ")).not.toContain(release.huella.slice(0, 8));
+  });
+
+  it("una llave que NO está en la estirpe (ni por rama) se RECHAZA", () => {
+    const raiz = generarPar();
+    const dev = generarPar();
+    const impostora = generarPar();
+    const certificadaDev = crearCertificado(
+      raiz.huella, raiz.pub, dev.huella, dev.pub, raiz.priv, dev.priv, "la nueva dev"
+    );
+    expect(llevaDeRaiz(raiz.huella, impostora.huella, [certificadaDev]).ok).toBe(false);
+  });
+
   it("sin certificados la nouvelle clave no es de la estirpe", () => {
     const raiz = generarPar();
     const intrusa = generarPar();

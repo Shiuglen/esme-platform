@@ -11,30 +11,47 @@ npm run release:check     # el pre-vuelo: dice lo que falta (ver más abajo)
 git tag v0.2.0 && git push --tags   # y el workflow hace el resto
 ```
 
-### Antes de etiquetar: la llave de release tiene que estar avalada
+### Antes de etiquetar: la llave de release de la CI
 
-El workflow firma con `ESME_RELEASE_KEY_PEM` (un secret de GitHub, el PEM
-nunca vive en el repo ni en esta máquina). Pero una llave que la estirpe no
-avala no firma: el paso 3 de la release se cae a propósito. La primera vez,
-el derecho se otorga **por delegación** (no hace falta rotar la dev key):
+**Ya está certificada.** En el libro (`tienda/rotaciones.json`) hay una
+sucesión `adaaf799 → 76b0d215` con motivo «la llave con la que la CI firma
+las releases»: la estirpe ya la avala (lo demuestra la prueba «una llave con
+DOS sucesoras certificadas», `tests/rotacion.test.ts` — la estirpe es un
+árbol: de una llave salen la dev y la de release).
+
+Pasos de la primera release:
+
+1. el PEM privado de la llave `76b0d215` va al secret `ESME_RELEASE_KEY_PEM`
+   (si no existe esa llave más que como certificado: genera el par tú,
+   fuera de la máquina, y certícalo con `npm run rotar "motivo"` — el cert
+   queda dual-firmado y el PEM sale del repo);
+2. `npm run release:check` — todo verde salvo la etiqueta;
+3. `git tag v0.2.0 && git push --tags` — y el workflow firma, verifica y
+   publica;
+4. **lado de la app** (repo del hermano): su lista congelada de claves de
+   tienda (`app/src/main/claves.ts`) tiene que congelar también la pub de
+   `76b0d215` el día que la release firme — quien verifica veredictos con
+   una llave que no congeló no puede aceptarlos.
+
+Si quisieras otra llave publicadora (un tercero, una CI de otra casa), eso
+va por **delegación** — no hace falta rotar la dev key:
 
 ```bash
-# 1. genera el par FUERA de la máquina (la privada es sagrada: va al secret)
-openssl genpkey -algorithm ed25519 -out esme-release.pem
-openssl pkey -in esme-release.pem -pubout -out esme-release.pub.pem
+openssl genpkey -algorithm ed25519 -out esme-delegada.pem
+openssl pkey -in esme-delegada.pem -pubout -out esme-delegada.pub.pem
 
-# 2. la llave viva de la casa avala la de release (una vez, queda en el ledger
-#    público con su motivo — el cert lleva la pub dentro, nada más que copiar)
-npm run delegar -- esme-release.pub.pem \
-    --motivo "la primera release: la llave de release firma en la CI"
+# la llave viva de la casa avala la delegada (una vez, queda en el ledger
+# público con su motivo — el cert lleva la pub dentro, nada más que copiar)
+npm run delegar -- esme-delegada.pub.pem \
+    --motivo "por qué esta llave puede publicar en mi tienda"
 
-# 3. el contenido de esme-release.pem va al secret ESME_RELEASE_KEY_PEM
-#    y los ficheros locales se destruyen (shred -u esme-release.pem esme-release.pub.pem)
+# el contenido de esme-delegada.pem va a quien lo use, y los ficheros
+# locales se destruyen (shred -u esme-delegada.pem esme-delegada.pub.pem)
 ```
 
 El consumidor acepta el índice por la vía «delegada»: la raíz sigue siendo
 la raíz, y la delegación se puede revocar con `npm run revocar <huella>`
-si la llave de release se compromete.
+si la llave se compromete.
 
 Qué comprueba el pre-vuelo (todo lo que se puede comprobar SIN la llave de
 release, que nunca vive en el repo):

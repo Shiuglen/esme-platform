@@ -72,22 +72,37 @@ npm run bench   # re-firma con la nueva
 
 **Qué pasó.** Se llamó `npm run rotar --ayuda` esperando un texto de uso.
 El guion no filtraba sus argumentos: el flag `--ayuda` se usó como *motivo*
-y la ceremonia CORRIÓ — la llave viva rotó (`adaaf799 → b85925e4`) y la
+y la ceremonia CORRIÓ — la llave dev rotó (`adaaf799 → b85925e4`) y la
 privada vieja se reescribió sin copia.
 
-**Consecuencia en el estado de confianza.** Certificado dual-firmado con
-motivo «--ayuda» en el ledger (append-only: queda, no se corrige). El índice
-y los veredictos se re-firman con la llave viva nueva; los artefactos que
-firmara la vieja siguen verificando por la cadena de sucesiones. Ningún
-consumidor se rompe: caminan la estirpe como siempre.
+**Qué reveló (esto es lo que importa).** El ledger YA tenía una rama desde
+`adaaf`: la llave de release de la CI (`adaaf → 76b0d215`, «la llave con la
+que la CI firma las releases»). El paseo de estirpe `llevaDeRaiz` era
+LINEAL — cogía «el primer salto» de cada llave — así que con dos hijos
+certificados la segunda llave dejaba de estar avalada: la primera release
+de verdad se habría caído, y el fallo habría salido en producción, no en
+la casa. La sorpresa del accidente destapó el bug antes.
 
-**La lección en la casa (cómo se hace imposible que vuelva):** `rotar`
-ahora se niega si el argumento huele a flag (`--…`) y EXIGE el motivo por
-escrito (una llave no muere sin causa): `tests/rotar-guard.test.ts`.
+**Estado final.**
+- El índice, los veredictos y el panel vuelven a estar firmados por
+  `adaaf799` (la llave que la app congeló; su verificación no cambia).
+- El libro queda con las DOS sucesiones de `adaaf` (--ayuda incluida:
+  el ledger es append-only y no se reescribe). El paseo de estirpe ahora
+  es de ANCHURA (BFS): con una rama o con diez, las llaves valen por la
+  cadena y el camino que se escriba es el REAL (sin ramas muertas),
+  `tests/rotacion.test.ts`.
+- `rotar` ahora se niega si el argumento huele a flag (`--…`) y EXIGE el
+  motivo por escrito (una llave no muere sin causa):
+  `tests/rotar-guard.test.ts`.
+- La prueba del intérprete-trampa que re-firmaba sin DECLARAR su llave
+  ahora declara la clave como lo hace `firma:index`
+  (`tests/consumidor-remoto.test.ts`).
 
-**Por qué esto importa:** una ceremonia irreversible que ve ejecutada por
-un argumento que nadie entendió es un incidente de seguridad que aún está
-esperando su caso. El guard vale para la persona y para la IA que la usa.
+**La lección en la casa:** una ceremonia irreversible que corre por un
+argumento que nadie entendió es un incidente de seguridad esperando su
+caso; y una estirpe que se camina asumiendo que es un hilo, la rompe un
+rama. El guard vale para la persona y para la IA que la usa.
+
 
 
 ## Reproducir cada pieza (para auditar a mano)
