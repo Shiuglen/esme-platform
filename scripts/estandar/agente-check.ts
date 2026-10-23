@@ -1,62 +1,20 @@
 /**
- * agente-check — ¿esta receta de agente puede entrar en la tienda?
+ * agente-check — la línea de comandos del juez de los agentes.
  *   npm run agente:check -- <agente.json> [--json]
  *
- * El tercer producto de la tienda con forma propia: una piel (un documento),
- * una herramienta (un módulo) y un AGENTE (una receta: motor + encargo +
- * presupuesto + memoria).
+ * Por qué esto es tan poco: el juez de un agente vive en `tienda/agente.ts`
+ * (junto a la spec que juzga), porque el módulo que trae una receta lo
+ * verifica al entrar. Este fichero es sólo la ropa de la terminal: la misma
+ * puerta, llamada desde el comando.
  *
- * Lo que comprueba: la forma, que el motor exista en la spec de motores, que
- * la memoria sea posible (los motores que no hablan MCP no pueden prometerla)
- * y que el presupuesto tenga techo. Un agente sin límite es un agujero de
- * tokens.
- *
- * Referencia: estandar/agente.spec.yaml, tienda/agente.ts.
+ * Referencia: estandar/agente.spec.yaml, tienda/agente.ts, docs/TIENDA.md.
  */
-import { readFileSync, existsSync } from "node:fs";
-import { resolve, join } from "node:path";
-import { cargaMotorCached } from "../../motores/laya-adapter.ts";
-import { validaAgente, type VeredictoAgente } from "../../tienda/agente.ts";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { juzgaAgente, motoresDe, type VeredictoAgente } from "../../tienda/agente.ts";
 
-const raizKit = resolve(import.meta.dirname, "..", "..");
-
-/** La spec de motores (la casa). */
-export function motoresDe(ruta?: string) {
-  return cargaMotorCached(ruta ?? join(raizKit, "estandar", "motor-capability.spec.yaml"));
-}
-
-/** El juez: una receta, con su veredicto. */
-export function juzgaAgente(x: unknown, idEsperado?: string): VeredictoAgente {
-  return validaAgente(x, motoresDe(), idEsperado);
-}
-
-/**
- * El juez sobre el MÓDULO: un módulo de categoría `agent` tiene que traer su
- * receta (`agente.json`).
- */
-export function juzgaAgenteDeModulo(dirModulo: string, categoria: string): VeredictoAgente {
-  const dir = resolve(dirModulo);
-  if (categoria !== "agent") {
-    return { ok: true, agente: null, errores: [] };
-  }
-  const ruta = join(dir, "agente.json");
-  if (!existsSync(ruta)) {
-    return {
-      ok: false,
-      agente: null,
-      errores: ["es un módulo de agente y no trae agente.json (un agente es una receta, no una promesa)"],
-    };
-  }
-  try {
-    return juzgaAgente(JSON.parse(readFileSync(ruta, "utf8")));
-  } catch (e) {
-    return {
-      ok: false,
-      agente: null,
-      errores: [`la receta no se puede leer: ${String((e as Error)?.message || e)}`],
-    };
-  }
-}
+export { juzgaAgente, motoresDe };
+export type { VeredictoAgente };
 
 // ——— la línea de comandos ———
 if (import.meta.url === new URL(`file://${process.argv[1]}`).href) {

@@ -18,6 +18,9 @@
  * Referencia: estandar/agente.spec.yaml, docs/MOTORES.md, docs/TIENDA.md.
  */
 import { cargaMotorCached, type CognitionMotor } from "../motores/laya-adapter.ts";
+import { existsSync, readFileSync } from "node:fs";
+import { join, resolve } from "node:path";
+import { raizDelPaquete } from "../core/paquete.ts";
 
 /** La receta de un agente. */
 /**
@@ -79,6 +82,68 @@ export function recetaBase(id: string, nombre: string): RecetaAgente {
     presupuesto: { tokens: 32_000, segundos: 600 },
     encargo: "Piensa lo que te pidan y responde. Sin salir de la máquina.",
   };
+}
+
+/**
+ * EL JUEZ DEL AGENTE — ¿esta receta de agente puede entrar en la tienda?
+ *
+ * El tercer producto de la tienda con forma propia: una piel (un documento),
+ * una herramienta (un módulo) y un AGENTE (una receta: motor + encargo +
+ * presupuesto + memoria).
+ *
+ * Lo que comprueba: la forma, que el motor exista en la spec de motores, que
+ * la memoria sea posible (los motores que no hablan MCP no pueden prometerla)
+ * y que el presupuesto tenga techo. Un agente sin límite es un agujero de
+ * tokens.
+ *
+ * POR QUÉ VIVE AQUÍ Y NO EN `scripts/`: porque el juez de un agente es del
+ * que el agente habla — y el módulo que trae una receta lo verifica al
+ * entrar. Un tercero que publica su módulo desde el kit instalado tiene que
+ * poder ser juzgado por las mismas reglas que la casa.
+ *
+ * Referencia: estandar/agente.spec.yaml, docs/TIENDA.md.
+ */
+export interface ResultadoAgente extends VeredictoAgente {
+  /** La ruta de la spec de motores usada. */
+  spec: string;
+}
+
+/** La spec de motores (la casa). */
+export function motoresDe(ruta?: string): CognitionMotor[] {
+  return cargaMotorCached(ruta ?? join(raizDelPaquete(), "estandar", "motor-capability.spec.yaml"));
+}
+
+/** El juez: una receta, con su veredicto. */
+export function juzgaAgente(x: unknown, idEsperado?: string): VeredictoAgente {
+  return validaAgente(x, motoresDe(), idEsperado);
+}
+
+/**
+ * El juez sobre el MÓDULO: un módulo de categoría `agent` tiene que traer su
+ * receta (`agente.json`).
+ */
+export function juzgaAgenteDeModulo(dirModulo: string, categoria: string): VeredictoAgente {
+  const dir = resolve(dirModulo);
+  if (categoria !== "agent") {
+    return { ok: true, agente: null, errores: [] };
+  }
+  const ruta = join(dir, "agente.json");
+  if (!existsSync(ruta)) {
+    return {
+      ok: false,
+      agente: null,
+      errores: ["es un módulo de agente y no trae agente.json (la receta es un documento, no una promesa)"],
+    };
+  }
+  try {
+    return juzgaAgente(JSON.parse(readFileSync(ruta, "utf8")));
+  } catch (e) {
+    return {
+      ok: false,
+      agente: null,
+      errores: [`la receta no se puede leer: ${String((e as Error)?.message || e)}`],
+    };
+  }
 }
 
 /**

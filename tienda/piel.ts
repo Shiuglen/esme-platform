@@ -19,7 +19,9 @@
  * app/src/renderer/tinta/piel.ts (la casa).
  */
 import * as yaml from "js-yaml";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
+import { join, resolve } from "node:path";
+import { raizDelPaquete } from "../core/paquete.ts";
 
 /** La spec de la piel (las opciones y la base). */
 export interface SpecPiel {
@@ -127,6 +129,88 @@ export function cargaSpecPiel(ruta: string): SpecPiel {
 /** La base (Tinta y Luz): de aquí sale lo que una piel no dice. */
 export function pielBase(spec: SpecPiel): Piel {
   return structuredClone(spec.base);
+}
+
+/**
+ * EL JUEZ DE LA PIEL — ¿esta piel puede entrar en la tienda?
+ *
+ * El guard de la identidad. La arquitectura (§12) dice que «la estética ES el
+ * producto, no skinneable», y el mecanismo que lo protege es un juez: una
+ * piel que trae una opción que no existe, o que no se lee, no entra.
+ *
+ * Lo que comprueba (todo lo que dice estandar/piel.spec.yaml):
+ *
+ *   1. la FORMA: los campos son los que la spec dice, y las opciones están
+ *      en la lista cerrada (una piel no inventa: «aproximar» no es una opción);
+ *   2. la LECTURA: el texto contrasta con el fondo y con la superficie, de
+ *      día y de noche (WCAG AA). Una piel que nadie lee no es una piel;
+ *   3. lo que falta se hereda de la base (Tinta y Luz) — por eso una piel
+ *      puede ser sólo un color.
+ *
+ * POR QUÉ VIVE AQUÍ Y NO EN `scripts/`: porque el juez de una piel es del
+ * que la piel habla — y el módulo que trae una piel lo verifica al entrar.
+ * Un tercero que publica su módulo desde el kit instalado tiene que poder
+ * ser juzgado por las mismas reglas que la casa.
+ *
+ * Referencia: estandar/piel.spec.yaml, docs/TIENDA.md.
+ */
+export interface ResultadoPiel {
+  /** ¿La piel es válida? */
+  ok: boolean;
+  /** Los errores (qué arreglar). */
+  errores: string[];
+  /** La piel completa (con lo heredado de la base). */
+  piel: unknown;
+  /** La ruta de la spec usada. */
+  spec: string;
+}
+
+/** La spec de la piel (la de la casa, si no se dice otra). */
+export function specDe(ruta?: string): SpecPiel {
+  return cargaSpecPiel(ruta ?? join(raizDelPaquete(), "estandar", "piel.spec.yaml"));
+}
+
+/** Juzga una piel (el objeto ya leído). */
+export function juzgaPiel(x: unknown, spec?: SpecPiel): ResultadoPiel {
+  const s = spec ?? specDe();
+  const { piel, errores } = validaPiel(x, s);
+  return { ok: errores.length === 0, errores, piel, spec: "estandar/piel.spec.yaml" };
+}
+
+/**
+ * Juzga la piel de un MÓDULO.
+ *
+ * Un módulo de categoría `theme` tiene que traer su piel (`piel.json`): sin
+ * ella, el tema no es un tema (es una promesa).
+ */
+export function juzgaPielDeModulo(
+  dirModulo: string,
+  categoria: string,
+  spec?: SpecPiel
+): ResultadoPiel {
+  const dir = resolve(dirModulo);
+  if (categoria !== "theme") {
+    return { ok: true, errores: [], piel: null, spec: "estandar/piel.spec.yaml" };
+  }
+  const ruta = join(dir, "piel.json");
+  if (!existsSync(ruta)) {
+    return {
+      ok: false,
+      errores: ["es un módulo de tema y no trae piel.json (la piel es un documento, no una promesa)"],
+      piel: null,
+      spec: "estandar/piel.spec.yaml",
+    };
+  }
+  try {
+    return juzgaPiel(JSON.parse(readFileSync(ruta, "utf8")), spec);
+  } catch (e) {
+    return {
+      ok: false,
+      errores: [`la piel no se puede leer: ${String((e as Error)?.message || e)}`],
+      piel: null,
+      spec: "estandar/piel.spec.yaml",
+    };
+  }
 }
 
 /**

@@ -66,7 +66,7 @@ describe("ejecutar un turno", () => {
     const dir = moduloDePrueba();
     try {
       // el módulo necesita estar construido
-      const { construyeModulo } = await import("../scripts/construir-modulos.ts");
+      const { construyeModulo } = await import("../tienda/construye.ts");
       await construyeModulo(dir);
 
       const r = await ejecutaTurno({
@@ -88,7 +88,7 @@ describe("ejecutar un turno", () => {
   it("lo concedido manda: sin permiso, el módulo corre sin puerta", async () => {
     const dir = moduloDePrueba();
     try {
-      const { construyeModulo } = await import("../scripts/construir-modulos.ts");
+      const { construyeModulo } = await import("../tienda/construye.ts");
       await construyeModulo(dir);
 
       const libro = new Consentimientos(join(dir, "permisos.json"));
@@ -133,7 +133,7 @@ describe("ejecutar un turno", () => {
           "}",
         ].join("\n")
       );
-      const { construyeModulo } = await import("../scripts/construir-modulos.ts");
+      const { construyeModulo } = await import("../tienda/construye.ts");
       await construyeModulo(dir);
 
       const r = await ejecutaTurno({ dirModulo: dir, consulta: "hola", espacio });

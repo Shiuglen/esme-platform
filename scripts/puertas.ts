@@ -18,11 +18,11 @@
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { creaModulo } from "./crear-modulo.ts";
-import { verificaModulo } from "./verificar-modulo.ts";
-import { publicaModulo } from "./publicar-modulo.ts";
-import { juzgaAgenteDeModulo, juzgaAgente } from "./estandar/agente-check.ts";
-import { juzgaPielDeModulo } from "./estandar/piel-check.ts";
+import { creaModulo } from "../tienda/crea.ts";
+import { verificaModulo } from "../tienda/verifica.ts";
+import { publicaModulo } from "../tienda/publica.ts";
+import { juzgaAgenteDeModulo, juzgaAgente } from "../tienda/agente.ts";
+import { juzgaPielDeModulo } from "../tienda/piel.ts";
 import { validaBot } from "../core/bot.ts";
 import { juzgaLocal as juzgaSkillLocal } from "../core/skills/puerta.ts";
 import { compatMotores } from "../motores/compat.ts";
@@ -34,7 +34,7 @@ import { crearDelegacion, leerLedger, guardarLedger } from "../tienda/rotacion.t
 import { juzgaDeseos } from "../core/tienda/deseos.ts";
 import { aprendeDe, eligeConAprendido } from "../core/router/aprende.ts";
 import { puntos } from "../core/motores/puntos.ts";
-import { construyeModulo } from "./construir-modulos.ts";
+import { construyeModulo } from "../tienda/construye.ts";
 
 const raizKit = join(import.meta.dirname, "..");
 

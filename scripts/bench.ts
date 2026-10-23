@@ -22,7 +22,7 @@ import { claveDeFirma, puedePublicar } from "../tienda/claves.ts";
 import { empaquetar } from "../tienda/empaque.ts";
 import { firmarIndex, firmarBytes, declaraClave } from "../tienda/firma.ts";
 import { panelDe, render } from "../tienda/panel.ts";
-import { construyeTodos } from "./construir-modulos.ts";
+import { construyeTodos } from "../tienda/construye.ts";
 import { abreHost } from "../core/extension-host/host.ts";
 
 const raiz = resolve(import.meta.dirname, "..");

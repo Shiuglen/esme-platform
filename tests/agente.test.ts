@@ -18,9 +18,9 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { validaAgente, recetaBase } from "../tienda/agente.ts";
-import { juzgaAgente, juzgaAgenteDeModulo, motoresDe } from "../scripts/estandar/agente-check.ts";
-import { creaModulo } from "../scripts/crear-modulo.ts";
-import { verificaModulo } from "../scripts/verificar-modulo.ts";
+import { juzgaAgente, juzgaAgenteDeModulo, motoresDe } from "../tienda/agente.ts";
+import { creaModulo } from "../tienda/crea.ts";
+import { verificaModulo } from "../tienda/verifica.ts";
 
 const raizKit = join(import.meta.dirname, "..");
 const motores = motoresDe();

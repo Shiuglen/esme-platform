@@ -297,7 +297,7 @@ describe("la carrera de verdad", () => {
     const dirA = moduloDePrueba("esme.prueba.arena-a", "la respuesta de A");
     const dirB = moduloDePrueba("esme.prueba.arena-b", "la respuesta de B");
     try {
-      const { construyeModulo } = await import("../scripts/construir-modulos.ts");
+      const { construyeModulo } = await import("../tienda/construye.ts");
       await construyeModulo(dirA);
       await construyeModulo(dirB);
 

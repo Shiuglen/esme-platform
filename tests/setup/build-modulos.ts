@@ -9,7 +9,7 @@
  * el CI y la publicación tienen que producir los mismos bytes.
  * Referencia: tests/extension-host.test.ts, tests/mind-ops.test.ts.
  */
-import { construyeTodos } from "../../scripts/construir-modulos.ts";
+import { construyeTodos } from "../../tienda/construye.ts";
 
 export default async function construyeModulos(): Promise<void> {
   await construyeTodos();

@@ -26,8 +26,8 @@ import {
   llevaOro,
 } from "../core/bench/memoria.ts";
 import { trocea } from "../core/mind/troceo.ts";
-import { creaModulo } from "../scripts/crear-modulo.ts";
-import { verificaModulo } from "../scripts/verificar-modulo.ts";
+import { creaModulo } from "../tienda/crea.ts";
+import { verificaModulo } from "../tienda/verifica.ts";
 
 const raizKit = join(import.meta.dirname, "..");
 

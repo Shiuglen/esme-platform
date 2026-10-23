@@ -89,7 +89,7 @@
     "piel:check": "tsx scripts/estandar/piel-check.ts",
     "agente:check": "tsx scripts/estandar/agente-check.ts",
     "build": "tsc -p tsconfig.build.json",
-    "build:ejemplo": "tsx scripts/construir-modulos.ts",
+    "build:ejemplo": "tsx scripts/construir-modulos.ts modulos/ejemplo-hola-mundo modulos/ejemplo-troceo-pro modulos/ejemplo-puerta",
     "build:modulos": "tsx scripts/construir-modulos.ts --todos",
     "crear:modulo": "tsx scripts/crear-modulo.ts",
     "verificar:modulo": "tsx scripts/verificar-modulo.ts",

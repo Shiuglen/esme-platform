@@ -12,8 +12,8 @@ import * as yaml from "js-yaml";
 import { validaModuloFile } from "../modulos/nucleo/manifest-validator.ts";
 import { licenciasPresentes, nivelDe } from "../core/licensing.ts";
 import { cargaMotorCached, MOTORES_CONOCIDOS } from "../motores/laya-adapter.ts";
-import { juzgaPielDeModulo } from "./estandar/piel-check.ts";
-import { juzgaAgenteDeModulo } from "./estandar/agente-check.ts";
+import { juzgaPielDeModulo } from "../tienda/piel.ts";
+import { juzgaAgenteDeModulo } from "../tienda/agente.ts";
 import { compruebaConformidad } from "./estandar/conformidad.ts";
 import { EXCEPCIONES_ALCANCE, huerfanosDelNucleo } from "./estandar/alcance.ts";
 

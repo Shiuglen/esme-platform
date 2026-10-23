@@ -19,7 +19,7 @@ import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { cargaSpecPiel, validaPiel, contraste, pielBase } from "../tienda/piel.ts";
-import { juzgaPiel, juzgaPielDeModulo } from "../scripts/estandar/piel-check.ts";
+import { juzgaPiel, juzgaPielDeModulo } from "../tienda/piel.ts";
 
 const spec = cargaSpecPiel(join(import.meta.dirname, "..", "estandar", "piel.spec.yaml"));
 

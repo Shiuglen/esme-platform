@@ -15,8 +15,8 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync } from "nod
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
-import { creaModulo, problemaDeId } from "../scripts/crear-modulo.ts";
-import { verificaModulo } from "../scripts/verificar-modulo.ts";
+import { creaModulo, problemaDeId } from "../tienda/crea.ts";
+import { verificaModulo } from "../tienda/verifica.ts";
 import { mideCicloModulo } from "../core/bench/ciclo.ts";
 import { leeManifiesto } from "../tienda/modulo-manifiesto.ts";
 

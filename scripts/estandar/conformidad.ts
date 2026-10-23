@@ -41,7 +41,7 @@ import {
 } from "../../core/rea/evidencia.ts";
 import { CATEGORIES, RUNTIMES } from "../../core/ipc/module-schema.ts";
 import { LICENCIAS_PERMITIDAS, TOPE_BYTES, TOPE_FICHEROS, TOPE_TOKENS } from "../../tienda/skills.ts";
-import { entradaDe } from "../publicar-modulo.ts";
+import { entradaDe } from "../../tienda/publica.ts";
 import { esProducto, type Producto, type TipoProducto } from "../../tienda/catalogo.ts";
 import { declaraClave, firmarIndex } from "../../tienda/firma.ts";
 import { generateKeyPairSync } from "node:crypto";
