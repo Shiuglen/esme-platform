@@ -71,6 +71,7 @@
     "spec:lint": "tsx scripts/spec-lint.ts",
     "compat": "tsx scripts/estandar/compat-check.ts",
     "puntos": "tsx scripts/puntos.ts",
+    "arbol": "tsx scripts/arbol.ts",
     "talamo": "tsx scripts/talamo.ts",
     "turno": "tsx scripts/turno.ts",
     "arena": "tsx scripts/arena.ts",

@@ -1,0 +1,62 @@
+# **Spec abierta v1 — el árbol de tus ficheros.** La carpeta como árbol, medida.
+# Referencia: docs/ARBOLES.md, core/ficheros.ts.
+#
+# QUÉ ES: un nodo por fichero o carpeta de TU carpeta, con lo que pesa de
+# verdad. La pregunta que responde: «¿de dónde SALE el peso de esta
+# carpeta?» — y la respuesta es un árbol, no una lista con sangría.
+#
+# POR QUÉ ESTÁ ESCRITO: igual que los puntos son datos (y la ventana los
+# dibuja sin que el kit sepa de dibujado), el árbol es DATO: la ventana lo
+# puede mirar como árbol con sus conectores, y la rama que más pesa
+# siempre arriba. Y como la era es local, esta medida no sale de tu PC.
+#
+# Lo que este contrato NO es: un espiador de ficheros. Mira nombres,
+# tamaños y tipos: no abre contenido, no lee lo que hay dentro de los
+# ficheros, no sigue enlaces.
+
+schema_version: 1
+
+# ——— el nodo ———
+nodo:
+  id: "la ruta relativa («.» la raíz)"
+  nombre: "el nombre en su carpeta (la raíz lleva el de la ruta pedida)"
+  ruta: "la ruta relativa a la raíz pedida («» la raíz)"
+  # la genealogía, como en los puntos: cada nodo trae el id de su papa.
+  # null es la raíz; nada se cuelga de donde no está.
+  papa: "el id del progenitor (null si es la raíz)"
+  profundo: "0 la raíz, 1 sus hijos, 2 los nietos..."
+  tipo: >
+    carpeta | fichero | otro. Un symlink es «otro»: se mide el ENLACE (su
+    tamaño propio), nunca su destino — los destinos no están en este árbol.
+  peso_bytes: >
+    bytes MEDIDOS (fichero: stat; carpeta: la suma de sus ficheros de
+    debajo; enlace: lstat del propio enlace). Si algo no se pudo mirar,
+    null: se dice, no se disimula con cero.
+  ficheros: "cuántos ficheros se VIERON debajo (lo no mirado no lo sabe el número)"
+  carpetas: "cuántas carpetas se vieron debajo"
+  ciega: >
+    true si no se pudo mirar dentro (o debajo). Sus números cubren sólo lo
+    que se vio: lo que no, está en el aire.
+
+# ——— la puerta ———
+consulta:
+  ruta: "la carpeta que se mira"
+  saltos: >
+    los nombres de carpeta que no se abren (p. ej. .git, node_modules).
+    No hay saltos por defecto: si no está el árbol, es porque tú lo
+    pediste (lo pedido no es silencio).
+  orden: '"peso" (por defecto: la rama que más pesa arriba) | "alfabeto"'
+
+# ——— las reglas ———
+reglas:
+  # 1. se mide, no se estima: el peso sale de stat, bytes de verdad.
+  medido: true
+  # 2. lo que no se puede mirar, se dice: ciega/peso null, nunca un cero
+  #    disimulado. Y los enlaces no se siguen (el tamaño real primero).
+  honesto: true
+  # 3. la rama que más pesa, arriba (como la familia de los puntos: el que
+  #    más come, primero). Se pide por su nombre si se quiere alfabético.
+  orden: "peso primero"
+  # 4. esto es LOCAL: mirar el tamaño de tus ficheros no sale de tu PC... y
+  #    no abre el CONTENIDO de nada.
+  local: true

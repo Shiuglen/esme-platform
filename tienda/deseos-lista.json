@@ -93,7 +93,8 @@
     "autor": "@FinnoTaylor",
     "texto": "Dibujar el árbol de ficheros como lo que es: un árbol, y no una lista sangrada.",
     "etiquetas": ["arbol", "visual"],
-    "estado": "nuevo",
+    "estado": "hecho",
+    "contrato": "arbol",
     "ts": 1792550400000
   },
   {
