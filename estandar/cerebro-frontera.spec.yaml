@@ -149,6 +149,29 @@ contrato:
     metodo: GET
     ruta: "/orquesta"
     responde: "{ ... }  (qué motor gana en qué)"
+  # ——— la puerta del Taller: lo que llega de FUERA espera ———
+  # Lo que otra mente (o un socio) manda para el Taller del creador entra
+  # por aquí. NUNCA crea la tarea: la decisión es del creador, desde la app.
+  taller_puerta:
+    metodo: POST
+    ruta: "/taller/encargo"
+    cuerpo: "{ texto: string, titulo?: string, origen?: string }"
+    responde: "el encargo guardado (su id), 201 — o 400 con su error"
+    nota: >-
+      La puerta de entrada del Taller: guardarlo con su hora y su origen, y
+      avisar por el bus. La tarea la crea la app cuando el creador acepta.
+  taller_pendientes:
+    metodo: GET
+    ruta: "/taller/encargo"
+    responde: "{ encargos: [...] }  (los que esperan respuesta; lo caducado ya no está)"
+  taller_respuesta:
+    metodo: POST
+    ruta: "/taller/encargo/{id}"
+    cuerpo: "{ decision: string }"
+    responde: "el encargo con su estado ('aceptado' | 'rechazado')"
+    nota: >-
+      La respuesta del creador. Lo aceptado lo crea la APP, no la mente: la
+      menta nunca engendra tareas del Taller por su cuenta.
   atlas:
     metodo: GET
     ruta: "/atlas"

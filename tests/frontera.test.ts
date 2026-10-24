@@ -64,6 +64,9 @@ const COPIA_CEREBRO = `
 @mcp.custom_route("/rea/recuerdos", methods=["POST"])
 @mcp.custom_route("/rea/comparar", methods=["POST"])
 @mcp.custom_route("/equipo", methods=["POST"])
+@mcp.custom_route("/taller/encargo", methods=["POST"])
+@mcp.custom_route("/taller/encargo", methods=["GET"])
+@mcp.custom_route("/taller/encargo/{id}", methods=["POST"])
 @mcp.custom_route("/orquesta", methods=["GET"])
 @mcp.custom_route("/atlas", methods=["GET"])
 @mcp.custom_route("/voz/oir", methods=["POST"])
@@ -81,6 +84,7 @@ orquestacion: '/orquesta', atlas: '/atlas', mcp: '/mcp', rumbo: '/rumbo',
 memoria: '/memory/{id}', vozOir: '/voz/oir', vozDecir: '/voz/decir', eventos: '/events',
 ingestX: '/ingest-x', equipo: '/equipo',
 rea: '/rea/absorber', reaRecuerdos: '/rea/recuerdos', reaComparar: '/rea/comparar', repeticiones: '/repeticiones', necesidad: '/necesidad',
+tallerPendientes: '/taller/encargo', tallerRespuesta: '/taller/encargo/{id}',
 `;
 
 /** Las rutas del cerebro Python (las que declara el servidor). */
