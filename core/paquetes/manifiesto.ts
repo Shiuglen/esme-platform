@@ -565,26 +565,31 @@ export function nivelDe(m: ManifiestoV2): Nivel {
 }
 
 /**
+ * Cómo se lee una ruta del paquete: su texto, null si no está, o el motivo
+ * por el que no se puede leer (la capa de disco dice, por ejemplo, que un
+ * enlace se sale del paquete).
+ */
+export type LeeRuta = (ruta: string) => string | null | { error: string };
+
+/**
  * Lo que el manifiesto promete y los ficheros tienen que cumplir: cada ruta
  * existe (el código, si se exige: `exigirEntrada: false` es para dictaminar
  * antes de construir) y un agente de línea de comandos pide el binario que
- * lanza. `leer` da el texto de una ruta del paquete, o null si no está.
+ * lanza.
  */
-export function compruebaFicheros(
-  m: ManifiestoV2,
-  leer: (ruta: string) => string | null,
-  opts: { exigirEntrada?: boolean } = {}
-): string[] {
+export function compruebaFicheros(m: ManifiestoV2, leer: LeeRuta, opts: { exigirEntrada?: boolean } = {}): string[] {
   const errores: string[] = [];
   for (const r of rutasDe(m)) {
     if (r.codigo && opts.exigirEntrada === false) continue;
-    if (leer(r.ruta) === null)
+    const texto = leer(r.ruta);
+    if (texto === null)
       errores.push(`${r.punto}.${r.id}: falta «${r.ruta}»${r.codigo ? " (¿falta construirlo?)" : ""}`);
+    else if (typeof texto !== "string") errores.push(`${r.punto}.${r.id}: ${texto.error}`);
   }
   for (const a of m.contributes.agents ?? []) {
     if (a.format !== "comando") continue;
     const texto = leer(limpia(a.recipe));
-    if (texto === null) continue; // ya dicho arriba
+    if (typeof texto !== "string") continue; // ya dicho arriba
     let comando: unknown;
     try {
       comando = (JSON.parse(texto) as { comando?: unknown }).comando;
