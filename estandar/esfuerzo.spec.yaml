@@ -1,0 +1,142 @@
+# **Spec abierta v1 — el esfuerzo de los modelos.** Cuánto piensa cada uno, por escrito.
+# Referencia: docs/ESFUERZO.md, core/esfuerzo.ts, estandar/motor-capability.spec.yaml.
+#
+# QUÉ ES: cada MODELO declara sus MODOES de esfuerzo (apretado | normal |
+# profundo) y QUÉ PARAMETRO del motor entiende cada uno. El código no sabe
+# nada de modelos: la tabla es un DOCUMENTO — la cambias tú, editando el
+# fichero, y nada se recompila.
+#
+# POR QUÉ ESTÁ ESCRITO: los modelos no cuestan lo mismo ni piensan lo
+# mismo. La misma tarea con «apretado» suele salir más barata y más
+# rápida; con «profundo», mejor en lo que importa y más cara. La casa no
+# adivina: el esfuerzo se PIDE, se RESUELVE de la tabla y se MANDA como
+# parámetro el motor ya entiende. Lo que un modelo NO declara, no se le
+# manda (honesto: nada de números inventados por el camino).
+#
+# DÓNDE VIVE LA MODIFICACIÓN: esta spec es la forma + la tabla de la casa.
+# Cada mente puede PONER SU TABLA encima (el fichero que diga
+# ESME_ESFUERZO): lo que tú escribes gana sobre lo que la casa trajo —
+# como las pieles: el tema es un documento.
+#
+# Carga del documento (yaml.loadAll): el primero no lleva `motor:` (la
+# regla); los que siguen, uno por MODELO.
+
+schema_version: 1
+
+# ——— los modos ———
+modos:
+  apretado: "lo justo: responde rápido, gasta lo mínimo (mira de pasada)"
+  normal: "el punto: como si no dijera nada (es el valor de fábrica)"
+  profundo: "a fondo: piensa más cuentas o más tiempo. Cuesta más: se pide"
+  nota: "se llaman como se llaman en la casa: tres modos, ni más ni menos"
+
+# ——— el modo de un modelo ———
+tabla:
+  motor: "el motor que lo aloja (motor-capability.spec.yaml)"
+  modelo: "el nombre del modelo (como lo pide el motor)"
+  # el nombre del parámetro que el EXTREMO del motor entiende:
+  # reasoning_effort (openai-style), budget_tokens (anthropic), thinking (glm)...
+  # null = este motor no habla de esfuerzo: no se le manda nada
+  parametro: "el nombre del parámetro en el cuerpo, o null"
+  # el valor por modo, en la lengua que ese motor habla. Si un modo no
+  # está, es que el modelo no lo sabe hacer: no se le manda un valor
+  # inventado (honesto).
+  valores:
+    apretado: "el valor que el motor entiende (o falta, si no lo sabe)"
+    normal: "el valor por defecto (falta, si no lo sabe)"
+    profundo: "el valor a fondo (falta, si no lo sabe)"
+  # DE DÓNDE sale el número (igual que en motor-capability: la fuente, no la opinión)
+  fuente: "dónde lo declara el proveedor (url)"
+  verificado: "probado | sin-mirar"
+
+# ——— las reglas ———
+reglas:
+  # 1. DOCUMENTO, no código: cambiar la tabla es editar este fichero (o el
+  #    de encima de la mente); nada se recompila.
+  documento: true
+  # 2. el de la MENTE manda: si ESME_ESFUERZO declara un (motor, modelo),
+  #    su tabla gana sobre ésta — pieza por pieza (mezcla suave).
+  mente_manda: true
+  # 3. HONESTO: modelo que no declara un modo → params null (no se manda
+  #    nada), nunca un «medio» inventado.
+  honesto: true
+  # 4. el desarrollo viaja con la decisión del router: quien elige el
+  #    motor elige (si quiere) cuánto quiere que piense.
+  con_el_route: true
+  # 5. esto es LOCAL: la tabla no dice a nadie qué usas, y su cambio no
+  #    sale de tu casa (los valores viajaron en el documento, del repo).
+  local: true
+
+---
+# ——— los modelos de la casa (y la reserva por motor) ———
+# Lo que dice la fuente: lo «sin-mirar» es lo que la FUENTE declara y aún no se
+# probó contra el motor real. Se corrige editando este fichero.
+schema_version: 1
+motor: "claude-code"
+modelo: "*"
+parametro: "budget_tokens"
+valores:
+  apretado: 2048
+  normal: 8192
+  profundo: 32000
+fuente: "https://docs.anthropic.com (extended thinking)"
+verificado: "sin-mirar"
+
+---
+schema_version: 1
+motor: "codex"
+modelo: "*"
+parametro: "reasoning_effort"
+valores:
+  apretado: "low"
+  normal: "medium"
+  profundo: "high"
+fuente: "https://platform.openai.com (reasoning models: effort)"
+verificado: "sin-mirar"
+
+---
+schema_version: 1
+motor: "gemini"
+modelo: "*"
+parametro: "thinkingBudget"
+valores:
+  apretado: 0
+  normal: null
+  profundo: 24576
+fuente: "https://ai.google.dev/gemini-api/docs/thinking"
+verificado: "sin-mirar"
+
+---
+schema_version: 1
+motor: "opencode"
+modelo: "*"
+parametro: "reasoning_effort"
+valores:
+  apretado: "low"
+  normal: "medium"
+  profundo: "high"
+fuente: "https://opencode.ai/docs (parámetros por petición)"
+verificado: "sin-mirar"
+
+---
+schema_version: 1
+motor: "ollama"
+modelo: "*"
+parametro: "think"
+valores:
+  apretado: false
+  normal: false
+  profundo: true
+fuente: "https://docs.ollama.com/api (think)"
+verificado: "sin-mirar"
+
+---
+schema_version: 1
+# local (llama.cpp): hoy no habla de esfuerzo por parámetro — y no se
+# disimula: no se le manda nada. (Los /think por prompt son OTRA COSA.)
+motor: "local"
+modelo: "*"
+parametro: null
+valores: {}
+fuente: "el propio motor (sin parámetro de esfuerzo)"
+verificado: "probado"

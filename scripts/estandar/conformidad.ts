@@ -28,6 +28,8 @@ import { CLAVES_TURNO } from "../../core/turnos/turno.ts";
 import { CLAVES_PUNTO } from "../../core/motores/puntos.ts";
 import { CLAVES_DECISION } from "../../core/router/aprende.ts";
 import { CATEGORIAS_ARENA, CLAVES_ARENA } from "../../core/arena/arena.ts";
+import { MODOS as MODOS_ESFUERZO } from "../../core/esfuerzo.ts";
+import { fichasDe } from "../../motores/esfuerzo-doc.ts";
 import { MINIMO_CATAS } from "../../core/arena/paladar.ts";
 import { CAPABILITIES } from "../../core/extension-host/capability.ts";
 import { EFECTOS_REA, MAPA_EFECTOS, PEOR_EFECTO } from "../../core/rea/capacidades.ts";
@@ -90,6 +92,12 @@ export function leeSpec(f: string): Record<string, unknown> {
   if (f === "motor-capability.spec.yaml") {
     const docs = yaml.loadAll(texto) as Array<Record<string, unknown> | null>;
     return (docs.find((d) => d && d.id) ?? {}) as Record<string, unknown>;
+  }
+  // la spec del esfuerzo es multi-documento: la REGLA primero (sin motor),
+  // fichas después; a la spec se la lee con la regla
+  if (f === "esfuerzo.spec.yaml") {
+    const docs = yaml.loadAll(texto) as Array<Record<string, unknown> | null>;
+    return (docs.find((d) => d && d && !("motor" in (d as object))) ?? {}) as Record<string, unknown>;
   }
   return (yaml.load(texto) ?? {}) as Record<string, unknown>;
 }
@@ -472,6 +480,25 @@ export function compruebaConformidad(): FalloConformidad[] {
       if (!tiposSpec.includes(t)) {
         anota("catalogo-productos.spec.yaml", `el kit acepta el tipo «${t}» y la spec no lo declara`);
       }
+    }
+  }
+
+  // 11. el esfuerzo: los modos son los del código, y toda ficha trae su fuente
+  const esfuerzo = leeSpec("esfuerzo.spec.yaml");
+  const modosEsfuerzo = Object.keys((esfuerzo.modos ?? {}) as Record<string, unknown>)
+    .filter((k) => k !== "nota")
+    .sort();
+  if (modosEsfuerzo.join(",") !== [...MODOS_ESFUERZO].sort().join(",")) {
+    anota("esfuerzo.spec.yaml", `los modos no cuadran: spec [${modosEsfuerzo.join(", ")}] · código [${MODOS_ESFUERZO.join(", ")}]`);
+  }
+  const fichas = fichasDe(join(dirSpecs(), "esfuerzo.spec.yaml"));
+  if (fichas.length < 5) anota("esfuerzo.spec.yaml", `las fichas faltan: ${fichas.length} (se espera la tabla escrita)`);
+  for (const ficha of fichas) {
+    if (typeof ficha.motor === "string" && !MOTORES_CONOCIDOS.includes(ficha.motor as never)) {
+      anota("esfuerzo.spec.yaml", `la ficha de «${String(ficha.motor)}» no es un motor de la casa`);
+    }
+    if (!("fuente" in ficha) || !("verificado" in ficha)) {
+      anota("esfuerzo.spec.yaml", `la ficha de «${String(ficha.motor)}/${String(ficha.modelo ?? "*")}» sin fuente o sin verificado`);
     }
   }
 

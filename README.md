@@ -37,6 +37,7 @@ Entre dos lenguas solo sobrevive lo que está escrito.
 | `docs/PIELES.md` | Las pieles: el tema es un documento, y hay un juez que lo comprueba. |
 | `docs/PUNTOS.md` | Los puntos: el estado de tu PC, medido (un punto por agente, con su RAM). |
 | `docs/ARBOLES.md` | El árbol: tus ficheros como árbol, medidos (quién pesa, de quién cuelga qué). |
+| `docs/ESFUERZO.md` | El esfuerzo: cuánto piensa cada modelo, por escrito (apretado / normal / profundo). |
 | `estandar/RACI.md` | Quién decide qué en las specs (RACI lite). |
 | `estandar/contexto.spec.yaml` | Los tres modos del contexto y el ahorro medido. |
 | `estandar/rea.spec.yaml` | La evidencia de REA y su catálogo: la forma, con nombre. |

@@ -72,6 +72,7 @@
     "compat": "tsx scripts/estandar/compat-check.ts",
     "puntos": "tsx scripts/puntos.ts",
     "arbol": "tsx scripts/arbol.ts",
+    "esfuerzo": "tsx scripts/esfuerzo.ts",
     "talamo": "tsx scripts/talamo.ts",
     "turno": "tsx scripts/turno.ts",
     "arena": "tsx scripts/arena.ts",
