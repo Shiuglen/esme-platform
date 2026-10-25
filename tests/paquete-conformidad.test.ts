@@ -29,8 +29,8 @@ describe("paquete.spec.yaml — la de verdad cuadra", () => {
     expect(fallos(spec())).toBe("");
   });
 
-  it("el ejemplo trae las dieciocho claves de arriba", () => {
-    expect(Object.keys(spec().manifiesto)).toHaveLength(18);
+  it("el ejemplo trae las veinte claves de arriba", () => {
+    expect(Object.keys(spec().manifiesto)).toHaveLength(20);
   });
 });
 

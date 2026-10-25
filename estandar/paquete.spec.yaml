@@ -63,6 +63,8 @@ manifiesto:
   description: "Una forma de estudiar lista para usar: tutor, repaso diario y tarjetas."
   author: "jin"
   license: "MIT"                          # ver `licencias`
+  keywords: ["estudio", "repaso", "tarjetas"]  # para buscar (como en plugin.json o en npm)
+  homepage: "https://github.com/jin/estudiar"  # donde leer más: una URL http(s)
   uses:                                   # id + rango + huella; los tres
     - id: "esme.casa.piel-estudio"
       version: "^1.0"
@@ -205,8 +207,9 @@ rangos:
 # --- Los niveles de aislamiento: dónde tiene que correr lo que trae ---
 # El de un paquete es el más alto de sus puntos: datos 0; WASM 1;
 # JavaScript en la cápsula (y una vista, en la suya) 2; un proceso del
-# sistema (Python, un MCP local, una skill con scripts) 3. El 4 no lo pide
-# un paquete: lo elige quien ejecuta (p. ej. en la nube).
+# sistema (Python, un MCP local, un motor con sus binarios, un agente de
+# línea de comandos, una skill con scripts) 3. El 4 no lo pide un paquete:
+# lo elige quien ejecuta (p. ej. en la nube).
 niveles:
   0: "datos"
   1: "WASM"

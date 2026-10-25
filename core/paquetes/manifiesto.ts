@@ -110,6 +110,8 @@ export const CLAVES_PAQUETE = [
   "description",
   "author",
   "license",
+  "keywords",
+  "homepage",
   "uses",
   "contributes",
   "permissions",
@@ -355,6 +357,8 @@ export const ManifiestoV2Schema = z
     description: z.string().min(10, "description demasiado corta"),
     author: z.string().min(3),
     license: z.enum(LICENCIAS_PAQUETE),
+    keywords: z.array(z.string().min(1)).optional(),
+    homepage: Url.optional(),
     uses: z.array(Uso).default([]),
     contributes: Contribuciones.default({}),
     permissions: z.array(PermisoSchema).default([]),
@@ -551,8 +555,9 @@ const NIVEL_RUNTIME: Record<(typeof RUNTIMES)[number], Nivel> = { wasm: 1, nodej
 /**
  * El nivel de aislamiento que pide lo que trae: el más alto de sus puntos.
  * Datos 0; WASM 1; JavaScript en la cápsula 2 (y una vista, en la suya);
- * un proceso del sistema 3 (Python, un servidor MCP local, una skill con
- * scripts). El 4 (microVM) no lo pide un paquete: lo elige quien ejecuta.
+ * un proceso del sistema 3 (Python, un servidor MCP local, un motor con sus
+ * binarios, un agente de línea de comandos, una skill con scripts). El 4
+ * (microVM) no lo pide un paquete: lo elige quien ejecuta.
  */
 export function nivelDe(m: ManifiestoV2): Nivel {
   const c = m.contributes;
@@ -561,6 +566,8 @@ export function nivelDe(m: ManifiestoV2): Nivel {
   for (const x of c.memory ?? []) niveles.push(NIVEL_RUNTIME[x.runtime]);
   if (c.views?.length) niveles.push(2);
   if (c.skills?.some((s) => s.scripts)) niveles.push(3);
+  if (c.engines?.some((e) => e.binaries?.length)) niveles.push(3);
+  if (c.agents?.some((a) => a.format === "comando")) niveles.push(3);
   return Math.max(...niveles) as Nivel;
 }
 

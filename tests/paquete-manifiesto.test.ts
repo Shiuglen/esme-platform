@@ -80,6 +80,19 @@ describe("el manifiesto v2 — lo que vale", () => {
     expect(r.avisos).toEqual([]);
   });
 
+  it("keywords: una lista de palabras para buscar (como en plugin.json o en npm)", () => {
+    const r = leePaquete(base({ keywords: ["estudio", "repaso"] }));
+    expect(r.ok).toBe(true);
+    expect(r.avisos).toEqual([]);
+    expect(r.paquete?.keywords).toEqual(["estudio", "repaso"]);
+    expect(errores(base({ keywords: "estudio" }))).toContain("keywords");
+  });
+
+  it("homepage: una URL http(s) donde leer más (como en plugin.json o en npm)", () => {
+    expect(leePaquete(base({ homepage: "https://linear.app" })).ok).toBe(true);
+    expect(errores(base({ homepage: "linear.app" }))).toContain("homepage");
+  });
+
   it("los doce puntos son los de la doc, con su naturaleza y dónde corren", () => {
     expect(Object.keys(PUNTOS)).toEqual([
       "themes", "skills", "tools", "views", "agents", "teams",
@@ -271,6 +284,17 @@ describe("nivelDe — dónde tiene que correr lo que trae", () => {
     expect(nivelDe(conTool({ entry: "x.py", runtime: "python" }))).toBe(3);
     expect(nivelDe(conTool({ mcp: { command: "npx" } }, [{ kind: "proc:spawn", programs: ["npx"] }]))).toBe(3);
     expect(nivelDe(conTool({ mcp: { url: "https://a.com/mcp" } }, [{ kind: "net:fetch", hosts: ["a.com"] }]))).toBe(0);
+  });
+
+  it("un motor con binarios o un agente de línea de comandos lanzan un proceso: caja del sistema", () => {
+    const engines = [{ id: "copilot", name: "GitHub Copilot", binaries: ["copilot"] }];
+    const conMotor = leePaquete(base({ contributes: { engines }, permissions: [{ kind: "proc:spawn", programs: ["copilot"] }] }));
+    expect(nivelDe(conMotor.paquete!)).toBe(3);
+    const informativo = leePaquete(base({ contributes: { engines: [{ id: "x", name: "X", install: "npx x --acp" }] } }));
+    expect(nivelDe(informativo.paquete!)).toBe(0);
+    const agentes = [{ id: "oc", recipe: "agente.json", format: "comando" }];
+    expect(nivelDe(leePaquete(base({ contributes: { agents: agentes } })).paquete!)).toBe(3);
+    expect(nivelDe(leePaquete(base({ contributes: { agents: [{ id: "t", recipe: "t.yaml" }] } })).paquete!)).toBe(0);
   });
 
   it("una vista corre en su cápsula; una skill con scripts, en la caja del sistema", () => {

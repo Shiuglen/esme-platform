@@ -1,0 +1,217 @@
+{
+  "fuente": {
+    "repo": "Shiuglen/esme",
+    "commit": "bdb809f8c56aced6d211fc8c2cfa71c9b974ac4c",
+    "fichero": "app/src/main/herramientas/destacadas.json"
+  },
+  "datos": [
+    {
+      "id": "com.figma.mcp/mcp",
+      "slug": "figma",
+      "titulo": "Figma MCP Server",
+      "descripcion": "The Figma MCP server brings Figma design context directly into your AI workflow.",
+      "version": "1.0.3",
+      "conexion": {
+        "tipo": "remoto",
+        "url": "https://mcp.figma.com/mcp"
+      },
+      "variables": []
+    },
+    {
+      "id": "com.notion/mcp",
+      "slug": "notion",
+      "titulo": "Notion",
+      "descripcion": "Official Notion MCP server",
+      "version": "1.0.1",
+      "conexion": {
+        "tipo": "remoto",
+        "url": "https://mcp.notion.com/mcp"
+      },
+      "variables": []
+    },
+    {
+      "id": "app.linear/linear",
+      "slug": "linear",
+      "titulo": "Linear",
+      "descripcion": "MCP server for Linear project management and issue tracking",
+      "version": "1.0.1",
+      "web": "https://linear.app",
+      "conexion": {
+        "tipo": "remoto",
+        "url": "https://mcp.linear.app/mcp"
+      },
+      "variables": []
+    },
+    {
+      "id": "com.atlassian/atlassian-mcp-server",
+      "slug": "atlassian",
+      "titulo": "Atlassian Rovo MCP Server",
+      "descripcion": "Connect to Atlassian Jira, Confluence, Loom, and more to search, create, and manage your work.",
+      "version": "2.0.0",
+      "web": "https://support.atlassian.com/atlassian-rovo-mcp-server/docs/getting-started-with-the-atlassian-remote-mcp-server/",
+      "conexion": {
+        "tipo": "remoto",
+        "url": "https://mcp.atlassian.com/v2/mcp"
+      },
+      "variables": []
+    },
+    {
+      "id": "com.canva.mcp/mcp",
+      "slug": "canva",
+      "titulo": "Canva MCP",
+      "descripcion": "Create, search, edit, and export designs and assets from Canva.",
+      "version": "1.0.0",
+      "conexion": {
+        "tipo": "remoto",
+        "url": "https://mcp.canva.com/mcp"
+      },
+      "variables": []
+    },
+    {
+      "id": "co.huggingface/hf-mcp-server",
+      "slug": "huggingface",
+      "titulo": "Hugging Face",
+      "descripcion": "Connect to Hugging Face Hub and thousands of Gradio AI Applications",
+      "version": "0.2.33",
+      "conexion": {
+        "tipo": "remoto",
+        "url": "https://huggingface.co/mcp?login"
+      },
+      "variables": []
+    },
+    {
+      "id": "com.cloudflare.mcp/mcp",
+      "slug": "cloudflare",
+      "titulo": "Cloudflare",
+      "descripcion": "Cloudflare MCP servers",
+      "version": "1.0.0",
+      "conexion": {
+        "tipo": "remoto",
+        "url": "https://docs.mcp.cloudflare.com/mcp"
+      },
+      "variables": []
+    },
+    {
+      "id": "ai.exa/exa",
+      "slug": "exa",
+      "titulo": "Exa",
+      "descripcion": "Connect AI agents to Exa for web search, content fetching, and multi-step research.",
+      "version": "3.4.1",
+      "conexion": {
+        "tipo": "remoto",
+        "url": "https://mcp.exa.ai/mcp"
+      },
+      "variables": []
+    },
+    {
+      "id": "ai.perplexity/mcp-server",
+      "slug": "perplexity",
+      "titulo": "Perplexity API Platform",
+      "descripcion": "Real-time web search, reasoning, and research through Perplexity's API",
+      "version": "1.2.1",
+      "conexion": {
+        "tipo": "npm",
+        "paquete": "@perplexity-ai/mcp-server",
+        "version": "1.2.1"
+      },
+      "variables": []
+    },
+    {
+      "id": "com.neon/mcp",
+      "slug": "neon",
+      "titulo": "Neon",
+      "descripcion": "Official Neon MCP server for managing Neon projects and Lakebase Postgres databases.",
+      "version": "1.0.0",
+      "web": "https://neon.com/docs/ai/neon-mcp-server",
+      "conexion": {
+        "tipo": "remoto",
+        "url": "https://mcp.neon.tech/mcp"
+      },
+      "variables": [
+        {
+          "nombre": "Authorization",
+          "descripcion": "Optional Bearer token with a Neon API key.",
+          "secreta": true,
+          "requerida": false,
+          "donde": "cabecera"
+        },
+        {
+          "nombre": "x-read-only",
+          "descripcion": "Optional header to enable read-only mode for tool filtering.",
+          "secreta": false,
+          "requerida": false,
+          "donde": "cabecera"
+        }
+      ]
+    },
+    {
+      "id": "com.airtable/mcp",
+      "slug": "airtable",
+      "titulo": "Airtable",
+      "descripcion": "Official Airtable MCP server — database and operations layer for agents.",
+      "version": "0.1.0",
+      "conexion": {
+        "tipo": "remoto",
+        "url": "https://mcp.airtable.com/mcp"
+      },
+      "variables": []
+    },
+    {
+      "id": "com.apify/apify-mcp-server",
+      "slug": "apify",
+      "titulo": "Apify",
+      "descripcion": "Extract data from any website with thousands of scrapers, crawlers, and automations on Apify Store ⚡",
+      "version": "0.19.0",
+      "conexion": {
+        "tipo": "remoto",
+        "url": "https://mcp.apify.com/"
+      },
+      "variables": [
+        {
+          "nombre": "Authorization",
+          "descripcion": "Apify API token for authentication with Apify platform services. For example 'Bearer <apify-api-token>'",
+          "secreta": true,
+          "requerida": true,
+          "donde": "cabecera"
+        }
+      ]
+    },
+    {
+      "id": "com.paypal.mcp/mcp",
+      "slug": "paypal",
+      "titulo": "Paypal",
+      "descripcion": "PayPal MCP server provides access to PayPal services and operations for AI assistants",
+      "version": "1.0.0",
+      "conexion": {
+        "tipo": "remoto",
+        "url": "https://mcp.paypal.com/mcp"
+      },
+      "variables": [
+        {
+          "nombre": "Authorization",
+          "descripcion": "OAuth Bearer token for API authentication (format: Bearer <token>)",
+          "secreta": true,
+          "requerida": true,
+          "donde": "cabecera"
+        }
+      ]
+    },
+    {
+      "id": "io.github.morluto/rea",
+      "slug": "rea",
+      "titulo": "REA",
+      "descripcion": "Reverse engineer anything from your terminal or agent with one CLI and MCP server.",
+      "version": "6.7.0",
+      "web": "https://github.com/morluto/rea",
+      "conexion": {
+        "tipo": "npm",
+        "paquete": "rea-agents",
+        "version": "6.7.0",
+        "args": [
+          "mcp"
+        ]
+      },
+      "variables": []
+    }
+  ]
+}
