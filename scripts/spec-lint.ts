@@ -50,9 +50,10 @@ for (const d of archivos) {
   }
   // el nivel lo decide DÓNDE vive el módulo, no lo que dice su manifiesto
   const nivel = nivelDe(`modulos/${d}/`);
-  let manifiesto: { license?: string; schema_version?: unknown } | null = null;
+  type Cabecera = { license?: string; schema_version?: unknown } | null;
+  let manifiesto: Cabecera = null;
   try {
-    manifiesto = yaml.load(readFileSync(ruta, "utf8")) as typeof manifiesto;
+    manifiesto = yaml.load(readFileSync(ruta, "utf8")) as Cabecera;
   } catch {
     // un YAML roto lo dice el dictamen de abajo, con su motivo
   }
@@ -147,9 +148,10 @@ for (const m of motores) {
 for (const d of archivos) {
   const ruta = join(dir, d, "module.yaml");
   if (!existsSync(ruta)) continue;
-  let manifiesto: { schema_version?: unknown; engines?: string[]; works_with?: string[] } | null = null;
+  type Motores = { schema_version?: unknown; engines?: string[]; works_with?: string[] } | null;
+  let manifiesto: Motores = null;
   try {
-    manifiesto = yaml.load(readFileSync(ruta, "utf8")) as typeof manifiesto;
+    manifiesto = yaml.load(readFileSync(ruta, "utf8")) as Motores;
   } catch {
     continue; // ya dicho arriba
   }
