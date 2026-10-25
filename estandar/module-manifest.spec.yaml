@@ -1,6 +1,10 @@
 # **Spec abierta v1 — manifiesto de módulo.** Referencia: `docs/ARQUITECTURA.md` §3.
 # CI `spec-lint` valida cada `module.yaml` contra este fichero.
 #
+# **La v2 (el paquete)** vive en `paquete.spec.yaml`: doce puntos de contribución,
+# plantillas y permisos con alcance. Esta v1 sigue valiendo tal cual, y un módulo
+# v1 se lee también como un paquete de una sola contribución.
+#
 # **Cambios:** para cambiar esta spec abre un PR a `estandar/`; el lint de specs
 # puede fallar y eso depende del contenido. El merge requiere 1 maintainer: el
 # creador (RACI lite, ver ARQUITECTURA §8).
