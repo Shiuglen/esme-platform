@@ -9,18 +9,25 @@
  *   3. un `rebobinar` corta la junta y se reescribe a su sitio nuevo;
  *   4. el registro compactado verifica, compactarlo otra vez no lo cambia, y
  *      el del chat da el mismo Hilo;
- *   5. cuánto encoge una tarea del tamaño de la más larga de hoy.
+ *   5. cuánto encoge una tarea del tamaño de la más larga de hoy;
+ *   6. juntar al escribir (por latido) tampoco cambia la traza ni el estado.
  *
  * Referencia: core/sesiones/compactar.ts.
  */
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { compactar } from "../core/sesiones/compactar.ts";
+import { compactar, juntarPorLatido } from "../core/sesiones/compactar.ts";
 import { estadoDe, type Estado } from "../core/sesiones/reductor.ts";
 import { trazaDe, type Traza } from "../core/sesiones/traza.ts";
 import { eventosDelGuardado, hiloDe, type Hilo } from "../core/sesiones/hilo.ts";
 import { tallerSintetico, type OpcionesSintetico } from "../core/sesiones/sintetico.ts";
 import { CADENA_VACIA, leer, sellar, type Cadena, type Evento, type Linea } from "../core/sesiones/registro.ts";
+
+/** Las 48 tareas resumidas por la traza de la app (scripts/sesiones/traza-app.ts). */
+const casos = JSON.parse(readFileSync(new URL("./fixtures/sesiones/traza-app.json", import.meta.url), "utf8")).casos as Array<{
+  opciones: OpcionesSintetico;
+  traza: Traza;
+}>;
 
 /** Las líneas de un registro del formato 1 (como las escribe el Taller). */
 const v1 = (eventos: Linea[]) => eventos.map((e) => JSON.stringify(e)).join("\n") + "\n";
@@ -97,11 +104,6 @@ describe("los trozos seguidos, en un solo evento", () => {
 });
 
 describe("se reproduce igual", () => {
-  const casos = JSON.parse(readFileSync(new URL("./fixtures/sesiones/traza-app.json", import.meta.url), "utf8")).casos as Array<{
-    opciones: OpcionesSintetico;
-    traza: Traza;
-  }>;
-
   it("la traza de las 48 tareas de la app, compactadas, es la que dio la app", () => {
     for (const caso of casos) {
       const c = compactar(leer(v1(tallerSintetico(caso.opciones))));
@@ -199,5 +201,36 @@ describe("cuánto encoge", () => {
     expect(c.despues.bytes).toBeLessThan(c.antes.bytes);
     expect(sinPosiciones(estadoDe(c.eventos))).toEqual(sinPosiciones(estadoDe(l)));
     expect(trazaDe(c.eventos)).toEqual(trazaDe(l));
+  });
+});
+
+describe("juntar al escribir, por latido", () => {
+  it("la traza de las 48 tareas de la app no cambia", () => {
+    for (const caso of casos) {
+      expect(trazaDe(juntarPorLatido(tallerSintetico(caso.opciones))), `tarea ${caso.opciones.semilla}`).toEqual(caso.traza);
+    }
+  });
+
+  it("el estado tampoco, salvo los números de evento", () => {
+    for (let semilla = 1; semilla <= 20; semilla++) {
+      const eventos = tallerSintetico({ semilla, turnos: 6 });
+      expect(sinPosiciones(estadoDe(juntarPorLatido(eventos)))).toEqual(sinPosiciones(estadoDe(eventos)));
+    }
+  });
+
+  it("cada línea junta lo de un latido: solo su primer trozo traía hora, y no necesita `latidos`", () => {
+    const eventos = tallerSintetico({ semilla: 7, turnos: 5 });
+    const juntos = juntarPorLatido(eventos);
+    expect(juntos.some((e) => "latidos" in e)).toBe(false);
+    // las horas, en el mismo orden: ninguna se pierde ni se inventa
+    expect(juntos.flatMap((e) => (e.ts === undefined ? [] : [e.ts]))).toEqual(eventos.flatMap((e) => (e.ts === undefined ? [] : [e.ts])));
+    // y el texto entero, en orden
+    const texto = (xs: readonly Linea[]) => xs.map((e) => (e.tipo === "texto" || e.tipo === "pensamiento" ? e.texto : "|")).join("");
+    expect(texto(juntos)).toBe(texto(eventos));
+  });
+
+  it("compactar lo que se juntó al escribir da lo mismo que compactar trozo a trozo", () => {
+    const eventos = tallerSintetico({ semilla: 11, turnos: 4 });
+    expect(compactar(leer(v1(juntarPorLatido(eventos)))).eventos).toEqual(compactar(leer(v1(eventos))).eventos);
   });
 });

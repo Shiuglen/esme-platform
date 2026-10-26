@@ -146,6 +146,8 @@ export const CLAVES_TURNO_ESTADO = [
 
 // lo que un motor anuncia al abrir su sesión, antes del primer mensaje: no abre turno (como la traza)
 const ANUNCIOS = new Set(["opciones", "uso", "contexto"]);
+/** Lo que no es del paso en un evento `herramienta`: su tipo y su sobre. */
+const FUERA_DEL_PASO = new Set(["tipo", "ts", "n", "epoca", "de", "ant"]);
 const DE_LA_SESION = new Set(["orden", "punto", "dueno", "traspaso", "cierre"]);
 const DEL_MOTOR = new Set([
   "texto",
@@ -297,15 +299,19 @@ function reproducir(eventos: readonly Linea[], formato: Formato | null, cuantos:
         turno.pensamiento += e.texto;
         break;
       case "herramienta": {
+        // sus campos, sin el tipo ni el sobre (sin copias de más: hay tareas con miles de pasos)
         const k = indices.get(e.id);
-        const { tipo: _t, ts: _ts, n: _n, epoca: _e, de: _d, ant: _a, ...campos } = e;
+        const campos = e as unknown as Record<string, unknown>;
         if (k === undefined) {
+          const paso: Record<string, unknown> = {};
+          for (const clave in campos) if (!FUERA_DEL_PASO.has(clave)) paso[clave] = campos[clave];
           indices.set(e.id, turno.pasos.length);
-          turno.pasos.push(campos);
+          turno.pasos.push(paso as PasoEstado);
         } else {
-          const paso = turno.pasos[k];
-          for (const [clave, valor] of Object.entries(campos)) {
-            if (valor !== undefined) (paso as Record<string, unknown>)[clave] = valor;
+          const paso = turno.pasos[k] as Record<string, unknown>;
+          for (const clave in campos) {
+            const valor = campos[clave];
+            if (valor !== undefined && !FUERA_DEL_PASO.has(clave)) paso[clave] = valor;
           }
         }
         break;

@@ -13,6 +13,12 @@
  * alguien escribió por fuera, el escritor se para en vez de mezclar dos
  * historias.
  *
+ * Los trozos de texto y pensamiento no van cada uno en su línea: se juntan
+ * hasta el siguiente latido (ver core/sesiones/compactar.ts). Lo que espera
+ * sin escribir (menos de un latido de texto) se escribe con el siguiente
+ * evento, al vaciar o al sincronizar; si el proceso muere antes, eso es lo
+ * que se pierde.
+ *
  * Lo que este fichero NO hace: decidir quién escribe entre procesos de un
  * mismo aparato (eso es de quien lo usa: un proceso por sesión).
  *
@@ -20,6 +26,7 @@
  */
 import { appendFileSync, closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, statSync, truncateSync } from "node:fs";
 import { dirname } from "node:path";
+import { juntarUno } from "./compactar.ts";
 import { LATIDO_MS, leer, sellar, validarEvento, type Cadena, type Evento, type Lectura, type Linea, type Problema } from "./registro.ts";
 
 /** Un registro que no verifica: no se escribe en él. */
@@ -49,6 +56,8 @@ export interface OpcionesEscritor {
   latidoMs?: number;
   /** Comprobar la forma de cada evento antes de escribirlo (sí, salvo que se diga). */
   validar?: boolean;
+  /** Juntar los trozos hasta el siguiente latido (sí, salvo que se diga). */
+  juntar?: boolean;
 }
 
 /** Lo que hubo que hacer al abrir. */
@@ -71,6 +80,8 @@ export function leerFichero(ruta: string, opciones?: { cabeza?: string; n?: numb
 /** El que escribe un registro: el dueño de la sesión. */
 export class Escritor {
   private ultimaHora: number | undefined;
+  /** Los trozos de este latido, que aún no se escribieron. */
+  private pendiente: Evento | null = null;
 
   private constructor(
     readonly ruta: string,
@@ -122,17 +133,19 @@ export class Escritor {
     return w;
   }
 
-  /** Por dónde va la cadena. */
+  /** Por dónde va la cadena (lo escrito: un trozo que espera aún no cuenta). */
   get cadena(): Cadena {
     return this.c;
   }
 
   /**
-   * Sella un evento y lo añade. La hora la pone el escritor: siempre, salvo
-   * a los trozos de texto y pensamiento, que solo la llevan si pasó un latido
-   * desde la última (como el Taller). Si el evento ya trae su hora, se respeta.
+   * Apunta un evento y devuelve lo que escribió (nada si es un trozo que
+   * espera a su latido; antes que él, los trozos que esperaban). La hora la
+   * pone el escritor: siempre, salvo a los trozos de texto y pensamiento, que
+   * solo la llevan si pasó un latido desde la última (como el Taller). Si el
+   * evento ya trae su hora, se respeta.
    */
-  anotar(evento: Evento): Linea {
+  anotar(evento: Evento): Linea[] {
     if (this.o.validar !== false) {
       const mal = validarEvento(evento);
       if (mal.length > 0) throw new Error(`El evento no es del contrato: ${mal.join("; ")}.`);
@@ -147,6 +160,38 @@ export class Escritor {
         this.ultimaHora = ahora;
       }
     }
+    if (this.o.juntar === false) return [this.escribir(e)];
+    const paso = juntarUno(this.pendiente, e);
+    const escritas: Linea[] = [];
+    for (const x of paso.escribir) {
+      escritas.push(this.escribir(x));
+      if (x === this.pendiente) this.pendiente = null; // ya está en disco: si lo siguiente falla, no se repite
+    }
+    this.pendiente = paso.pendiente;
+    return escritas;
+  }
+
+  /** Escribe ya los trozos que esperan a su latido (si los hay). */
+  vaciar(): Linea[] {
+    if (this.pendiente === null) return [];
+    const escrita = this.escribir(this.pendiente);
+    this.pendiente = null;
+    return [escrita];
+  }
+
+  /** Que todo lo apuntado llegue al disco (al final de un turno, por ejemplo): también lo que esperaba. */
+  sincronizar(): void {
+    this.vaciar();
+    const fd = openSync(this.ruta, "r+");
+    try {
+      fsyncSync(fd);
+    } finally {
+      closeSync(fd);
+    }
+  }
+
+  /** Sella un evento y lo añade de una sola escritura (si nadie escribió por fuera). */
+  private escribir(e: Evento): Linea {
     const r = sellar(this.c, e, this.o.de);
     const tam = existsSync(this.ruta) ? statSync(this.ruta).size : 0;
     if (tam !== this.bytes) {
@@ -157,15 +202,5 @@ export class Escritor {
     this.bytes += Buffer.byteLength(datos);
     this.c = r.cadena;
     return r.evento;
-  }
-
-  /** Que lo escrito llegue al disco (al final de un turno, por ejemplo). */
-  sincronizar(): void {
-    const fd = openSync(this.ruta, "r+");
-    try {
-      fsyncSync(fd);
-    } finally {
-      closeSync(fd);
-    }
   }
 }

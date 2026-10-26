@@ -11,7 +11,9 @@
  *   4. el registro del Taller (formato 1) se sigue escribiendo en el 2;
  *   5. un solo escritor: lo de otro aparato o una sesión cerrada solo se toma
  *      a propósito, un registro que no verifica no se toca, y si alguien
- *      escribe por fuera, el escritor se para.
+ *      escribe por fuera, el escritor se para;
+ *   6. los trozos se juntan hasta el siguiente latido (una línea por latido,
+ *      no por trozo), y el Escritor escribe lo mismo que `juntarPorLatido`.
  *
  * Referencia: core/sesiones/fichero.ts.
  */
@@ -20,7 +22,9 @@ import { appendFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFile
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { Escritor, ErrorRegistro, leerFichero } from "../core/sesiones/fichero.ts";
+import { juntarPorLatido } from "../core/sesiones/compactar.ts";
 import { leer, sinSobre, type Evento } from "../core/sesiones/registro.ts";
+import { tallerSintetico } from "../core/sesiones/sintetico.ts";
 
 const dir = mkdtempSync(join(tmpdir(), "esme-sesion-"));
 afterAll(() => rmSync(dir, { recursive: true, force: true }));
@@ -189,5 +193,100 @@ describe("un solo escritor", () => {
     const libre = Escritor.abrir(ruta, { de: "pc", ahora: () => 1, validar: false });
     libre.anotar({ tipo: "holograma", cara: 3 } as unknown as Evento);
     expect(leerFichero(ruta).eventos[1]).toMatchObject({ tipo: "holograma", cara: 3 });
+  });
+});
+
+describe("los trozos, juntos hasta el siguiente latido", () => {
+  it("los trozos seguidos van en una sola línea hasta el siguiente latido, con la hora del primero", () => {
+    const ruta = nueva();
+    const r = reloj();
+    const w = Escritor.abrir(ruta, { de: "pc", ahora: r.ahora });
+    r.pasa(100);
+    expect(w.anotar({ tipo: "texto", texto: "Ho" })).toEqual([]); // espera
+    r.pasa(100);
+    expect(w.anotar({ tipo: "texto", texto: "la" })).toEqual([]);
+    r.pasa(900); // 1100 ms desde la última hora: este trozo lleva la suya y empieza otra línea
+    expect(w.anotar({ tipo: "texto", texto: ", mu" }).map(sinSobre)).toEqual([{ tipo: "texto", texto: "Hola" }]);
+    r.pasa(10);
+    expect(w.anotar({ tipo: "texto", texto: "ndo" })).toEqual([]);
+    expect(w.anotar({ tipo: "herramienta", id: "h1", estado: "completed" }).map(sinSobre)).toEqual([
+      { tipo: "texto", texto: ", mundo", ts: 2100 },
+      { tipo: "herramienta", id: "h1", estado: "completed", ts: 2110 },
+    ]);
+    const l = leerFichero(ruta);
+    expect(l.valida).toBe(true);
+    expect(l.eventos.map((e) => [e.n, e.tipo, (e as { texto?: string }).texto])).toEqual([
+      [0, "dueno", undefined],
+      [1, "texto", "Hola"],
+      [2, "texto", ", mundo"],
+      [3, "herramienta", undefined],
+    ]);
+  });
+
+  it("otro tipo, o un texto que lleva algo más que su texto, corta la junta", () => {
+    const ruta = nueva();
+    const w = Escritor.abrir(ruta, { de: "pc", ahora: () => 1 });
+    w.anotar({ tipo: "texto", texto: "a" });
+    w.anotar({ tipo: "pensamiento", texto: "b" });
+    w.anotar({ tipo: "pensamiento", texto: "c" });
+    w.anotar({ tipo: "texto", texto: "una respuesta entera", chat: {} });
+    expect(leerFichero(ruta).eventos.slice(1).map(sinSobre)).toEqual([
+      { tipo: "texto", texto: "a" },
+      { tipo: "pensamiento", texto: "bc" },
+      { tipo: "texto", texto: "una respuesta entera", chat: {} },
+    ]);
+  });
+
+  it("lo que espera se escribe al vaciar o al sincronizar (antes, quien lee no lo ve)", () => {
+    const ruta = nueva();
+    const w = Escritor.abrir(ruta, { de: "pc", ahora: () => 1 });
+    w.anotar({ tipo: "texto", texto: "a" });
+    expect(leerFichero(ruta).eventos).toHaveLength(1);
+    expect(w.vaciar().map(sinSobre)).toEqual([{ tipo: "texto", texto: "a" }]);
+    expect(w.vaciar()).toEqual([]);
+    w.anotar({ tipo: "texto", texto: "b" });
+    w.sincronizar();
+    expect(leerFichero(ruta).eventos.slice(1).map(sinSobre)).toEqual([
+      { tipo: "texto", texto: "a" },
+      { tipo: "texto", texto: "b" },
+    ]);
+  });
+
+  it("si lo que sigue no se puede escribir, lo que esperaba queda escrito una sola vez", () => {
+    const ruta = nueva();
+    const w = Escritor.abrir(ruta, { de: "pc", ahora: () => 1, validar: false });
+    w.anotar({ tipo: "texto", texto: "a" });
+    expect(() => w.anotar({ tipo: "raro", n: 5 } as unknown as Evento)).toThrow(/sobre/);
+    expect(w.vaciar()).toEqual([]);
+    expect(leerFichero(ruta).eventos.slice(1).map(sinSobre)).toEqual([{ tipo: "texto", texto: "a" }]);
+  });
+
+  it("sin juntar, cada trozo es su línea", () => {
+    const ruta = nueva();
+    const w = Escritor.abrir(ruta, { de: "pc", ahora: () => 1, juntar: false });
+    expect(w.anotar({ tipo: "texto", texto: "a" }).map(sinSobre)).toEqual([{ tipo: "texto", texto: "a" }]);
+    w.anotar({ tipo: "texto", texto: "b" });
+    expect(leerFichero(ruta).eventos.slice(1).map(sinSobre)).toEqual([
+      { tipo: "texto", texto: "a" },
+      { tipo: "texto", texto: "b" },
+    ]);
+  });
+
+  it("una tarea del Taller escrita con el Escritor da lo mismo que juntarPorLatido", () => {
+    const eventos = tallerSintetico({ semilla: 5, turnos: 4 }) as Evento[];
+    const ruta = nueva();
+    let hora = eventos.find((e) => e.ts !== undefined)!.ts!;
+    const w = Escritor.abrir(ruta, { de: "pc", ahora: () => hora });
+    // el reloj va por la última hora apuntada: un trozo sin hora sigue sin ella
+    for (const e of eventos) {
+      if (e.ts !== undefined) hora = e.ts;
+      w.anotar(e);
+    }
+    w.vaciar();
+    const l = leerFichero(ruta);
+    expect(l.valida).toBe(true);
+    const juntos = juntarPorLatido(eventos);
+    expect(l.eventos.slice(1).map(sinSobre)).toEqual(juntos);
+    expect(juntos.length).toBeLessThan(eventos.length / 3);
   });
 });

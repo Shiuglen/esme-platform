@@ -1,10 +1,20 @@
 /**
- * COMPACTAR — los trozos seguidos, en un solo evento.
+ * JUNTAR Y COMPACTAR — los trozos seguidos, en un solo evento.
  *
  * Lo que el motor escribe letra a letra llega a decenas de trozos por
- * segundo, y cada uno es una línea del registro. Para que viajar sea barato,
- * los trozos seguidos de un mismo tipo (texto o pensamiento) se juntan en un
- * solo evento, sin perder nada que el estado o la traza usen:
+ * segundo. Apuntar cada uno en su línea es lo que hace hoy el Taller, y con
+ * sobre pesa el triple. Así que se juntan en dos momentos:
+ *
+ *   - AL ESCRIBIR (`juntarUno`, `juntarPorLatido`, y el Escritor): los trozos
+ *     seguidos de un mismo tipo van en una sola línea hasta el siguiente
+ *     latido (el primer trozo que lleva hora) o el siguiente evento que no es
+ *     un trozo. Solo el primero de cada línea pudo traer hora, así que la
+ *     línea lleva esa y nada más. Lo que espera sin escribir es menos de un
+ *     latido de texto.
+ *   - AL COMPACTAR (`compactar`): todos los trozos seguidos, también a
+ *     través de los latidos. Escribe otro registro.
+ *
+ * Compactar no pierde nada que el estado o la traza usen:
  *
  *   - el texto entero, en orden;
  *   - cada hora: la del primer trozo es el `ts` del evento, y las demás van
@@ -49,6 +59,47 @@ function esTrozo(e: Linea): boolean {
   if (!SE_JUNTAN.has(e.tipo) || typeof (e as { texto?: unknown }).texto !== "string") return false;
   for (const k of Object.keys(e)) if (!CLAVES_TROZO.has(k)) return false;
   return true;
+}
+
+/** Un trozo que se puede juntar al escribir: un texto o un pensamiento con su texto y, si acaso, su hora (nada más). */
+export function esTrozoSuelto(e: Evento): boolean {
+  if (!SE_JUNTAN.has(e.tipo) || typeof (e as { texto?: unknown }).texto !== "string") return false;
+  for (const k of Object.keys(e)) if (k !== "tipo" && k !== "texto" && k !== "ts") return false;
+  return true;
+}
+
+/** Un paso de juntar al escribir: lo que hay que escribir ya, en orden, y el trozo que se queda esperando. */
+export interface PasoJunta {
+  escribir: Evento[];
+  pendiente: Evento | null;
+}
+
+/**
+ * Junta un evento más al escribir. Un trozo sin hora sigue al que espera, si
+ * es de su tipo; un trozo con hora (un latido), o de otro tipo, empieza otra
+ * línea; y cualquier otro evento hace escribir lo que esperaba, y después se
+ * escribe él. No cambia nada de lo que recibe.
+ */
+export function juntarUno(pendiente: Evento | null, e: Evento): PasoJunta {
+  if (!esTrozoSuelto(e)) return { escribir: pendiente ? [pendiente, e] : [e], pendiente: null };
+  if (pendiente !== null && pendiente.tipo === e.tipo && e.ts === undefined) {
+    const texto = (pendiente as { texto: string }).texto + (e as { texto: string }).texto;
+    return { escribir: [], pendiente: { ...pendiente, texto } as Evento };
+  }
+  return { escribir: pendiente ? [pendiente] : [], pendiente: { ...e } };
+}
+
+/** Lo que escribiría el Escritor con unos eventos: los trozos, juntos hasta el siguiente latido. */
+export function juntarPorLatido(eventos: Iterable<Evento>): Evento[] {
+  const salida: Evento[] = [];
+  let pendiente: Evento | null = null;
+  for (const e of eventos) {
+    const paso = juntarUno(pendiente, e);
+    for (const x of paso.escribir) salida.push(x);
+    pendiente = paso.pendiente;
+  }
+  if (pendiente !== null) salida.push(pendiente);
+  return salida;
 }
 
 /** Las horas de un trozo: su `ts` y las de sus latidos, en ms desde 1970. */

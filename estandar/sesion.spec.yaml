@@ -145,14 +145,26 @@ dueno:
 # leer el estado en el evento n: el registro no se toca.
 bifurca: [sesion, n, cabeza]
 
-# COMPACTAR. Lo que se escribe letra a letra viaja en vivo, pero al terminar
-# el turno los trozos seguidos de un mismo tipo se juntan en un solo evento.
-# La hora de cada trozo que la llevaba se queda en `latidos`: cada latido son
-# los ms desde la hora anterior (el `ts` del evento o el latido de antes); si
-# el evento no tiene `ts`, el primero es la hora entera. Así compactar no
-# pierde nada que el estado o la traza usen: el texto entero y cada hora. Lo
-# único que se pierde es por dónde se cortaban los trozos. Compactar escribe
-# OTRO registro (con su propia cadena): el de antes no se reescribe.
+# JUNTAR Y COMPACTAR. Lo que el motor escribe letra a letra llega a decenas
+# de trozos por segundo, y apuntar cada uno en su línea triplica el registro
+# en cuanto lleva sobre. Así que los trozos seguidos de un mismo tipo se
+# juntan en un solo evento, en dos momentos:
+#   - al escribir: quien escribe con sobre junta los trozos hasta el
+#     siguiente latido (el primer trozo que lleva hora) o hasta el siguiente
+#     evento que no sea un trozo, y los apunta en una línea con la hora del
+#     primero. Lo que espera sin escribir es menos de un latido de texto: se
+#     escribe con lo siguiente, al vaciar o al sincronizar. Un texto que
+#     lleva algo más que su texto (el de un turno del chat) no es un trozo.
+#   - al compactar: todos los trozos seguidos, también a través de los
+#     latidos. La hora de cada trozo que la llevaba se queda en `latidos`:
+#     cada latido son los ms desde la hora anterior (el `ts` del evento o el
+#     latido de antes); si el evento no tiene `ts`, el primero es la hora
+#     entera. Un trozo al que apunta un `rebobinar` corta la junta, y el
+#     `hasta` se reescribe a su sitio nuevo. Compactar escribe OTRO registro
+#     (con su propia cadena): el de antes no se reescribe.
+# Ni juntar ni compactar pierden nada que el estado o la traza usen: el texto
+# entero y cada hora. Lo único que se pierde es por dónde se cortaban los
+# trozos.
 compactar:
   trozos: [texto, pensamiento]
   campo: latidos
@@ -208,8 +220,10 @@ reglas:
   # 9. lo gastado no se rebobina: rebobinar devuelve el contenido, no los
   #    tokens (el uso sigue sumando).
   lo_gastado_no_vuelve: true
-  # 10. el listón: un registro del tamaño de la tarea más larga de hoy
-  #     (110.484 eventos) se lee, se verifica y se reproduce en menos de
-  #     200 ms.
+  # 10. el listón: la tarea más larga de hoy (110.484 eventos) se lee, se
+  #     verifica y se reproduce (su estado y su traza) en menos de 200 ms en
+  #     un portátil de 4 núcleos: tal como la escribe hoy el Taller (formato
+  #     1) y tal como la escribe quien escribe con sobre (juntando por
+  #     latido). Compactada, en mucho menos.
   eventos_referencia: 110484
   reproducir_ms: 200
