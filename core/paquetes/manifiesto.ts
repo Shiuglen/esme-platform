@@ -94,7 +94,11 @@ export const NIVELES = {
 } as const;
 export type Nivel = keyof typeof NIVELES;
 
-/** Lo que Esme sustituye en `mcp.command`, `mcp.args` y en el entorno. */
+/**
+ * Lo que Esme sustituye en `mcp.command`, `mcp.args` y en el entorno, y
+ * también en lo que lee el modelo (el SKILL.md, la receta de un agente, el
+ * prompt de una tarea): un plugin importado sigue encontrando sus ficheros.
+ */
 export const VARIABLES_PAQUETE = {
   ESME_PAQUETE: "la carpeta donde está instalado el paquete",
   ESME_DATOS: "la carpeta de sus datos, que sobrevive a las actualizaciones",

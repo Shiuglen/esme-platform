@@ -66,13 +66,16 @@ export interface Cabecera {
 
 /**
  * Un paquete adaptado: siempre `kind: package`, con las claves en el mismo
- * orden (dos listas que dicen lo mismo dan los mismos bytes).
+ * orden (dos listas que dicen lo mismo dan los mismos bytes). `extra` son
+ * las claves de más que alguno trae (el `success` de una receta), y van
+ * justo antes de `source`.
  */
 export function paquete(
   c: Cabecera,
   contributes: Record<string, unknown[]>,
   permisos: Permiso[] = [],
-  ficheros: Record<string, string> = {}
+  ficheros: PaqueteDatos["ficheros"] = {},
+  extra: Record<string, unknown> = {}
 ): PaqueteDatos {
   const permissions = unePermisos(permisos);
   return {
@@ -89,6 +92,7 @@ export function paquete(
       ...(c.homepage ? { homepage: c.homepage } : {}),
       contributes,
       ...(permissions.length ? { permissions } : {}),
+      ...extra,
       source: c.source,
     },
     ficheros,

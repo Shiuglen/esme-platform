@@ -218,7 +218,10 @@ niveles:
   4: "microVM"
 
 # --- Lo que Esme sustituye en `mcp.command`, `mcp.args` y el entorno ---
-# (como `${CLAUDE_PLUGIN_ROOT}` y `${CLAUDE_PLUGIN_DATA}` en Claude Code)
+# (como `${CLAUDE_PLUGIN_ROOT}` y `${CLAUDE_PLUGIN_DATA}` en Claude Code),
+# y también en lo que lee el modelo: el SKILL.md de una skill, la receta de
+# un agente y el prompt de una tarea. Así un plugin importado sigue
+# encontrando sus ficheros (`${CLAUDE_PLUGIN_ROOT}` pasa a `${ESME_PAQUETE}`).
 variables:
   ESME_PAQUETE: "la carpeta donde está instalado el paquete"
   ESME_DATOS: "la carpeta de sus datos, que sobrevive a las actualizaciones"

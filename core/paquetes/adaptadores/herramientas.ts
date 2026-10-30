@@ -9,16 +9,20 @@
  *   - REMOTO: `mcp.url`, con sus cabeceras (las secretas, marcadas), y
  *     `net:fetch` con el host de la URL, solo ese;
  *   - NPM: `npx -y <paquete>@<versión>` con sus argumentos, sus variables de
- *     entorno en `env_keys` y `proc:spawn` con `npx`, solo ese.
+ *     entorno en `env_keys` y `proc:spawn` con `npx`, solo ese;
+ *   - LOCAL: cualquier otro programa (`node`, `uvx`, uno del propio paquete
+ *     con `${ESME_PAQUETE}`), igual: `proc:spawn` con ese programa, solo ese.
  *
  * El paquete es el PUNTERO (de casa, MIT), no el servidor: el servidor
  * sigue siendo de quien lo publica (está en `source.ref`).
  *
- * `herramientaMcp` es la pieza que lo hace, y la usa también el importador
- * de un `server.json` del registro MCP (tienda/importa-mcp.ts).
+ * `herramientaMcp` es la pieza que lo hace, y la usan también los
+ * importadores (`tienda/importa-*.ts`): el `server.json` del registro MCP,
+ * el `.mcp.json` de un plugin y las extensiones de una receta de goose.
  *
  * Referencia: core/paquetes/permisos.ts, estandar/paquete.spec.yaml.
  */
+import { programaDe } from "../manifiesto.ts";
 import type { Permiso } from "../permisos.ts";
 import { adaptaLista, esObjeto, esTexto, paquete, slug, versionDe, type Adaptados } from "./comun.ts";
 
@@ -35,7 +39,8 @@ export interface VariableMcp {
 /** Cómo se llega a un servidor MCP. */
 export type ConexionMcp =
   | { tipo: "remoto"; url: string; variables?: VariableMcp[] }
-  | { tipo: "npm"; paquete: string; version?: string; args?: string[]; variables?: VariableMcp[] };
+  | { tipo: "npm"; paquete: string; version?: string; args?: string[]; variables?: VariableMcp[] }
+  | { tipo: "local"; comando: string; args?: string[]; variables?: VariableMcp[] };
 
 /** Una entrada de `contributes.tools` que es un servidor MCP. */
 export interface EntradaMcp {
@@ -77,8 +82,8 @@ export function herramientaMcp(
     };
   }
 
-  if (!conexion.version) avisos.push(`${nombre}: «${conexion.paquete}» sin versión fija: npx bajaría la última cada vez`);
-  const fijado = conexion.version ? `${conexion.paquete}@${conexion.version}` : conexion.paquete;
+  if (conexion.tipo === "npm" && !conexion.version)
+    avisos.push(`${nombre}: «${conexion.paquete}» sin versión fija: npx bajaría la última cada vez`);
   const entorno: string[] = [];
   for (const v of variables) {
     if ((v.donde ?? "entorno") !== "entorno") {
@@ -87,11 +92,19 @@ export function herramientaMcp(
     }
     entorno.push(v.nombre);
   }
+  const conEntorno = entorno.length ? { env_keys: entorno } : {};
+
+  if (conexion.tipo === "local") {
+    return {
+      entrada: { id: nombre, mcp: { command: conexion.comando, args: conexion.args ?? [], ...conEntorno } },
+      permisos: [{ kind: "proc:spawn", programs: [programaDe(conexion.comando)] }],
+      avisos,
+    };
+  }
+
+  const fijado = conexion.version ? `${conexion.paquete}@${conexion.version}` : conexion.paquete;
   return {
-    entrada: {
-      id: nombre,
-      mcp: { command: "npx", args: ["-y", fijado, ...(conexion.args ?? [])], ...(entorno.length ? { env_keys: entorno } : {}) },
-    },
+    entrada: { id: nombre, mcp: { command: "npx", args: ["-y", fijado, ...(conexion.args ?? [])], ...conEntorno } },
     permisos: [{ kind: "proc:spawn", programs: ["npx"] }],
     avisos,
   };

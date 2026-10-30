@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "notas": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/servidor/notas.js", "--modo", "lectura"],
+      "env": { "NOTAS_TOKEN": "${NOTAS_TOKEN}" }
+    }
+  }
+}
