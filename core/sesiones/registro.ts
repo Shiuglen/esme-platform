@@ -258,6 +258,13 @@ export interface Lectura {
   aceptado: number;
   /** Lo que no cuadra, por orden. */
   problemas: Problema[];
+  /**
+   * Cuántas líneas del principio son de fiar: se leen sin ningún problema, y
+   * nada de lo que viene detrás pone en duda ninguna de ellas (una huella que
+   * no casa en la línea k pone en duda las de antes). Si el registro
+   * verifica, son todas. Es hasta dónde se puede bifurcar.
+   */
+  fiables: number;
   /** Si no hay ningún problema. */
   valida: boolean;
 }
@@ -307,7 +314,34 @@ export function sinSobre(l: Linea): Evento {
   return evento as Evento;
 }
 
+/**
+ * La sesión que dice un registro tras un evento: la del primer `dueno`, y la
+ * de cada bifurcación (que estrena la suya). Es la misma regla para el
+ * estado, para el chat y para reconciliar.
+ */
+export function sesionTras(sesion: string | null, e: Evento | Linea): string | null {
+  if (e.tipo !== "dueno" || typeof e.sesion !== "string") return sesion;
+  return sesion === null || e.bifurca !== undefined ? e.sesion : sesion;
+}
+
 const HEX64 = /^[0-9a-f]{64}$/;
+
+/**
+ * Lo que no cuadra en un `dueno` que bifurca: tiene que ir justo detrás de lo
+ * copiado (`antes` es su número menos uno; `h`, la huella de todo lo de
+ * delante) y estrenar su propia sesión.
+ */
+function bifurcaRota(o: Record<string, unknown>, antes: number, h: string): string | null {
+  const b = o.bifurca as Partial<Bifurca> | null;
+  const no = "la bifurcación no casa con lo copiado";
+  if (b === null || typeof b !== "object" || Array.isArray(b) || typeof b.sesion !== "string" || b.sesion === "" || !Number.isInteger(b.n) || typeof b.cabeza !== "string") {
+    return `${no}: «bifurca» lleva «sesion», «n» y «cabeza»`;
+  }
+  if (typeof o.sesion !== "string" || o.sesion === "" || o.sesion === b.sesion) return `${no}: una bifurcación estrena su propia «sesion»`;
+  if (b.n !== antes) return `${no}: dice que copió hasta la línea ${b.n}, y lo copiado llega a la ${antes}`;
+  if (b.cabeza !== h) return `${no}: su «cabeza» no es la huella de lo que tiene delante`;
+  return null;
+}
 
 /** Lo que no cuadra en el sobre de una línea (`h` es la huella que se espera: si casa, ya es una huella). */
 function sobreRoto(o: Record<string, unknown>, h: string): string | null {
@@ -352,6 +386,12 @@ export function leer(texto: string, opciones: { cabeza?: string; n?: number } = 
   // las líneas sin sobre aún sin huella (mientras no haga falta)
   const sinHuella: string[] = [];
   const perezosa = opciones.cabeza === undefined;
+  // hasta dónde se fía: un problema pone en duda su línea, o (los de la cadena) las de antes
+  let fiables = Infinity;
+  const problema = (linea: number, texto: string, duda = linea) => {
+    problemas.push({ linea, problema: texto });
+    if (duda < fiables) fiables = duda;
+  };
 
   while (inicio < texto.length) {
     let fin = texto.indexOf("\n", inicio);
@@ -380,10 +420,10 @@ export function leer(texto: string, opciones: { cabeza?: string; n?: number } = 
     if (ultima) sinSalto = true;
 
     if (o === null || typeof o.tipo !== "string") {
-      problemas.push({ linea: k, problema: rota ? "la línea está rota (no es JSON)" : "no es un evento: le falta «tipo»" });
+      problema(k, rota ? "la línea está rota (no es JSON)" : "no es un evento: le falta «tipo»");
     } else if (o.n === undefined && o.epoca === undefined && o.de === undefined && o.ant === undefined) {
       // formato 1: sin sobre, tal cual
-      if (v2) problemas.push({ linea: k, problema: "una línea sin sobre después del formato 2: el registro no puede volver al 1" });
+      if (v2) problema(k, "una línea sin sobre después del formato 2: el registro no puede volver al 1");
       else {
         v1 = true;
         eventos.push(o as Linea);
@@ -394,20 +434,27 @@ export function leer(texto: string, opciones: { cabeza?: string; n?: number } = 
       for (const x of sinHuella) h = huella(h, x);
       sinHuella.length = 0;
       const roto = sobreRoto(o, h);
-      if (roto) problemas.push({ linea: k, problema: roto });
+      if (roto) problema(k, roto);
       else {
         // la cadena: una sola explicación por línea, y se sigue desde lo que la línea dice
+        let enCadena = true;
         if (o.n !== k + desfase) {
-          problemas.push({ linea: k, problema: `es la línea ${k} y dice ser la ${o.n as number}: falta, sobra o se movió alguna línea` });
+          problema(k, `es la línea ${k} y dice ser la ${o.n as number}: falta, sobra o se movió alguna línea`, desde);
           desfase = (o.n as number) - k;
           h = o.ant as string;
-          desde = k;
+          enCadena = false;
         } else if (o.ant !== h) {
           const cual = desde === k - 1 ? `cambió la línea ${k - 1}` : `cambió alguna línea de la ${desde} a la ${k - 1}`;
-          problemas.push({ linea: k, problema: `la huella no casa: ${cual} (o el «ant» de esta)` });
+          problema(k, `la huella no casa: ${cual} (o el «ant» de esta)`, desde);
           h = o.ant as string;
-          desde = k;
-        } else desde = k;
+          enCadena = false;
+        }
+        desde = k;
+        // un dueño que bifurca va justo detrás de lo copiado (se dice, y la línea se queda)
+        if (enCadena && o.tipo === "dueno" && o.bifurca !== undefined) {
+          const mal = bifurcaRota(o, (o.n as number) - 1, h);
+          if (mal) problema(k, mal);
+        }
 
         const e = o.epoca as number;
         const de = o.de as string;
@@ -420,7 +467,7 @@ export function leer(texto: string, opciones: { cabeza?: string; n?: number } = 
         else if (de !== dueno) regla = `«${de}» no es el dueño de la época ${epoca} (lo es «${dueno}»)`;
         else if (cerrada) regla = "tras el cierre solo cabe un `dueno` que la reabra";
 
-        if (regla) problemas.push({ linea: k, problema: regla });
+        if (regla) problema(k, regla);
         else {
           if (o.tipo === "dueno") {
             epoca = e;
@@ -441,9 +488,9 @@ export function leer(texto: string, opciones: { cabeza?: string; n?: number } = 
 
   if (opciones.cabeza !== undefined) {
     const n = opciones.n ?? k;
-    if (n > k) problemas.push({ linea: k, problema: `la cabeza no casa: el registro tiene ${k} líneas y la cabeza es de ${n}` });
+    if (n > k) problema(k, `la cabeza no casa: el registro tiene ${k} líneas y la cabeza es de ${n}`, 0);
     else if ((opciones.n === undefined ? h : cabezaEn) !== opciones.cabeza) {
-      problemas.push({ linea: Math.max(n - 1, 0), problema: `la cabeza no casa: alguna de las primeras ${n} líneas no es la que se guardó` });
+      problema(Math.max(n - 1, 0), `la cabeza no casa: alguna de las primeras ${n} líneas no es la que se guardó`, 0);
     }
   }
 
@@ -471,6 +518,7 @@ export function leer(texto: string, opciones: { cabeza?: string; n?: number } = 
     sinSalto: sinSalto && !cortada,
     aceptado,
     problemas,
+    fiables: Math.min(fiables, k),
     valida: problemas.length === 0,
   };
 }

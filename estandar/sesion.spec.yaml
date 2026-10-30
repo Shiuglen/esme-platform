@@ -96,8 +96,9 @@ eventos:
   orden: [que, desde?, texto?, turno?, hasta?, a?, concedido?, opcion?, id?, chat?]
   # lo que deja cada turno: el commit en el Taller, el guardado en el chat
   punto: [commit?, rama?, chat?]
-  # `sesion`: el id de la sesión (lo lleva el primero); `bifurca`: de dónde
-  # salió (ver `bifurca`); `origen`: quién la empezó, si no fue Esme (p. ej.
+  # `sesion`: el id de la sesión (lo lleva el primero, y el de una
+  # bifurcación, que estrena el suyo); `bifurca`: de dónde salió (ver
+  # `bifurca`); `origen`: quién la empezó, si no fue Esme (p. ej.
   # `claude-code`, al importarla)
   dueno: [sesion?, bifurca?, origen?]
   traspaso: [a, motivo?]
@@ -132,17 +133,34 @@ ordenes:
 #     que llega. Un `dueno` sin `traspaso` antes es tomar la sesión de un dueño
 #     que se cayó: se puede, porque la época lo deja fuera.
 #   - Tras un `cierre` solo cabe un `dueno` (reabrir).
-#   - Dos copias que se separaron: gana la rama cuyo primer evento distinto
-#     tiene la época mayor (si empatan, la de huella menor: así cualquier
-#     aparato elige la misma); lo de la otra se descarta y se dice.
+#   - Dos copias de la misma sesión, las dos sin problemas: si una va por
+#     delante de la otra (la otra es su principio), gana esa y no se descarta
+#     nada. Si se separaron, gana la que en la primera línea distinta tiene la
+#     época mayor (una línea sin sobre cuenta como época 0); si empatan, la de
+#     huella menor en esa línea (su `h` en hexadecimal, comparada como texto):
+#     así cualquier aparato elige la misma sin hablar con nadie. Lo de la otra,
+#     desde esa línea, se descarta y se dice. Una bifurcación es otra sesión:
+#     no se reconcilia con la de origen.
 dueno:
   primera_linea: dueno
   epoca_inicial: 1
 
 # BIFURCAR: una sesión nueva que empieza con las líneas 0..n de otra, tal
 # cual (su cadena sigue valiendo), y sigue con un `dueno` con su propia
-# `sesion` y `bifurca`, que dice de dónde salió. Rebobinar sin bifurcar es
-# leer el estado en el evento n: el registro no se toca.
+# `sesion` y `bifurca`, que dice de dónde salió: la `sesion` de origen, `n`
+# (la última línea copiada) y `cabeza` (la huella hasta esa línea: con ella,
+# quien tenga el origen comprueba que lo copiado es lo que había). Como todo
+# `dueno`, sube la época.
+#   - Al leer se comprueba que ese `dueno` va justo detrás de lo copiado: su
+#     `n` es el de la línea anterior y su `cabeza`, la huella hasta ahí. Si no
+#     casa es un problema, pero la línea no se rechaza.
+#   - Solo se bifurca por un sitio de fiar: lo copiado se lee sin problemas, y
+#     nada de lo que viene detrás lo pone en duda (una huella que no casa en
+#     la línea k pone en duda las de antes que no confirmaba nadie).
+#   - Compactar una bifurcación deja lo copiado tal cual, con su `dueno`: si
+#     no, su `n` y su `cabeza` dejarían de casar.
+# Rebobinar sin bifurcar es leer el estado en el evento n: el registro no se
+# toca.
 bifurca: [sesion, n, cabeza]
 
 # JUNTAR Y COMPACTAR. Lo que el motor escribe letra a letra llega a decenas
@@ -170,7 +188,9 @@ compactar:
   campo: latidos
 
 # EL ESTADO: lo que sale de reproducir el registro (core/sesiones/reductor.ts).
-estado: [sesion, formato, epoca, dueno, cerrada, traspaso, turnos, plan, uso, contexto, opciones, permisos, puntos, eventos]
+# `sesion` es la del primer `dueno` (o la de su bifurcación) y `bifurca`, de
+# dónde salió (null si no salió de otra).
+estado: [sesion, bifurca, formato, epoca, dueno, cerrada, traspaso, turnos, plan, uso, contexto, opciones, permisos, puntos, eventos]
 # Un turno del estado: `n` es su número (desde 1); `desde` y `hasta`, su
 # primer y su último evento. Lo abre un `orden {que: mensaje}` (el `usuario`
 # que le sigue es lo que recibió el motor, y va en el mismo turno) o un
@@ -220,10 +240,11 @@ reglas:
   # 9. lo gastado no se rebobina: rebobinar devuelve el contenido, no los
   #    tokens (el uso sigue sumando).
   lo_gastado_no_vuelve: true
-  # 10. el listón: la tarea más larga de hoy (110.484 eventos) se lee, se
-  #     verifica y se reproduce (su estado y su traza) en menos de 200 ms en
-  #     un portátil de 4 núcleos: tal como la escribe hoy el Taller (formato
-  #     1) y tal como la escribe quien escribe con sobre (juntando por
-  #     latido). Compactada, en mucho menos.
+  # 10. el listón: la tarea más larga de hoy (110.484 eventos), escrita con
+  #     sobre como dice esta spec (juntando por latido), se lee, se verifica
+  #     y se reproduce (su estado y su traza) en menos de 200 ms en un
+  #     portátil de 4 núcleos, también la primera vez que se abre. Tal como
+  #     la escribe hoy el Taller (formato 1, un trozo por línea), también,
+  #     una vez en marcha.
   eventos_referencia: 110484
   reproducir_ms: 200

@@ -24,7 +24,7 @@
 import type { ModoContexto } from "../talamus/modos.ts";
 import { diffLineas, lineasDe } from "../turnos/cambios.ts";
 import { armaTurno, type CambioTurno, type PasoTurno, type Turno } from "../turnos/turno.ts";
-import type { DatosChat, EventoMotor, Formato, Lectura, Linea, OpcionMotor } from "./registro.ts";
+import { sesionTras, type Bifurca, type DatosChat, type EventoMotor, type Formato, type Lectura, type Linea, type OpcionMotor } from "./registro.ts";
 
 type Del<T extends EventoMotor["tipo"]> = Extract<EventoMotor, { tipo: T }>;
 
@@ -81,8 +81,10 @@ export interface UsoEstado {
 
 /** El estado de una sesión: lo que sale de reproducir su registro. */
 export interface Estado {
-  /** Su id (el del primer `dueno`). */
+  /** Su id (el del primer `dueno`, o el de la bifurcación que la estrenó). */
   sesion: string | null;
+  /** De dónde salió, si es una bifurcación (la última, si se bifurcó más de una vez). */
+  bifurca: Bifurca | null;
   /** El formato del registro. */
   formato: Formato | null;
   /** La época (0 si no hubo dueño). */
@@ -114,6 +116,7 @@ export interface Estado {
 /** Las claves del estado (las de la spec). */
 export const CLAVES_ESTADO = [
   "sesion",
+  "bifurca",
   "formato",
   "epoca",
   "dueno",
@@ -233,6 +236,7 @@ function reproducir(eventos: readonly Linea[], formato: Formato | null, cuantos:
 
   const s: Omit<Estado, keyof Contenido | "formato" | "eventos"> = {
     sesion: null,
+    bifurca: null,
     epoca: 0,
     dueno: null,
     cerrada: false,
@@ -358,7 +362,8 @@ function reproducir(eventos: readonly Linea[], formato: Formato | null, cuantos:
         s.dueno = e.de ?? null;
         s.cerrada = false;
         s.traspaso = null;
-        if (s.sesion === null && e.sesion !== undefined) s.sesion = e.sesion;
+        s.sesion = sesionTras(s.sesion, e);
+        if (e.bifurca !== undefined) s.bifurca = e.bifurca;
         break;
       case "traspaso":
         s.traspaso = { a: e.a, ...(e.motivo !== undefined ? { motivo: e.motivo } : {}) };
@@ -392,7 +397,24 @@ function reproducir(eventos: readonly Linea[], formato: Formato | null, cuantos:
     }
   }
 
-  return { ...s, formato, turnos: c.turnos, plan: c.plan, permisos: c.permisos, puntos: c.puntos, eventos: cuantos };
+  // en el orden de la spec
+  return {
+    sesion: s.sesion,
+    bifurca: s.bifurca,
+    formato,
+    epoca: s.epoca,
+    dueno: s.dueno,
+    cerrada: s.cerrada,
+    traspaso: s.traspaso,
+    turnos: c.turnos,
+    plan: c.plan,
+    uso: s.uso,
+    contexto: s.contexto,
+    opciones: s.opciones,
+    permisos: c.permisos,
+    puntos: c.puntos,
+    eventos: cuantos,
+  };
 }
 
 const lineas = (s: string) => (s === "" ? [] : lineasDe(s));

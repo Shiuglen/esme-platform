@@ -11,7 +11,9 @@
  *   4. una última línea cortada se aguanta; una línea cambiada, quitada,
  *      movida o repetida se detecta (y se dice dónde);
  *   5. un solo escritor: la época vieja, el aparato ajeno y lo escrito tras
- *      el cierre se rechazan, al escribir y al leer.
+ *      el cierre se rechazan, al escribir y al leer;
+ *   6. hasta dónde se fía: un problema pone en duda su línea, y una huella
+ *      que no casa, las de antes (lo que dice `fiables`).
  *
  * Referencia: core/sesiones/registro.ts, estandar/sesion.spec.yaml.
  */
@@ -22,6 +24,7 @@ import {
   huella,
   leer,
   sellar,
+  sesionTras,
   sinSobre,
   validarEvento,
   type Cadena,
@@ -175,6 +178,9 @@ describe("una última línea cortada se aguanta; una cambiada se detecta", () =>
     expect(l.valida).toBe(false);
     // la línea 2 cambió: la 3 lo dice (su ant ya no es la huella de lo anterior), y solo una vez
     expect(l.problemas).toEqual([{ linea: 3, problema: expect.stringMatching(/línea 2/) }]);
+    // y lo que pone en duda es la 2: de fiar, solo las dos primeras
+    expect(l.fiables).toBe(2);
+    expect(leer(texto0()).fiables).toBe(5);
   });
 
   it("una línea quitada, movida o repetida también se detecta", () => {
@@ -183,6 +189,17 @@ describe("una última línea cortada se aguanta; una cambiada se detecta", () =>
     const movida = [crudas[0], crudas[2], crudas[1], crudas[3], crudas[4]].join("\n") + "\n";
     const repetida = [crudas[0], crudas[1], crudas[1], crudas[2], crudas[3], crudas[4]].join("\n") + "\n";
     for (const t of [quitada, movida, repetida]) expect(leer(t).valida).toBe(false);
+    // falta la 2: la 1 ya no la confirma nadie (la que va detrás encierra a la que falta)
+    expect(leer(quitada).fiables).toBe(1);
+    expect(leer(movida).fiables).toBe(0);
+    expect(leer(repetida).fiables).toBe(1);
+  });
+
+  it("una cabeza de más líneas de las que hay: lo que queda no lo ancla nada", () => {
+    const t = texto0();
+    const l = leer(t, { cabeza: leer(t).cadena.cabeza, n: 9 });
+    expect(l.problemas).toEqual([{ linea: 5, problema: expect.stringMatching(/tiene 5 líneas y la cabeza es de 9/) }]);
+    expect(l.fiables).toBe(0);
   });
 
   it("la última línea solo la protege la cabeza que guarda quien copia", () => {
@@ -193,6 +210,7 @@ describe("una última línea cortada se aguanta; una cambiada se detecta", () =>
     const l = leer(cambiada, { cabeza });
     expect(l.valida).toBe(false); // …salvo la cabeza
     expect(l.problemas[0].problema).toMatch(/cabeza/);
+    expect(l.fiables).toBe(0); // la cabeza no dice cuál: ninguna es de fiar
     expect(leer(t, { cabeza }).valida).toBe(true);
   });
 
@@ -216,6 +234,8 @@ describe("una última línea cortada se aguanta; una cambiada se detecta", () =>
     const l = leer(t);
     expect(l.valida).toBe(false);
     expect(l.problemas.some((p) => p.linea === 1)).toBe(true);
+    // y la 0 también queda en duda: era la rota la que la confirmaba
+    expect(l.fiables).toBe(0);
   });
 
   it("un tipo que no se conoce se conserva y no es un problema (un aparato viejo no rompe un registro nuevo)", () => {
@@ -250,6 +270,8 @@ describe("un solo escritor: el dueño y su época", () => {
     const l = leer(`${texto}${mudanza.linea}\n${tarde.linea}\n`);
     expect(l.valida).toBe(false);
     expect(l.problemas).toEqual([{ linea: 6, problema: expect.stringMatching(/época vieja/) }]);
+    // lo rechazado no pone en duda lo de antes: lo de la mudanza sigue siendo de fiar
+    expect(l.fiables).toBe(6);
   });
 
   it("dentro de una época solo escribe su dueño", () => {
@@ -277,6 +299,15 @@ describe("un solo escritor: el dueño y su época", () => {
     const r1 = sellar(c, { tipo: "cierre" } as Evento, "pc");
     const tras = sellar({ ...r1.cadena, cerrada: false }, { tipo: "texto", texto: "x" } as Evento, "pc");
     expect(leer(`${texto}${r1.linea}\n${tras.linea}\n`).problemas[0].problema).toMatch(/cierre/);
+  });
+
+  it("la sesión de un registro: la de su primer dueño, y la de cada bifurcación", () => {
+    const bifurca = { sesion: "s-1", n: 3, cabeza: GENESIS };
+    const vista = (eventos: Evento[]) => eventos.reduce<string | null>(sesionTras, null);
+    expect(vista([{ tipo: "texto", texto: "x" } as Evento])).toBe(null);
+    expect(vista([{ tipo: "dueno", sesion: "s-1" }, { tipo: "dueno", sesion: "otra" }, { tipo: "dueno" }])).toBe("s-1");
+    expect(vista([{ tipo: "dueno" }, { tipo: "dueno", sesion: "s-1" }])).toBe("s-1");
+    expect(vista([{ tipo: "dueno", sesion: "s-1" }, { tipo: "dueno", sesion: "s-2", bifurca }, { tipo: "dueno" }])).toBe("s-2");
   });
 
   it("los nombres del sobre no se pueden usar como campos del evento", () => {

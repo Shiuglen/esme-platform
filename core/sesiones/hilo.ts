@@ -6,7 +6,8 @@
  * sombra los eventos que salen de comparar cada guardado con lo que ya dice
  * su registro; y reproducir el registro da el mismo Hilo, campo por campo:
  *
- *   - el id del Hilo es el `sesion` de su primer `dueno`;
+ *   - el id del Hilo es el `sesion` de su primer `dueno` (o el de la
+ *     bifurcación que lo estrenó, si salió de otro);
  *   - un turno del usuario es un `orden {mensaje}`; uno del asistente, un
  *     `texto`. El resto de campos del turno va tal cual en `chat` (y el del
  *     asistente lo lleva siempre, aunque sea vacío: así compactar no junta
@@ -23,7 +24,7 @@
  *
  * Referencia: estandar/sesion.spec.yaml (chat), app/src/main/hilos/hilos.ts.
  */
-import type { DatosChat, Evento, Lectura, Linea } from "./registro.ts";
+import { sesionTras, type DatosChat, type Evento, type Lectura, type Linea } from "./registro.ts";
 
 /** Un turno del chat: quién habla y qué dice, y lo demás tal cual. */
 export type TurnoHilo = { role: string; content: string } & Record<string, unknown>;
@@ -93,7 +94,7 @@ export function vistaDe(entrada: Lectura | readonly Linea[]): VistaHilo {
     anterior = p;
     switch (e.tipo) {
       case "dueno":
-        if (id === null && e.sesion !== undefined) id = e.sesion;
+        id = sesionTras(id, e);
         break;
       case "orden":
         if (e.que === "mensaje") {

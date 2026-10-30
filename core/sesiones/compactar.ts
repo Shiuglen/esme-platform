@@ -28,7 +28,9 @@
  * solo se añade), y su mapa: a dónde fue a parar cada evento.
  *
  * Un turno del chat (un `texto` con `chat`) nunca se junta: es una respuesta
- * entera, no un trozo.
+ * entera, no un trozo. Y lo que una bifurcación copió de otra sesión (hasta
+ * su `dueno`, incluido) va tal cual: es la prueba de dónde salió, y su
+ * `bifurca` tiene que seguir casando. Se compacta lo que viene después.
  *
  * Referencia: estandar/sesion.spec.yaml (compactar).
  */
@@ -142,6 +144,9 @@ export function compactar(l: Lectura): Compactacion {
   // los sitios a los que se rebobina: ahí se corta la junta
   const cortes = new Set<number>();
   for (const e of eventos) if (e.tipo === "orden" && e.que === "rebobinar" && Number.isInteger(e.hasta)) cortes.add(e.hasta!);
+  // lo que copió una bifurcación, hasta su dueño (el de la última, si hay varias): tal cual
+  let copiado = -1;
+  for (let i = eventos.length - 1; i >= 0 && copiado < 0; i--) if (eventos[i].tipo === "dueno" && (eventos[i] as { bifurca?: unknown }).bifurca !== undefined) copiado = i;
 
   // 1. las juntas (cada grupo es un evento nuevo, con los eventos viejos que lleva), y el mapa
   const grupos: Linea[][] = [];
@@ -150,6 +155,7 @@ export function compactar(l: Lectura): Compactacion {
     const g = grupos[grupos.length - 1];
     const u = g?.[g.length - 1];
     const sigue =
+      i > copiado &&
       u !== undefined &&
       esTrozo(e) &&
       esTrozo(u) &&
@@ -166,8 +172,16 @@ export function compactar(l: Lectura): Compactacion {
   let c: Cadena = CADENA_VACIA;
   let texto = "";
   const nuevos: Linea[] = [];
-  for (const g of grupos) {
+  for (const [k, g] of grupos.entries()) {
     const viejo = g[0];
+    if (k <= copiado) {
+      // hasta ahí cada grupo es un evento, y su línea es la que se escribió; acaba en el dueño, que dice quién sigue
+      texto += `${l.lineas[k]}\n`;
+      nuevos.push(viejo);
+      c = { ...c, n: c.n + 1, cabeza: huella(c.cabeza, l.lineas[k]) };
+      if (k === copiado) c = { ...c, epoca: viejo.epoca!, dueno: viejo.de!, cerrada: false };
+      continue;
+    }
     let e: Evento = g.length > 1 ? juntar(g) : sinSobre(viejo);
     if (e.tipo === "orden" && e.que === "rebobinar" && Number.isInteger(e.hasta) && e.hasta! >= 0) e = { ...e, hasta: mapa[e.hasta!] };
     if (viejo.ant === undefined) {
