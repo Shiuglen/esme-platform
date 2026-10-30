@@ -22,9 +22,9 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { performance } from "node:perf_hooks";
 import * as yaml from "js-yaml";
-import { compactar, juntarPorLatido } from "../core/sesiones/compactar.ts";
+import { comoTaller, conSobre, formasDe } from "../core/sesiones/formas.ts";
 import { estadoDe, type Estado } from "../core/sesiones/reductor.ts";
-import { CADENA_VACIA, leer, sellar, type Evento } from "../core/sesiones/registro.ts";
+import { leer, type Evento } from "../core/sesiones/registro.ts";
 import { tallerSintetico } from "../core/sesiones/sintetico.ts";
 import { trazaDe } from "../core/sesiones/traza.ts";
 
@@ -33,20 +33,8 @@ const spec = yaml.load(readFileSync(new URL("../estandar/sesion.spec.yaml", impo
 };
 const N = spec.reglas.eventos_referencia;
 
-/** Las líneas del formato 1, como las escribe hoy el Taller. */
-const formato1 = (eventos: readonly Evento[]) => eventos.map((e) => JSON.stringify(e)).join("\n") + "\n";
-
-/** Con sobre, como las escribe el Escritor: un dueño, y los trozos juntos hasta el siguiente latido. */
-function conSobre(eventos: readonly Evento[]): string {
-  let c = CADENA_VACIA;
-  let texto = "";
-  for (const e of [{ tipo: "dueno", sesion: "escala" } as Evento, ...juntarPorLatido(eventos)]) {
-    const r = sellar(c, e, "pc");
-    texto += `${r.linea}\n`;
-    c = r.cadena;
-  }
-  return texto;
-}
+/** Quién la escribe y de qué sesión es, en las formas con sobre. */
+const SOBRE = { de: "pc", sesion: "escala" };
 
 /** El estado sin los números de evento ni el formato (lo único que cambia de una forma a otra). */
 function sinPosiciones(s: Estado) {
@@ -76,9 +64,8 @@ function reproducir(texto: string, vueltas = 5): number {
 
 describe(`la tarea más larga de hoy (${N} eventos)`, () => {
   const eventos = tallerSintetico({ semilla: 1, eventos: N }) as Evento[];
-  const v1 = formato1(eventos);
-  const juntado = conSobre(eventos);
-  const compactado = compactar(leer(juntado)).texto;
+  // las mismas tres formas que mide `npm run sesion -- medir`
+  const { taller: v1, juntado, compactado } = formasDe(eventos, SOBRE);
 
   it("se lee igual en sus tres formas: la misma traza y el mismo estado", () => {
     const [l1, l2, l3] = [leer(v1), leer(juntado), leer(compactado)];
@@ -105,8 +92,8 @@ describe(`la tarea más larga de hoy (${N} eventos)`, () => {
   it("reproducir es lineal: diez veces más eventos cuestan unas diez veces más, no cien", () => {
     const decimo = tallerSintetico({ semilla: 1, eventos: Math.round(N / 10) }) as Evento[];
     for (const [nombre, entero, poco] of [
-      ["formato 1", v1, formato1(decimo)],
-      ["con sobre", juntado, conSobre(decimo)],
+      ["formato 1", v1, comoTaller(decimo)],
+      ["con sobre", juntado, conSobre(decimo, SOBRE)],
     ] as const) {
       const proporcion = reproducir(entero) / reproducir(poco);
       expect(proporcion, `${nombre}: ${proporcion.toFixed(1)} veces`).toBeLessThan(25);
