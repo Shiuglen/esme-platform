@@ -169,6 +169,9 @@ export interface Bifurca {
   cabeza: string;
 }
 
+/** Las claves de `bifurca` (las de la spec). */
+export const CLAVES_BIFURCA = ["sesion", "n", "cabeza"] as const satisfies ReadonlyArray<keyof Bifurca>;
+
 /** Lo que hace la sesión. */
 export type EventoSesion =
   | {

@@ -28,7 +28,7 @@ import { bifurcar, reconciliar } from "../core/sesiones/bifurcar.ts";
 import { compactar } from "../core/sesiones/compactar.ts";
 import { eventosDelGuardado, hiloDe, type Hilo } from "../core/sesiones/hilo.ts";
 import { estadoDe } from "../core/sesiones/reductor.ts";
-import { CADENA_VACIA, leer, sellar, type Cadena, type Evento, type Linea } from "../core/sesiones/registro.ts";
+import { CADENA_VACIA, CLAVES_BIFURCA, leer, sellar, type Cadena, type Evento, type Linea } from "../core/sesiones/registro.ts";
 
 /** Sella eventos detrás de una cadena: el texto que se añade y la cadena que queda. */
 function sella(eventos: Evento[], de = "pc", desde: Cadena = CADENA_VACIA): { texto: string; cadena: Cadena } {
@@ -66,6 +66,7 @@ describe("bifurcar", () => {
     expect(lb.eventos[4]).toMatchObject({ tipo: "dueno", n: 4, epoca: 2, de: "movil", sesion: "s-2", bifurca: { sesion: "s-1", n: 3 } });
     // la cabeza de lo copiado es la del original en ese punto: se puede comprobar contra él
     const origen = b.dueno.bifurca!;
+    expect(Object.keys(origen)).toEqual([...CLAVES_BIFURCA]);
     expect(leer(fuente, { cabeza: origen.cabeza, n: origen.n + 1 }).valida).toBe(true);
     expect(leer(fuente.replace("arregla", "rompe"), { cabeza: origen.cabeza, n: origen.n + 1 }).valida).toBe(false);
     // el estado es el de la sesión nueva, con lo que traía hasta n

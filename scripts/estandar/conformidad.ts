@@ -25,6 +25,10 @@ import { ESTADOS_DESEO } from "../../core/tienda/deseos.ts";
 import { TIPOS_RECURSO, VEREDICTOS_RECURSO } from "../../core/tienda/recursos.ts";
 import { CLAVES_RECETA_AGENTE } from "../../tienda/agente.ts";
 import { CLAVES_TURNO } from "../../core/turnos/turno.ts";
+import { ALGORITMO, CAMPOS_EVENTO, CAMPOS_ORDEN, CLAVES_BIFURCA, CLAVES_SOBRE, EPOCA_INICIAL, FORMATOS, GENESIS, LATIDO_MS, TIPOS_MOTOR, TIPOS_SESION } from "../../core/sesiones/registro.ts";
+import { CLAVES_ESTADO, CLAVES_TURNO_ESTADO } from "../../core/sesiones/reductor.ts";
+import { TROZOS } from "../../core/sesiones/compactar.ts";
+import { CLAVES_HILO, CLAVES_PUNTO_CHAT } from "../../core/sesiones/hilo.ts";
 import { CLAVES_PUNTO } from "../../core/motores/puntos.ts";
 import { CLAVES_DECISION } from "../../core/router/aprende.ts";
 import { CATEGORIAS_ARENA, CLAVES_ARENA } from "../../core/arena/arena.ts";
@@ -45,7 +49,7 @@ import { CATEGORIES, RUNTIMES } from "../../core/ipc/module-schema.ts";
 import { LICENCIAS_PERMITIDAS, TOPE_BYTES, TOPE_FICHEROS, TOPE_TOKENS } from "../../tienda/skills.ts";
 import { entradaDe } from "../../tienda/publica.ts";
 import { esProducto, type Producto, type TipoProducto } from "../../tienda/catalogo.ts";
-import { declaraClave, firmarIndex } from "../../tienda/firma.ts";
+import { canonical, declaraClave, firmarIndex } from "../../tienda/firma.ts";
 import { generateKeyPairSync } from "node:crypto";
 
 /** Un fallo de conformidad. */
@@ -375,6 +379,37 @@ export function compruebaConformidad(): FalloConformidad[] {
         anota(fichero, `${seccion}.${d}: la spec lo declara y el código no lo tiene`);
       }
     }
+  }
+
+  // 12-bis. la sesión: cada lista de la spec es la del código, en su orden
+  const sesion = leeSpec("sesion.spec.yaml");
+  const de = (x: unknown): Record<string, unknown> => (x && typeof x === "object" && !Array.isArray(x) ? (x as Record<string, unknown>) : {});
+  const deLaSesion: Array<[string, unknown, unknown]> = [
+    ["formatos", sesion.formatos, FORMATOS],
+    ["sobre", Object.keys(de(sesion.sobre)), CLAVES_SOBRE],
+    ["latido_ms", sesion.latido_ms, LATIDO_MS],
+    ["cadena.algoritmo", de(sesion.cadena).algoritmo, ALGORITMO],
+    ["cadena.genesis", de(sesion.cadena).genesis, GENESIS],
+    ["tipos.motor", de(sesion.tipos).motor, TIPOS_MOTOR],
+    ["tipos.sesion", de(sesion.tipos).sesion, TIPOS_SESION],
+    ["eventos", sesion.eventos, CAMPOS_EVENTO],
+    ["ordenes", sesion.ordenes, CAMPOS_ORDEN],
+    ["dueno.epoca_inicial", de(sesion.dueno).epoca_inicial, EPOCA_INICIAL],
+    ["bifurca", sesion.bifurca, CLAVES_BIFURCA],
+    ["compactar.trozos", de(sesion.compactar).trozos, TROZOS],
+    ["estado", sesion.estado, CLAVES_ESTADO],
+    ["turno", sesion.turno, CLAVES_TURNO_ESTADO],
+    ["chat.hilo", de(sesion.chat).hilo, CLAVES_HILO],
+    ["chat.punto", de(sesion.chat).punto, CLAVES_PUNTO_CHAT],
+  ];
+  for (const [donde, spec, codigo] of deLaSesion) {
+    // los mapas se comparan sin mirar su orden; las listas, en el suyo
+    if (canonical(spec) !== canonical(codigo)) anota("sesion.spec.yaml", `${donde}: la spec dice ${canonical(spec)} y el código ${canonical(codigo)}`);
+  }
+  // lo que deja compactar va en un campo opcional de cada trozo
+  const campo = String(de(sesion.compactar).campo);
+  for (const t of TROZOS) {
+    if (!CAMPOS_EVENTO[t].includes(`${campo}?`)) anota("sesion.spec.yaml", `compactar.campo: «${campo}» no es un campo opcional de «${t}»`);
   }
 
   // 13. el índice de la tienda: la spec y la entrada que se publica de verdad

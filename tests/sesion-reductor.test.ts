@@ -17,7 +17,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { erroresTurno } from "../core/turnos/turno.ts";
-import { estadoDe, estadoEn, turnoDelContrato } from "../core/sesiones/reductor.ts";
+import { CLAVES_ESTADO, CLAVES_TURNO_ESTADO, estadoDe, estadoEn, turnoDelContrato } from "../core/sesiones/reductor.ts";
 import { CADENA_VACIA, leer, sellar, type Cadena, type Evento, type Linea } from "../core/sesiones/registro.ts";
 
 /** Sella eventos (con el aparato de cada uno) y lee el registro. */
@@ -134,6 +134,12 @@ describe("con sobre: el dueño, los puntos, el traspaso y el cierre", () => {
 
   it("la sesión, su formato, y el dueño de ahora con su época", () => {
     expect(s).toMatchObject({ sesion: "s-9", formato: 2, epoca: 2, dueno: "el-101", cerrada: true, traspaso: null });
+  });
+
+  it("el estado y sus turnos tienen las claves que dice la spec, ni una más", () => {
+    // la conformidad compara la spec con estas listas; esto, las listas con lo que sale de verdad
+    expect(Object.keys(s).sort()).toEqual([...CLAVES_ESTADO].sort());
+    for (const t of s.turnos) expect(Object.keys(t).sort()).toEqual([...CLAVES_TURNO_ESTADO].sort());
   });
 
   it("la orden abre el turno y el usuario (lo que recibió el motor) va con ella", () => {
