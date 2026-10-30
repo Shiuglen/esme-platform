@@ -115,6 +115,23 @@ describe("leePaqueteDeCarpeta — lo que el manifiesto promete, el disco lo tien
     expect(leePaqueteDeCarpeta(dir, { exigirEntrada: false }).errores).toEqual([]);
   });
 
+  it("sin exigir el código, el que ya está tampoco puede salirse del paquete", () => {
+    const dir = temporal();
+    const fuera = temporal();
+    writeFileSync(join(fuera, "x.js"), "export {};");
+    const p = conPiel({
+      contributes: {
+        themes: [{ id: "piel", file: "piel.json" }],
+        tools: [{ id: "x", entry: "dist/x.js", runtime: "nodejs" }],
+      },
+    });
+    escribePaquete({ ...p, ficheros: { ...p.ficheros, "dist/.keep": "" } }, dir);
+    symlinkSync(join(fuera, "x.js"), join(dir, "dist", "x.js"));
+    const r = leePaqueteDeCarpeta(dir, { exigirEntrada: false });
+    expect(r.ok).toBe(false);
+    expect(r.errores.join("\n")).toContain("tools.x: «dist/x.js» se sale del paquete");
+  });
+
   it("una ruta que es una carpeta no es un fichero", () => {
     const dir = temporal();
     escribePaquete({ ...conPiel(), ficheros: {} }, dir);

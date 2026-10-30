@@ -585,14 +585,16 @@ export type LeeRuta = (ruta: string) => string | null | { error: string };
 /**
  * Lo que el manifiesto promete y los ficheros tienen que cumplir: cada ruta
  * existe (el código, si se exige: `exigirEntrada: false` es para dictaminar
- * antes de construir) y un agente de línea de comandos pide el binario que
+ * antes de construir, y solo perdona que falte: el que ya está no puede
+ * salirse del paquete) y un agente de línea de comandos pide el binario que
  * lanza.
  */
 export function compruebaFicheros(m: ManifiestoV2, leer: LeeRuta, opts: { exigirEntrada?: boolean } = {}): string[] {
   const errores: string[] = [];
   for (const r of rutasDe(m)) {
-    if (r.codigo && opts.exigirEntrada === false) continue;
     const texto = leer(r.ruta);
+    // sin exigir el código, lo que perdona es que falte; el que ya está se mira igual
+    if (texto === null && r.codigo && opts.exigirEntrada === false) continue;
     if (texto === null)
       errores.push(`${r.punto}.${r.id}: falta «${r.ruta}»${r.codigo ? " (¿falta construirlo?)" : ""}`);
     else if (typeof texto !== "string") errores.push(`${r.punto}.${r.id}: ${texto.error}`);
