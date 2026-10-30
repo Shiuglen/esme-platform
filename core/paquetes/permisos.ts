@@ -14,10 +14,13 @@
  * `a.example.com` y no cubre `evil-example.com` (con un `endsWith` de texto
  * lo cubriría, y esa sería la puerta de atrás).
  *
+ * Aquí no entra zod: lo que dice si un permiso vale son funciones sueltas,
+ * y su forma (`PermisoSchema`) vive en el contrato, `manifiesto.ts`. Así
+ * quien compara permisos no carga el validador.
+ *
  * Referencia: estandar/paquete.spec.yaml, core/extension-host/capability.ts,
  * core/modulos/rutas.ts (la misma idea, para las rutas).
  */
-import { z } from "zod";
 import { CAPABILITIES, type Capability } from "../extension-host/capability.ts";
 
 /** Las tres clases de límite que puede llevar un permiso. */
@@ -62,52 +65,38 @@ export const rutaDentro = (r: string): boolean =>
   !/^[A-Za-z]:/.test(r) &&
   !r.split("/").includes("..");
 
-const PermisoLargo = z
-  .object({
-    kind: z.enum(CAPABILITIES),
-    hosts: z
-      .array(z.string().regex(HOST, "un host va en minúsculas, sin esquema, sin puerto y sin ruta (a.com, *.a.com o *)"))
-      .min(1, "un alcance vacío no deja nada: quítalo o pon algo")
-      .optional(),
-    paths: z
-      .array(z.string().refine(rutaDentro, "una ruta del proyecto es relativa y no sale con «..»"))
-      .min(1, "un alcance vacío no deja nada: quítalo o pon algo")
-      .optional(),
-    programs: z
-      .array(
-        z
-          .string()
-          .regex(PROGRAMA, "un programa va por su nombre (npx, node), no por su ruta")
-          .refine((p) => p !== "." && p !== "..", "un programa va por su nombre (npx, node), no por su ruta")
-      )
-      .min(1, "un alcance vacío no deja nada: quítalo o pon algo")
-      .optional(),
-  })
-  .strict()
-  .superRefine((p, ctx) => {
-    const puestos = ALCANCES_TODOS.filter((k) => p[k] !== undefined);
-    if (!puestos.length) {
-      ctx.addIssue({
-        code: "custom",
-        message: `«${p.kind}» sin alcance es «${p.kind}» sin límite: usa la forma corta`,
-      });
-    }
-    for (const k of puestos) {
-      if (!ALCANCES[p.kind].includes(k)) {
-        const suyo = ALCANCES[p.kind];
-        ctx.addIssue({
-          code: "custom",
-          path: [k],
-          message: suyo.length
-            ? `«${k}» no es un alcance de «${p.kind}» (el suyo es «${suyo.join(", ")}»)`
-            : `«${p.kind}» no admite alcance: va en su forma corta`,
-        });
-      }
-    }
-  });
+/** Los motivos por los que una pieza de un permiso no vale (los dice el esquema del contrato). */
+export const MOTIVOS_PERMISO = {
+  host: "un host va en minúsculas, sin esquema, sin puerto y sin ruta (a.com, *.a.com o *)",
+  ruta: "una ruta del proyecto es relativa y no sale con «..»",
+  programa: "un programa va por su nombre (npx, node), no por su ruta",
+  vacio: "un alcance vacío no deja nada: quítalo o pon algo",
+} as const;
 
-/** La forma de un permiso (las dos formas). */
-export const PermisoSchema = z.union([z.enum(CAPABILITIES), PermisoLargo]);
+/** ¿Es un host o un patrón de hosts que un permiso puede llevar? */
+export const esHost = (h: string): boolean => HOST.test(h);
+
+/** ¿Es un programa por su nombre lógico (nunca una ruta, ni `.` ni `..`)? */
+export const esPrograma = (p: string): boolean => PROGRAMA.test(p) && p !== "." && p !== "..";
+
+/**
+ * Lo que no vale del alcance de un permiso en su forma larga: que no lleve
+ * ninguno (entonces es la forma corta escrita de otra manera) o que lleve
+ * uno que su capacidad no admite. Vacío: vale.
+ */
+export function problemasDeAlcance(p: { kind: Capability } & Partial<Record<Alcance, unknown>>): Array<{ alcance?: Alcance; motivo: string }> {
+  const puestos = ALCANCES_TODOS.filter((k) => p[k] !== undefined);
+  if (!puestos.length) return [{ motivo: `«${p.kind}» sin alcance es «${p.kind}» sin límite: usa la forma corta` }];
+  const suyo = ALCANCES[p.kind];
+  return puestos
+    .filter((k) => !suyo.includes(k))
+    .map((k) => ({
+      alcance: k,
+      motivo: suyo.length
+        ? `«${k}» no es un alcance de «${p.kind}» (el suyo es «${suyo.join(", ")}»)`
+        : `«${p.kind}» no admite alcance: va en su forma corta`,
+    }));
+}
 
 /** Cualquier permiso en su forma larga (sin clave de alcance = sin límite). */
 const larga = (p: Permiso): PermisoConAlcance => (typeof p === "string" ? { kind: p } : p);

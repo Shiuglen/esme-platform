@@ -10,13 +10,13 @@
 import { describe, expect, it } from "vitest";
 import {
   ALCANCES,
-  PermisoSchema,
   permiteHost,
   permitePrograma,
   permisosNuevos,
   unePermisos,
   type Permiso,
 } from "../core/paquetes/permisos.ts";
+import { PermisoSchema } from "../core/paquetes/manifiesto.ts";
 import { CAPABILITIES } from "../core/extension-host/capability.ts";
 
 describe("permiteHost — por etiquetas, no por texto", () => {

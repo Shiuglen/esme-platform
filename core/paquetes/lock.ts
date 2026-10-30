@@ -19,14 +19,14 @@
  * Se escribe siempre igual (los paquetes por id, las claves en su orden,
  * dos espacios y un salto de línea al final), para que un diff del candado
  * diga solo lo que cambió, y sin quedarse a medias (`core/escribe.ts`).
+ * Su forma (`LockSchema`) es contrato y vive en `manifiesto.ts`.
  *
  * Referencia: estandar/paquete.spec.yaml (sección `lock`), core/paquetes/resolver.ts.
  */
 import { readFileSync } from "node:fs";
-import { z } from "zod";
 import { escribeAtomico } from "../escribe.ts";
-import { PermisoSchema, permisosNuevos, unePermisos, type Permiso } from "./permisos.ts";
-import { esVersion } from "./semver.ts";
+import { LockSchema } from "./manifiesto.ts";
+import { permisosNuevos, unePermisos, type Permiso } from "./permisos.ts";
 
 /** Las claves de arriba del todo de un candado. */
 export const CLAVES_LOCK = ["lock_version", "raiz", "paquetes", "permisos"] as const;
@@ -59,20 +59,6 @@ export interface CambiosLock {
   permisosNuevos: Permiso[];
   pideConsentimiento: boolean;
 }
-
-const Huella = z.string().regex(/^[0-9a-f]{64}$/, "la huella son 64 caracteres hexadecimales");
-const Version = z.string().refine(esVersion, "version semver estricto");
-
-const LockSchema = z
-  .object({
-    lock_version: z.literal(1),
-    raiz: z.object({ id: z.string().min(1), version: Version, sha256: Huella.optional() }).strict(),
-    paquetes: z
-      .array(z.object({ id: z.string().min(1), version: Version, sha256: Huella, permisos: z.array(PermisoSchema) }).strict())
-      .refine((ps) => new Set(ps.map((p) => p.id)).size === ps.length, "un paquete está dos veces"),
-    permisos: z.array(PermisoSchema),
-  })
-  .strict();
 
 /** Por id, por unidades de código: el mismo orden en cualquier máquina (sin el idioma de por medio). */
 const porId = (a: { id: string }, b: { id: string }): number => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);

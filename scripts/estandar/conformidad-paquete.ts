@@ -26,10 +26,11 @@ import {
   PUNTOS,
   TIPOS_PAQUETE,
   VARIABLES_PAQUETE,
+  PermisoSchema,
   leePaquete,
   type Punto,
 } from "../../core/paquetes/manifiesto.ts";
-import { ALCANCES, PermisoSchema, permiteHost } from "../../core/paquetes/permisos.ts";
+import { ALCANCES, permiteHost } from "../../core/paquetes/permisos.ts";
 import { cumple, esRango } from "../../core/paquetes/semver.ts";
 import { CLAVES_ENTRADA_LOCK, CLAVES_LOCK } from "../../core/paquetes/lock.ts";
 import { CAPABILITIES } from "../../core/extension-host/capability.ts";

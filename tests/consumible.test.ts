@@ -149,10 +149,14 @@ describe("el kit se puede consumir", () => {
     // consume sin arrastrarlo.
     // `core/rea/forma.ts` es el validador de REA: los TIPOS de la evidencia
     // (`core/rea/evidencia.ts`) se importan sin cargar zod.
+    // `core/paquetes/manifiesto.ts` es el contrato del paquete v2 (como
+    // `module-schema.ts` el de la v1): ahí viven la forma del manifiesto, la
+    // de un permiso y la del candado; los permisos y el resolver, sin zod.
     expect([...ajenos.keys()]).toEqual(["zod"]);
     expect(ajenos.get("zod")).toEqual([
       "core/ipc/mind-schema.ts",
       "core/ipc/module-schema.ts",
+      "core/paquetes/manifiesto.ts",
       "core/rea/forma.ts",
     ]);
   });

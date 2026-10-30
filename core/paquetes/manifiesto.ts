@@ -33,8 +33,18 @@
 import { z } from "zod";
 import { ManifestSchema, RUNTIMES, validaManifiesto, type Manifest } from "../ipc/module-schema.ts";
 import { LICENCIAS_PERMITIDAS } from "../../tienda/skills.ts";
-import { PermisoSchema, permiteHost, permitePrograma, rutaDentro, type Permiso } from "./permisos.ts";
-import { esRango } from "./semver.ts";
+import { CAPABILITIES } from "../extension-host/capability.ts";
+import {
+  MOTIVOS_PERMISO,
+  esHost,
+  esPrograma,
+  permiteHost,
+  permitePrograma,
+  problemasDeAlcance,
+  rutaDentro,
+  type Permiso,
+} from "./permisos.ts";
+import { esRango, esVersion } from "./semver.ts";
 
 /** De qué está hecho lo que aporta un punto. */
 export type Naturaleza = "datos" | "código" | "código aislado";
@@ -244,6 +254,23 @@ const Contribuciones = z
   )
   .passthrough();
 
+/** Un permiso en su forma larga: la capacidad y su límite (lo que vale lo dice `permisos.ts`). */
+const PermisoLargo = z
+  .object({
+    kind: z.enum(CAPABILITIES),
+    hosts: z.array(z.string().refine(esHost, MOTIVOS_PERMISO.host)).min(1, MOTIVOS_PERMISO.vacio).optional(),
+    paths: z.array(z.string().refine(rutaDentro, MOTIVOS_PERMISO.ruta)).min(1, MOTIVOS_PERMISO.vacio).optional(),
+    programs: z.array(z.string().refine(esPrograma, MOTIVOS_PERMISO.programa)).min(1, MOTIVOS_PERMISO.vacio).optional(),
+  })
+  .strict()
+  .superRefine((p, ctx) => {
+    for (const x of problemasDeAlcance(p))
+      ctx.addIssue({ code: "custom", ...(x.alcance ? { path: [x.alcance] } : {}), message: x.motivo });
+  });
+
+/** La forma de un permiso (las dos formas). Vive aquí, en el contrato: `permisos.ts` no carga zod. */
+export const PermisoSchema = z.union([z.enum(CAPABILITIES), PermisoLargo]);
+
 const Uso = z
   .object({
     id: z.string().regex(ID, "id debe ser esme.<autor>.<slug>"),
@@ -378,6 +405,27 @@ export const ManifiestoV2Schema = z
   .superRefine((m, ctx) => reglas(m as Parameters<typeof reglas>[0], ctx));
 
 export type ManifiestoV2 = z.infer<typeof ManifiestoV2Schema>;
+
+const Huella = z.string().regex(SHA256, "la huella son 64 caracteres hexadecimales");
+const VersionEstricta = z.string().refine(esVersion, "version semver estricto");
+
+/**
+ * La forma del candado (la spec, sección `lock`). También es contrato, y
+ * vive aquí para que zod entre en un solo fichero; lo que se hace con él
+ * (leerlo, escribirlo y compararlo) está en `lock.ts`.
+ */
+export const LockSchema = z
+  .object({
+    lock_version: z.literal(1),
+    raiz: z.object({ id: z.string().min(1), version: VersionEstricta, sha256: Huella.optional() }).strict(),
+    paquetes: z
+      .array(
+        z.object({ id: z.string().min(1), version: VersionEstricta, sha256: Huella, permisos: z.array(PermisoSchema) }).strict()
+      )
+      .refine((ps) => new Set(ps.map((p) => p.id)).size === ps.length, "un paquete está dos veces"),
+    permisos: z.array(PermisoSchema),
+  })
+  .strict();
 
 /** Un paquete en memoria: su manifiesto (sin validar) y sus ficheros. */
 export interface PaqueteDatos {
