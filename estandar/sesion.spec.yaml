@@ -193,9 +193,11 @@ compactar:
 estado: [sesion, bifurca, formato, epoca, dueno, cerrada, traspaso, turnos, plan, uso, contexto, opciones, permisos, puntos, eventos]
 # Un turno del estado: `n` es su número (desde 1); `desde` y `hasta`, su
 # primer y su último evento. Lo abre un `orden {que: mensaje}` (el `usuario`
-# que le sigue es lo que recibió el motor, y va en el mismo turno) o un
-# `usuario` suelto (el Taller de hoy). Plegado, es un turno de
-# estandar/turno.spec.yaml (pregunta, respuesta, actividad, cambios y tokens).
+# que le sigue antes de que el motor diga nada —un anuncio: `opciones`, `uso`
+# o `contexto`, no cuenta— es lo que recibió el motor, y va en el mismo turno)
+# o un `usuario` suelto (el Taller de hoy, o un aviso que compuso el sistema).
+# Plegado, es un turno de estandar/turno.spec.yaml (pregunta, respuesta,
+# actividad, cambios y tokens).
 turno: [n, desde, hasta, pedido, respuesta, pensamiento, pasos, plan, fin, error, herencia]
 
 # EL CHAT. Hoy el chat de la app guarda su Hilo entero en un JSON. Mientras

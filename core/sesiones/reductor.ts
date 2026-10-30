@@ -286,8 +286,10 @@ function reproducir(eventos: readonly Linea[], formato: Formato | null, cuantos:
     } else if (e.tipo === "orden" && e.que === "mensaje") {
       turno = abrir(e.texto ?? "", p);
       esperaUsuario = true;
-    } else if (!turno && DEL_MOTOR.has(tipo) && !ANUNCIOS.has(tipo)) {
-      turno = abrir("", p);
+    } else if (DEL_MOTOR.has(tipo) && !ANUNCIOS.has(tipo)) {
+      // el motor ya dijo algo: un `usuario` de después no es lo que recibió por la orden
+      esperaUsuario = false;
+      if (!turno) turno = abrir("", p);
     }
     if (turno !== deTurno) {
       deTurno = turno;

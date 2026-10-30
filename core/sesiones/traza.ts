@@ -7,9 +7,9 @@
  * da la de la app (las pruebas lo comparan caso por caso); sobre el formato 2
  * solo cambia lo que el sobre añade:
  *
- *   - un `orden {mensaje}` abre el turno, y el `usuario` que le sigue va con
- *     él (como en el estado); lo demás de la sesión (puntos, dueños, órdenes)
- *     no es tiempo del motor y no entra;
+ *   - un `orden {mensaje}` abre el turno, y el `usuario` que le sigue antes
+ *     de que el motor diga nada va con él (como en el estado); lo demás de la
+ *     sesión (puntos, dueños, órdenes) no es tiempo del motor y no entra;
  *   - un permiso en dos tiempos: la pregunta no es una espera, la respuesta
  *     (con lo que te esperó) sí;
  *   - un evento compactado vale lo que valían sus trozos: cada latido es una
@@ -217,8 +217,9 @@ function tiemposDe(tu: Turno): Tiempos {
  * Los eventos tal como los cuenta la traza: los del motor, con un evento
  * compactado deshecho en sus latidos (un trozo por hora), y con lo de la
  * sesión fuera, salvo el `orden {mensaje}` que abre un turno (va como su
- * `usuario`; el `usuario` que le sigue, que es lo que recibió el motor, va
- * con él y no abre otro).
+ * `usuario`; el `usuario` que le sigue antes de que el motor diga nada, que
+ * es lo que recibió el motor, va con él y no abre otro; los anuncios no
+ * cuentan como decir algo).
  */
 function delMotor(eventos: readonly Linea[]): { eventos: Guardado[]; siguen: Set<Guardado> } {
   const out: Guardado[] = [];
@@ -240,6 +241,8 @@ function delMotor(eventos: readonly Linea[]): { eventos: Guardado[]; siguen: Set
       out.push(e as Guardado);
       continue;
     }
+    // el motor ya dijo algo: un `usuario` de después no es lo que recibió por la orden
+    if (!ANUNCIOS.has(e.tipo)) esperaUsuario = false;
     if (e.tipo === "permiso" && (e.concedido === undefined || e.ms === undefined)) continue; // la pregunta no es una espera
     if ((e.tipo === "texto" || e.tipo === "pensamiento") && e.latidos?.length) {
       out.push({ tipo: e.tipo, texto: e.texto, ...(e.ts !== undefined ? { ts: e.ts } : {}) });

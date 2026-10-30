@@ -146,6 +146,29 @@ describe("con sobre: el dueño, los puntos, el traspaso y el cierre", () => {
     expect(s.turnos[1]).toMatchObject({ desde: 8, hasta: 9 });
   });
 
+  it("el `usuario` es el de la orden solo hasta que el motor dice algo: después, abre otro turno", () => {
+    const s = estadoDe(
+      sesion([
+        { tipo: "dueno", sesion: "s-e" },
+        { tipo: "orden", que: "mensaje", texto: "Hola" },
+        { tipo: "opciones", opciones: [] }, // un anuncio no es el motor diciendo algo
+        { tipo: "usuario", texto: "Hola" },
+        { tipo: "texto", texto: "¡Hola!" },
+        { tipo: "fin", motivo: "end_turn", ms: 5 },
+        { tipo: "orden", que: "mensaje", texto: "Cuenta" }, // nadie dice lo que recibió el motor…
+        { tipo: "texto", texto: "Uno." },
+        { tipo: "fin", motivo: "end_turn", ms: 5 },
+        { tipo: "usuario", texto: "<aviso>acabó</aviso>" }, // …así que esto es otro turno, no el suyo
+        { tipo: "texto", texto: "Visto." },
+      ]),
+    );
+    expect(s.turnos.map((t) => [t.pedido, t.respuesta])).toEqual([
+      ["Hola", "¡Hola!"],
+      ["Cuenta", "Uno."],
+      ["<aviso>acabó</aviso>", "Visto."],
+    ]);
+  });
+
   it("los puntos, con el evento en que se apuntaron", () => {
     expect(s.puntos).toEqual([{ n: 5, commit: "abc123", rama: "esme/s-9" }]);
   });

@@ -233,6 +233,26 @@ describe("con sobre", () => {
     expect(v2).toEqual(v1);
   });
 
+  it("el `usuario` es el de la orden solo hasta que el motor dice algo: después, abre otro turno", () => {
+    const t = trazaDe(
+      sesion([
+        { tipo: "dueno", sesion: "s", ts: 0 },
+        { tipo: "orden", que: "mensaje", texto: "Hola", ts: 0 },
+        { tipo: "contexto", usado: 1, total: 9, ts: 0 }, // un anuncio no es el motor diciendo algo…
+        { tipo: "usuario", texto: "Hola", ts: 0 }, // …así que este es el de la orden
+        { tipo: "texto", texto: "¡Hola!", ts: 1000 },
+        { tipo: "fin", motivo: "end_turn", ms: 1000, ts: 1000 },
+        { tipo: "orden", que: "mensaje", texto: "Cuenta", ts: 2000 }, // nadie dice lo que recibió el motor…
+        { tipo: "texto", texto: "Uno.", ts: 3000 },
+        { tipo: "fin", motivo: "end_turn", ms: 1000, ts: 3000 },
+        { tipo: "usuario", texto: "<aviso>acabó</aviso>", ts: 5000 }, // …así que esto es otro turno
+        { tipo: "texto", texto: "Visto.", ts: 6000 },
+        { tipo: "fin", motivo: "end_turn", ms: 1000, ts: 6000 },
+      ]),
+    );
+    expect(t.turnos.map((x) => x.pedido)).toEqual(["Hola", "Cuenta", "<aviso>acabó</aviso>"]);
+  });
+
   it("la pregunta de un permiso no es una espera; la respuesta sí", () => {
     const con = trazaDe([
       usuario("x", 0),
