@@ -348,7 +348,7 @@ oficio:
     propias:
       pieza: ["esme:tipo", "esme:z", "esme:profundidad"]
       conexion: ["esme:tipo", "esme:orden"]
-    del_taller: ["esme:tarea"]
+    del_taller: ["esme:tarea", "esme:entregada"]
     tipos_esme:
       piezas: { text: ["nota", "tarea"], file: ["documento", "imagen"], link: ["enlace"], group: ["grupo"] }
       conexiones: ["flujo"]

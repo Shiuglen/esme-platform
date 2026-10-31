@@ -10,8 +10,9 @@
  *     lo propio de Esme, que también es una lista cerrada: en una pieza, su
  *     tipo (`esme:tipo`, el que casa con su clase), su altura sobre el plano
  *     (`esme:z`) y su grosor (`esme:profundidad`); en una conexión, si es un
- *     flujo (`esme:tipo`) y su orden (`esme:orden`). `esme:tarea` apunta al
- *     Taller de quien lo hizo, y en un lienzo de partida no va.
+ *     flujo (`esme:tipo`) y su orden (`esme:orden`). `esme:tarea` y
+ *     `esme:entregada` apuntan al Taller de quien lo hizo, y en un lienzo de
+ *     partida no van.
  *   - Los ids, de 1 a 64 letras, cifras, «-» o «_», sin repetir entre
  *     piezas y conexiones. La posición y el tamaño, enteros y dentro del plano.
  *   - Las rutas (`file`, `background`), del paquete y desde su raíz (no desde
@@ -59,11 +60,13 @@ export const PROPIAS_PIEZA = ["esme:tipo", "esme:z", "esme:profundidad"] as cons
 /** Lo propio de Esme que lleva una conexión: si es un flujo, y su orden. */
 export const PROPIAS_CONEXION = ["esme:tipo", "esme:orden"] as const;
 /**
- * Lo propio de Esme que apunta al Taller de quien hizo el lienzo (una tarea
- * suya): quien abre la plantilla no lo tiene, y podría dar con una tarea suya
- * que se llame igual. Un lienzo de partida va sin ello.
+ * Lo propio de Esme que apunta al Taller de quien hizo el lienzo: la tarea
+ * de una pieza o de un flujo (`esme:tarea`) y la tarea cuyo resultado ya cayó
+ * en el destino de un flujo (`esme:entregada`). Quien abre la plantilla no
+ * las tiene, y podría dar con una tarea suya que se llame igual. Un lienzo de
+ * partida va sin ellas.
  */
-export const PROPIAS_DEL_TALLER = ["esme:tarea"] as const;
+export const PROPIAS_DEL_TALLER = ["esme:tarea", "esme:entregada"] as const;
 
 /**
  * Los tipos de Esme: los de una pieza, según su clase de JSON Canvas, y el

@@ -132,7 +132,7 @@ describe("el lienzo de partida — lo que vale", () => {
     expect(PREFIJO_PROPIO).toBe("esme:");
     expect([...PROPIAS_PIEZA]).toEqual(["esme:tipo", "esme:z", "esme:profundidad"]);
     expect([...PROPIAS_CONEXION]).toEqual(["esme:tipo", "esme:orden"]);
-    expect([...PROPIAS_DEL_TALLER]).toEqual(["esme:tarea"]);
+    expect([...PROPIAS_DEL_TALLER]).toEqual(["esme:tarea", "esme:entregada"]);
     expect(TIPOS_ESME).toEqual({
       piezas: { text: ["nota", "tarea"], file: ["documento", "imagen"], link: ["enlace"], group: ["grupo"] },
       conexiones: ["flujo"],
@@ -388,10 +388,16 @@ describe("el lienzo de partida — lo que se rechaza, con su motivo", () => {
     for (const k of ["esme:z", "esme:profundidad", "esme:peso"]) expect(problemas(conConexion(1, { [k]: 1 })), k).toEqual([enConexion(k)]);
   });
 
-  it("esme:tarea apunta al Taller de quien hizo el lienzo, que quien abre la plantilla no tiene: un lienzo de partida va sin ella", () => {
+  it("esme:tarea y esme:entregada apuntan al Taller de quien hizo el lienzo, que quien abre la plantilla no tiene: un lienzo de partida va sin ellas", () => {
     const motivo = "apunta a una tarea de tu Taller, que quien abre la plantilla no tiene: un lienzo de partida va sin ella";
     expect(problemas(conPieza(1, { "esme:tipo": "tarea", "esme:tarea": "k3" }))).toEqual([`nodes.1.esme:tarea: ${motivo}`]);
     expect(problemas(conConexion(0, { "esme:tarea": "k3" }))).toEqual([`edges.0.esme:tarea: ${motivo}`]);
+    // la tarea cuyo resultado ya cayó en el destino de un flujo: también es de tu Taller, no una clave desconocida
+    expect(problemas(conConexion(0, { "esme:entregada": "k3" }))).toEqual([`edges.0.esme:entregada: ${motivo}`]);
+    expect(problemas(conConexion(0, { "esme:tarea": "k3", "esme:entregada": "k3" }))).toEqual([
+      `edges.0.esme:tarea: ${motivo}`,
+      `edges.0.esme:entregada: ${motivo}`,
+    ]);
   });
 
   it("el tipo de Esme casa con la clase de la pieza, y una imagen es un fichero de imagen", () => {

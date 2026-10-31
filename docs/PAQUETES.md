@@ -265,9 +265,10 @@ otro y lo enseña la app:
   caracteres); sin tipo, es un enlace. Cualquier otra clave que no sea de
   la spec se rechaza, también una `esme:` que no esté en la lista.
 - **Nada que apunte a tu Taller:** `esme:tarea` une una pieza o una
-  conexión con una tarea de quien hizo el lienzo, y quien abre la plantilla
-  no la tiene (y podría dar con una suya que se llame igual). Un lienzo de
-  partida va sin ella.
+  conexión con una tarea de quien hizo el lienzo, y `esme:entregada` dice
+  qué tarea dejó ya su resultado en el destino de un flujo. Quien abre la
+  plantilla no tiene esas tareas (y podría dar con una suya que se llame
+  igual). Un lienzo de partida va sin ellas.
 
 Lo que no vale se dice con su sitio dentro del lienzo:
 `oficio.secciones.3.lienzo: en «lienzos/esquemas.canvas», nodes.2.file:
