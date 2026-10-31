@@ -149,7 +149,9 @@ function describe(m: ManifiestoV2, version: 1 | 2 | null): string[] {
     lineas.push(
       "Qué monta al abrirla:",
       ...(m.oficio.piel ? [`  piel: ${m.oficio.piel}`] : []),
-      ...m.oficio.secciones.map((s) => `  sección ${[s.id, s.nombre, s.vista, s.filtro].filter(Boolean).join(" · ")}`),
+      ...m.oficio.secciones.map(
+        (s) => `  sección ${[s.id, s.nombre, s.vista, s.filtro, s.lienzo && `lienzo ${s.lienzo}`].filter(Boolean).join(" · ")}`
+      ),
       `  órdenes: ${m.oficio.ordenes.join(", ") || "ninguna"}`
     );
   lineas.push(m.permissions.length ? "Qué pide:" : "Qué pide: nada", ...sangra(m.permissions.map(permisoEnTexto)));

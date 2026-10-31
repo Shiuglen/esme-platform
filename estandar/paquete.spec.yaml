@@ -51,9 +51,12 @@
 #      (sección `oficio`): hasta 12 secciones, la primera «hoy»; ids en
 #      kebab-case; cada vista de una lista conocida, con una de reserva;
 #      filtros solo `estado:<estado>` o `etiqueta:<kebab-case>`, nada de
-#      expresiones; y hasta 40 órdenes, cada una un comando de la plantilla o
-#      de un paquete que usa, con todos sus campos con tipo y sin huecos
-#      libres en su prompt. Lo que nombra de un paquete lo mira el resolver.
+#      expresiones; una sección del Lienzo puede traer su lienzo de partida,
+#      un `.canvas` del paquete que vale como JSON Canvas 1.0, cerrado y con
+#      topes (sección `oficio.lienzo`); y hasta 40 órdenes, cada una un
+#      comando de la plantilla o de un paquete que usa, con todos sus campos
+#      con tipo y sin huecos libres en su prompt. Lo que nombra de un paquete
+#      lo mira el resolver.
 # Lo que se AVISA sin rechazar: una clave desconocida (arriba o dentro de una
 # entrada), un punto que esta versión no conoce, `net:fetch` con `*` (es toda
 # la red: que se diga a secas) y un MCP remoto por http sin cifrar.
@@ -116,6 +119,7 @@ manifiesto:
       - { id: "hoy", nombre: "Hoy" }
       - { id: "repasos", nombre: "Repasos", vista: "esme.tareas", filtro: "etiqueta:repaso" }
       - { id: "apuntes", nombre: "Apuntes", vista: "esme.memoria" }
+      - { id: "esquemas", nombre: "Esquemas", vista: "esme.lienzo", lienzo: "lienzos/esquemas.canvas" }  # su lienzo de partida
     ordenes: ["tarjetas"]                 # hasta 40: comandos suyos, o <paquete de uses>/<comando>
   success:                                # cómo se ve que la plantilla funciona
     task: "Prepara diez tarjetas del tema 1"
@@ -263,10 +267,11 @@ lock:
 # interfaz «Oficio».
 #   piel:      un tema de la plantilla («estudio») o de un paquete de `uses`
 #              («esme.casa.piel-estudio/estudio»);
-#   secciones: en orden, y la primera, `primera`, tal cual (sin vista ni
-#              filtro). Cada una `{ id, nombre, vista, filtro? }`: el id en
-#              kebab-case, sin repetir; el nombre, sin espacios a los lados ni
-#              nada invisible; la vista, de `vistas`;
+#   secciones: en orden, y la primera, `primera`, tal cual (sin vista, filtro
+#              ni lienzo). Cada una `{ id, nombre, vista, filtro?, lienzo? }`:
+#              el id en kebab-case, sin repetir; el nombre, sin espacios a los
+#              lados ni nada invisible; la vista, de `vistas`; el lienzo, solo
+#              con la vista `lienzo.vista` (ver `lienzo`, aquí abajo);
 #   ordenes:   comandos de la plantilla («tarjetas») o de un paquete de `uses`
 #              («esme.ana.tarjetas/repasar»), sin repetir. Su tarea se lanza
 #              con un formulario: cada campo con `type` (de `tipos_de_entrada`;
@@ -283,7 +288,7 @@ lock:
 # número como `7`, `-2` o `2.5`; en un choice, una de sus options).
 oficio:
   primera: "hoy"
-  vistas: ["esme.hoy", "esme.tareas", "esme.memoria", "esme.terminal", "esme.mesa"]
+  vistas: ["esme.hoy", "esme.tareas", "esme.memoria", "esme.terminal", "esme.lienzo", "esme.proyectos"]
   vistas_con_filtro: ["esme.hoy", "esme.tareas"]
   vista_de_reserva: "esme.tareas"
   estados: ["te-necesita", "en-marcha", "terminado", "quieto"]
@@ -292,3 +297,47 @@ oficio:
   filtros:                                # probados con el código
     validos: ["estado:te-necesita", "estado:en-marcha", "estado:terminado", "estado:quieto", "etiqueta:repaso", "etiqueta:por-revisar"]
     no_validos: ["repaso", "estado:inventado", "estado:", "etiqueta:", "etiqueta:Repaso", "etiqueta:a:b", "etiqueta:*", "estado:quieto && etiqueta:x", "prioridad:alta"]
+  # El lienzo de partida de una sección del Lienzo (`lienzo: <ruta>`, solo con
+  # la vista `vista`): un `.canvas` del paquete que la app abre tal cual la
+  # primera vez; sin él, el Lienzo empieza en blanco. Es JSON Canvas 1.0
+  # (`formato`), y más estricto que esa spec, porque lo escribe otro y lo
+  # enseña la app (abrir luego es fácil; cerrar, no):
+  #   - arriba, `nodes` y `edges`, y nada más;
+  #   - cada pieza, de una clase de `tipos`, con `id`, `type`, `x` e `y`
+  #     (enteros, hasta `topes.coordenada` a cada lado del cero), `width` y
+  #     `height` (enteros, de 1 a `topes.medida`) y `color` si quiere («1» a
+  #     «6» o #RRGGBB). Y lo de su clase: `text` (Markdown, hasta
+  #     `topes.texto`, con tabuladores y saltos de línea); `file` (de
+  #     `formatos_fichero`) y `subpath` («#…»); `url` (https a un dominio de
+  #     internet, ni una IP ni de `dominios_locales`, sin usuario ni
+  #     contraseña, hasta `topes.url`); `label`, `background` (de
+  #     `formatos_fondo`) y `backgroundStyle` (de `fondos`);
+  #   - cada conexión, con `id`, `fromNode` y `toNode` (piezas del lienzo) y,
+  #     si quiere, `fromSide` y `toSide` (de `lados`), `fromEnd` y `toEnd` (de
+  #     `extremos`), `color` y `label`;
+  #   - los ids, de 1 a 64 letras, cifras, «-» o «_», sin repetir entre piezas
+  #     y conexiones; las rutas, del paquete y desde su raíz (no desde la
+  #     carpeta del lienzo), y que estén; nada invisible que mande en ningún
+  #     texto; una etiqueta o un subpath, hasta `topes.etiqueta`;
+  #   - una clave que no es de la spec para lo que es no vale, salvo lo propio
+  #     de Esme: con `prefijo_propio` y el nombre en kebab-case (`esme:z`,
+  #     `esme:profundidad`), hasta `topes.propios` en cada pieza o conexión, y
+  #     de valor un número, un sí/no o un texto de hasta `topes.etiqueta`.
+  # `bytes` es lo que pesa el fichero entero. Lo que no vale se dice con su
+  # sitio dentro del lienzo (`nodes.2.file: …`).
+  lienzo:
+    vista: "esme.lienzo"
+    extension: ".canvas"
+    formato: "https://jsoncanvas.org/spec/1.0/"
+    tipos: ["text", "file", "link", "group"]
+    lados: ["top", "right", "bottom", "left"]
+    extremos: ["none", "arrow"]
+    fondos: ["cover", "ratio", "repeat"]
+    formatos_fichero: ["md", "txt", "pdf", "png", "jpg", "jpeg", "webp", "gif", "avif", "mp3", "m4a", "ogg", "wav", "mp4", "webm"]
+    formatos_fondo: ["png", "jpg", "jpeg", "webp", "gif", "avif"]
+    dominios_locales: ["localhost", "local", "internal", "home.arpa"]
+    prefijo_propio: "esme:"
+    topes: { bytes: 262144, piezas: 200, conexiones: 400, texto: 4000, etiqueta: 120, propios: 8, coordenada: 1000000, medida: 100000, url: 2048 }
+    rutas:                                # probadas con el código
+      validas: ["mapa.canvas", "lienzos/mapa.canvas", "./lienzos/de-trabajo.canvas"]
+      no_validas: ["mapa.json", "mapa.canvas.json", ".canvas", "lienzos/.canvas", "../mapa.canvas", "/mapa.canvas", "C:/mapa.canvas", "lienzos\\mapa.canvas"]

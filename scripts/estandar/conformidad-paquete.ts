@@ -40,6 +40,20 @@ import {
   VISTA_DE_RESERVA,
   esFiltro,
 } from "../../core/paquetes/oficio.ts";
+import {
+  DOMINIOS_LOCALES,
+  EXTENSION_LIENZO,
+  EXTREMOS,
+  FONDOS,
+  FORMATOS_FICHERO,
+  FORMATOS_FONDO,
+  LADOS,
+  PREFIJO_PROPIO,
+  TIPOS_PIEZA,
+  TOPES_LIENZO,
+  VISTA_LIENZO,
+  esRutaLienzo,
+} from "../../core/paquetes/lienzo.ts";
 import { ALCANCES, permiteHost } from "../../core/paquetes/permisos.ts";
 import { cumple, esRango } from "../../core/paquetes/semver.ts";
 import { CLAVES_ENTRADA_LOCK, CLAVES_LOCK, CLAVES_RAIZ_LOCK } from "../../core/paquetes/lock.ts";
@@ -66,7 +80,7 @@ export function compruebaPaquete(spec: Objeto, anota: (problema: string) => void
   const mismaLista = (que: string, deSpec: unknown, codigo: readonly string[], orden = true): void => {
     const l = textos(deSpec);
     if (!l) {
-      if (deSpec !== undefined) anota(`${que}: no es una lista`);
+      anota(deSpec === undefined ? `${que}: falta en la spec` : `${que}: no es una lista`);
       return;
     }
     const a = orden ? l : [...l].sort();
@@ -205,5 +219,29 @@ export function compruebaPaquete(spec: Objeto, anota: (problema: string) => void
     for (const f of textos(filtros.validos) ?? []) if (!esFiltro(f)) anota(`oficio.filtros: la spec da por bueno «${f}» y el código no`);
     for (const f of textos(filtros.no_validos) ?? [])
       if (esFiltro(f)) anota(`oficio.filtros: la spec no da por bueno «${f}» y el código sí`);
+
+    // el lienzo de partida: sus listas y sus topes, y las rutas que la spec da por buenas (y por malas), probadas con el código
+    const lienzo = objeto(oficio.lienzo);
+    if (!lienzo) anota("oficio.lienzo: falta en la spec");
+    else {
+      mismo("lienzo.vista", lienzo.vista, VISTA_LIENZO);
+      mismo("lienzo.extension", lienzo.extension, EXTENSION_LIENZO);
+      mismo("lienzo.prefijo_propio", lienzo.prefijo_propio, PREFIJO_PROPIO);
+      mismaLista("oficio.lienzo.tipos", lienzo.tipos, TIPOS_PIEZA);
+      mismaLista("oficio.lienzo.lados", lienzo.lados, LADOS);
+      mismaLista("oficio.lienzo.extremos", lienzo.extremos, EXTREMOS);
+      mismaLista("oficio.lienzo.fondos", lienzo.fondos, FONDOS);
+      mismaLista("oficio.lienzo.formatos_fichero", lienzo.formatos_fichero, FORMATOS_FICHERO);
+      mismaLista("oficio.lienzo.formatos_fondo", lienzo.formatos_fondo, FORMATOS_FONDO);
+      mismaLista("oficio.lienzo.dominios_locales", lienzo.dominios_locales, DOMINIOS_LOCALES);
+      const topesLienzo = objeto(lienzo.topes) ?? {};
+      for (const [k, v] of Object.entries(TOPES_LIENZO)) mismo(`lienzo.topes.${k}`, topesLienzo[k], v);
+      for (const k of Object.keys(topesLienzo)) if (!(k in TOPES_LIENZO)) anota(`oficio.lienzo.topes: «${k}» no es un tope del código`);
+      const rutas = objeto(lienzo.rutas) ?? {};
+      for (const r of textos(rutas.validas) ?? [])
+        if (!esRutaLienzo(r)) anota(`oficio.lienzo.rutas: la spec da por buena «${r}» y el código no`);
+      for (const r of textos(rutas.no_validas) ?? [])
+        if (esRutaLienzo(r)) anota(`oficio.lienzo.rutas: la spec no da por buena «${r}» y el código sí`);
+    }
   }
 }

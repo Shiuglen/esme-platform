@@ -38,6 +38,7 @@ import {
   MOTIVOS_PERMISO,
   esHost,
   esPrograma,
+  limpia,
   permiteHost,
   permitePrograma,
   problemasDeAlcance,
@@ -60,6 +61,7 @@ import {
   problemasDeOrden,
   referencia,
 } from "./oficio.ts";
+import { VISTA_LIENZO, esRutaLienzo, problemasDelLienzo } from "./lienzo.ts";
 
 /** De qué está hecho lo que aporta un punto. */
 export type Naturaleza = "datos" | "código" | "código aislado";
@@ -325,6 +327,7 @@ const Seccion = z
     nombre: z.string().refine(esTextoCorto, MOTIVOS_OFICIO.nombre),
     vista: z.string().refine(esVista, MOTIVOS_OFICIO.vista).optional(),
     filtro: z.string().refine(esFiltro, MOTIVOS_OFICIO.filtro).optional(),
+    lienzo: z.string().refine(esRutaLienzo, MOTIVOS_OFICIO.lienzo).optional(),
   })
   .strict();
 
@@ -363,9 +366,11 @@ type Anota = (message: string, path?: (string | number)[]) => void;
 
 /**
  * Lo que el oficio cruza con el resto de la plantilla: «hoy» la primera y tal
- * cual, cada otra sección con su vista (y un filtro solo si lista tareas),
- * ids sin repetir, y lo que nombra existe: un tema o un comando suyo, o un
- * paquete de `uses`. Lo que hay DENTRO de ese paquete lo mira el resolver.
+ * cual, cada otra sección con su vista (un filtro solo si lista tareas, y un
+ * lienzo de partida solo si es el Lienzo), ids sin repetir, y lo que nombra
+ * existe: un tema o un comando suyo, o un paquete de `uses`. Lo que hay
+ * DENTRO de ese paquete lo mira el resolver; lo que hay dentro del lienzo, al
+ * mirar los ficheros (`compruebaFicheros`).
  */
 function reglasDelOficio(m: Leido, issue: Anota): void {
   const o = m.oficio;
@@ -380,11 +385,16 @@ function reglasDelOficio(m: Leido, issue: Anota): void {
     ids.add(s.id);
     if (s.id === PRIMERA) {
       // esté donde esté: si no es la primera, ya se ha dicho arriba
-      if (s.vista !== undefined || s.filtro !== undefined)
-        issue(`«${PRIMERA}» va tal cual, sin vista ni filtro: es tu día entero`, [...secciones, i]);
-    } else if (s.vista === undefined) issue(`le falta la vista (una de: ${VISTAS.join(", ")})`, [...secciones, i]);
-    else if (s.filtro !== undefined && esVista(s.vista) && !(VISTAS_CON_FILTRO as readonly string[]).includes(s.vista))
+      if (s.vista !== undefined || s.filtro !== undefined || s.lienzo !== undefined)
+        issue(`«${PRIMERA}» va tal cual, sin vista, filtro ni lienzo: es tu día entero`, [...secciones, i]);
+      return;
+    }
+    if (s.vista === undefined) return issue(`le falta la vista (una de: ${VISTAS.join(", ")})`, [...secciones, i]);
+    if (!esVista(s.vista)) return; // ya dicho en su forma
+    if (s.filtro !== undefined && !(VISTAS_CON_FILTRO as readonly string[]).includes(s.vista))
       issue(`${s.vista} no lista tareas: un filtro va con ${VISTAS_CON_FILTRO.join(" o con ")}`, [...secciones, i]);
+    if (s.lienzo !== undefined && s.vista !== VISTA_LIENZO)
+      issue(`${s.vista} no es un lienzo: un lienzo de partida va con ${VISTA_LIENZO}`, [...secciones, i]);
   });
 
   const usa = new Set(m.uses.map((u) => u.id));
@@ -728,16 +738,9 @@ export function leePaquete(raw: unknown): LecturaPaquete {
   };
 }
 
-/** Una ruta del paquete, limpia: sin `./` ni barras de más (`.` es la raíz, ""). */
-const limpia = (r: string): string =>
-  r
-    .split("/")
-    .filter((s) => s !== "" && s !== ".")
-    .join("/");
-
 /** Un fichero que el manifiesto nombra. `codigo`: existe tras construir el paquete. */
 export interface RutaDePaquete {
-  punto: Punto | "success";
+  punto: Punto | "success" | "oficio";
   id: string;
   ruta: string;
   codigo: boolean;
@@ -757,6 +760,9 @@ export function rutasDe(m: ManifiestoV2): RutaDePaquete[] {
   for (const e of c.teams ?? []) pon("teams", e.id, e.file);
   for (const x of c.memory ?? []) pon("memory", x.id, x.entry, true);
   if (m.success?.check) pon("success", "check", m.success.check);
+  m.oficio?.secciones.forEach((s, i) => {
+    if (s.lienzo !== undefined) pon("oficio", `secciones.${i}.lienzo`, s.lienzo);
+  });
   return rutas;
 }
 
@@ -788,12 +794,15 @@ export function nivelDe(m: ManifiestoV2): Nivel {
  */
 export type LeeRuta = (ruta: string) => string | null | { error: string };
 
+/** Los problemas de un lienzo de partida que se dicen; del resto, cuántos más hay. */
+const PROBLEMAS_POR_LIENZO = 10;
+
 /**
  * Lo que el manifiesto promete y los ficheros tienen que cumplir: cada ruta
  * existe (el código, si se exige: `exigirEntrada: false` es para dictaminar
  * antes de construir, y solo perdona que falte: el que ya está no puede
- * salirse del paquete) y un agente de línea de comandos pide el binario que
- * lanza.
+ * salirse del paquete), un agente de línea de comandos pide el binario que
+ * lanza, y el lienzo de partida de una sección vale (`lienzo.ts`).
  */
 export function compruebaFicheros(m: ManifiestoV2, leer: LeeRuta, opts: { exigirEntrada?: boolean } = {}): string[] {
   const errores: string[] = [];
@@ -832,6 +841,29 @@ export function compruebaFicheros(m: ManifiestoV2, leer: LeeRuta, opts: { exigir
     if (!permitePrograma(m.permissions, programa))
       errores.push(`agents.${a.id}: lanza «${programa}» y no lo pide (permissions: proc:spawn con programs: [${programa}])`);
   }
+  // el lienzo de partida: JSON Canvas 1.0, cerrado y con lo que nombra dentro del paquete; cada fichero, una vez
+  const vistos = new Map<string, true | null | { error: string }>();
+  const hay = (ruta: string): true | null | { error: string } => {
+    if (!vistos.has(ruta)) {
+      const t = leer(ruta);
+      vistos.set(ruta, typeof t === "string" ? true : t);
+    }
+    return vistos.get(ruta)!;
+  };
+  const mirados = new Set<string>();
+  m.oficio?.secciones.forEach((s, i) => {
+    if (s.lienzo === undefined) return;
+    const ruta = limpia(s.lienzo);
+    if (mirados.has(ruta)) return;
+    mirados.add(ruta);
+    const texto = leer(ruta);
+    if (typeof texto !== "string") return; // ya dicho arriba
+    const problemas = problemasDelLienzo(texto, hay);
+    const sitio = `oficio.secciones.${i}.lienzo: en «${ruta}», `;
+    errores.push(...problemas.slice(0, PROBLEMAS_POR_LIENZO).map((p) => sitio + p));
+    const mas = problemas.length - PROBLEMAS_POR_LIENZO;
+    if (mas > 0) errores.push(`${sitio}y ${mas} ${mas === 1 ? "problema más" : "problemas más"}`);
+  });
   return errores;
 }
 

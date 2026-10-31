@@ -186,6 +186,38 @@ describe("leePaqueteDeCarpeta — lo que el manifiesto promete, el disco lo tien
     expect(r.errores.join("\n")).toContain("themes.piel: «piel.json» se sale del paquete");
   });
 
+  it("un fichero que nombra un lienzo de partida y es un enlace a fuera: se sale, y el lienzo lo dice", () => {
+    const dir = temporal();
+    const fuera = temporal();
+    writeFileSync(join(fuera, "secreto.md"), "de otro");
+    const lienzo = { nodes: [{ id: "s", type: "file", x: 0, y: 0, width: 10, height: 10, file: "docs/secreto.md" }] };
+    const manifiesto = {
+      ...conPiel().manifiesto,
+      kind: "template",
+      oficio: { secciones: [{ id: "hoy", nombre: "Hoy" }, { id: "mapa", nombre: "Mapa", vista: "esme.lienzo", lienzo: "mapa.canvas" }] },
+    };
+    escribePaquete({ manifiesto, ficheros: { "piel.json": "{}", "mapa.canvas": JSON.stringify(lienzo), "docs/nada.md": "" } }, dir);
+    symlinkSync(join(fuera, "secreto.md"), join(dir, "docs", "secreto.md"));
+    const e = leePaqueteDeCarpeta(dir).errores.join("\n");
+    expect(e).toContain("oficio.secciones.1.lienzo: en «mapa.canvas», nodes.0.file: «docs/secreto.md» se sale del paquete");
+  });
+
+  it("un lienzo de partida que es un enlace a fuera no se lee", () => {
+    const dir = temporal();
+    const fuera = temporal();
+    writeFileSync(join(fuera, "mapa.canvas"), "{}");
+    const manifiesto = {
+      ...conPiel().manifiesto,
+      kind: "template",
+      oficio: { secciones: [{ id: "hoy", nombre: "Hoy" }, { id: "mapa", nombre: "Mapa", vista: "esme.lienzo", lienzo: "mapa.canvas" }] },
+    };
+    escribePaquete({ manifiesto, ficheros: { "piel.json": "{}" } }, dir);
+    symlinkSync(join(fuera, "mapa.canvas"), join(dir, "mapa.canvas"));
+    const r = leePaqueteDeCarpeta(dir);
+    expect(r.ok).toBe(false);
+    expect(r.errores.join("\n")).toContain("oficio.secciones.1.lienzo: «mapa.canvas» se sale del paquete");
+  });
+
   it("una carpeta del camino que es un enlace a fuera: también se sale", () => {
     const dir = temporal();
     const fuera = temporal();

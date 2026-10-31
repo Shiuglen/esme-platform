@@ -190,6 +190,7 @@ oficio:
     - { id: "repasos", nombre: "Repasos", vista: "esme.tareas", filtro: "etiqueta:repaso" }
     - { id: "pendiente", nombre: "Te necesita", vista: "esme.hoy", filtro: "estado:te-necesita" }
     - { id: "apuntes", nombre: "Apuntes", vista: "esme.memoria" }
+    - { id: "esquemas", nombre: "Esquemas", vista: "esme.lienzo", lienzo: "lienzos/esquemas.canvas" }
   ordenes: ["tarjetas", "esme.ana.tarjetas/repasar"]
 ```
 
@@ -198,12 +199,12 @@ hizo la plantilla, y abrir más tarde no rompe ninguna plantilla; cerrar, sí.
 
 - **Topes:** hasta 12 secciones y 40 órdenes; un id, un nombre, una
   etiqueta o una option, hasta 32 caracteres.
-- **Secciones:** la primera es `hoy`, sin vista ni filtro (es tu día
-  entero). Las demás llevan una vista de la lista: `esme.hoy`,
-  `esme.tareas`, `esme.memoria`, `esme.terminal` o `esme.mesa`; la app que
-  aún no tenga la que se nombra enseña `esme.tareas`. Los ids van en
-  kebab-case y no se repiten; los nombres, sin espacios a los lados ni nada
-  invisible.
+- **Secciones:** la primera es `hoy`, sin vista, filtro ni lienzo (es tu
+  día entero). Las demás llevan una vista de la lista: `esme.hoy`,
+  `esme.tareas`, `esme.memoria`, `esme.terminal`, `esme.lienzo` o
+  `esme.proyectos`; la app que aún no tenga la que se nombra enseña
+  `esme.tareas`. Los ids van en kebab-case y no se repiten; los nombres, sin
+  espacios a los lados ni nada invisible.
 - **Filtros:** `estado:` con `te-necesita`, `en-marcha`, `terminado` o
   `quieto`, o `etiqueta:` con una en kebab-case; y solo en una vista que
   lista tareas (`esme.hoy` o `esme.tareas`). Nada de expresiones: ni `&&`,
@@ -215,6 +216,9 @@ hizo la plantilla, y abrir más tarde no rompe ninguna plantilla; cerrar, sí.
   `required: false`); su clave va en kebab-case y sale en el prompt, o en
   sus pasos, como `{{clave}}`; y el prompt no tiene huecos que no sean
   campos. Como mucho 10 campos.
+- **Lienzo de partida:** una sección con `esme.lienzo` (y solo ella) puede
+  traer `lienzo: <ruta>`, un `.canvas` del paquete que la app abre tal cual
+  la primera vez; sin él, el Lienzo empieza en blanco. Ver abajo.
 - **Dentro del oficio, una clave de más no se ignora:** se rechaza, y se
   dice cuál. Fuera (arriba del todo, en una entrada) se sigue avisando.
 
@@ -225,6 +229,39 @@ resolver, con ese paquete delante, fijado por su huella.
 Un campo con tipo vale en cualquier tarea, no solo en las órdenes: su
 `default`, si lo lleva, es de su tipo (un número como `7`, `-2` o `2.5`; en
 un `choice`, una de sus `options`).
+
+### El lienzo de partida
+
+Es [JSON Canvas 1.0](https://jsoncanvas.org/spec/1.0/), el formato abierto
+de los lienzos infinitos, y se mira al leer la plantilla
+(`core/paquetes/lienzo.ts`). Es más estricto que esa spec, porque lo escribe
+otro y lo enseña la app:
+
+- **Arriba,** `nodes` y `edges`, y nada más. Como mucho 200 piezas, 400
+  conexiones y 256 KiB.
+- **Cada pieza** es `text`, `file`, `link` o `group`, con su `id`, `x`, `y`,
+  `width` y `height` enteros (la posición, hasta un millón a cada lado del
+  cero; el tamaño, de 1 a 100 000) y `color` si quiere (`"1"` a `"6"` o
+  `#RRGGBB`). Un texto es Markdown, hasta 4000 caracteres. Un `file` es un
+  fichero del paquete que el lienzo sabe enseñar (md, txt, pdf, imagen,
+  audio o vídeo: nada de html, svg ni código). Un `link` es https a un
+  dominio de internet: ni una IP, ni localhost, ni la red de casa (`.local`,
+  `.internal`, `.home.arpa`), y sin usuario ni contraseña. Un `group` puede
+  llevar `label`, y un fondo que es una imagen del paquete.
+- **Cada conexión** va de una pieza del lienzo a otra, con sus lados (`top`,
+  `right`, `bottom`, `left`) y sus extremos (`none`, `arrow`) si quiere.
+- **Los ids,** de 1 a 64 letras, cifras, `-` o `_`, sin repetir entre piezas
+  y conexiones. **Las rutas,** desde la raíz del paquete (no desde la carpeta
+  del lienzo), y que estén. **Nada invisible que mande** en ningún texto.
+- **Lo propio de Esme** va con el prefijo `esme:` y el nombre en kebab-case
+  (`esme:z`, `esme:profundidad`): hasta 8 claves en cada pieza o conexión, y
+  de valor un número, un sí o no, o un texto de hasta 120 caracteres.
+  Cualquier otra clave que no sea de la spec se rechaza.
+
+Lo que no vale se dice con su sitio dentro del lienzo:
+`oficio.secciones.3.lienzo: en «lienzos/esquemas.canvas», nodes.2.file:
+«docs/tema-1.md» no está en el paquete`. Si son muchos, los diez primeros y
+cuántos más hay.
 
 ## 6. Lo de casa, como paquetes: los adaptadores
 

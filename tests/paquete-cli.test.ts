@@ -91,6 +91,40 @@ describe("paquete <carpeta> — qué aporta, qué pide y dónde corre", () => {
     expect(t).toContain("  órdenes: plazos");
   });
 
+  it("una sección del Lienzo dice su lienzo de partida; si el lienzo no vale, code 1 y dónde", () => {
+    const d = join(temporal(), "mapa");
+    const lienzo = {
+      nodes: [{ id: "contrato", type: "file", x: 0, y: 0, width: 300, height: 200, file: "docs/contrato.md" }],
+      edges: [],
+    };
+    const manifiesto = {
+      schema_version: 2,
+      id: "esme.prueba.mapa",
+      version: "1.0.0",
+      name: "Mapa",
+      kind: "template",
+      description: "Una plantilla de prueba, sintética.",
+      author: "Prueba",
+      license: "MIT",
+      contributes: { tasks: [{ id: "t", title: "Una tarea", prompt: "Haz algo útil." }] },
+      oficio: {
+        secciones: [
+          { id: "hoy", nombre: "Hoy" },
+          { id: "mapa", nombre: "Mapa del caso", vista: "esme.lienzo", lienzo: "lienzos/mapa.canvas" },
+        ],
+      },
+    };
+    escribePaquete({ manifiesto, ficheros: { "lienzos/mapa.canvas": JSON.stringify(lienzo), "docs/contrato.md": "# Contrato" } }, d);
+    const s = cli([d]);
+    expect(s.code).toBe(0);
+    expect(texto(s)).toContain("  sección mapa · Mapa del caso · esme.lienzo · lienzo lienzos/mapa.canvas");
+
+    rmSync(join(d, "docs", "contrato.md"));
+    const mal = cli([d]);
+    expect(mal.code).toBe(1);
+    expect(texto(mal)).toContain("oficio.secciones.1.lienzo: en «lienzos/mapa.canvas», nodes.0.file: «docs/contrato.md» no está en el paquete");
+  });
+
   it("un manifiesto que no vale da code 1 y dice por qué", () => {
     const d = temporal();
     writeFileSync(join(d, "module.yaml"), "schema_version: 2\nid: esme.prueba.roto\n");

@@ -11,7 +11,13 @@
  * core/paquetes/resolver.ts, estandar/paquete.spec.yaml.
  */
 import { describe, expect, it } from "vitest";
-import { leePaquete, ManifiestoV2Schema, type PaqueteConocido } from "../core/paquetes/manifiesto.ts";
+import {
+  compruebaFicheros,
+  leePaquete,
+  ManifiestoV2Schema,
+  validaPaqueteDatos,
+  type PaqueteConocido,
+} from "../core/paquetes/manifiesto.ts";
 import {
   ESTADOS,
   TIPOS_ENTRADA,
@@ -115,8 +121,8 @@ describe("el oficio — lo que vale", () => {
     expect(r.paquete?.oficio?.ordenes).toEqual([]);
   });
 
-  it("las vistas son las de la lista, con la Mesa; la de reserva es esme.tareas, y es de la lista", () => {
-    expect([...VISTAS]).toEqual(["esme.hoy", "esme.tareas", "esme.memoria", "esme.terminal", "esme.mesa"]);
+  it("las vistas son las de la lista, con el Lienzo y Proyectos; la de reserva es esme.tareas, y es de la lista", () => {
+    expect([...VISTAS]).toEqual(["esme.hoy", "esme.tareas", "esme.memoria", "esme.terminal", "esme.lienzo", "esme.proyectos"]);
     expect(VISTA_DE_RESERVA).toBe("esme.tareas");
     for (const vista of VISTAS) expect(errores(conSecciones({ id: "x", nombre: "X", vista })), vista).toBe("");
   });
@@ -187,7 +193,8 @@ describe("el oficio — lo que se rechaza, con su motivo", () => {
   });
 
   it("una vista que no es de la lista no vale (ni la de un paquete), y cada sección que no es Hoy lleva la suya", () => {
-    for (const vista of ["esme.casa.carpetas/lista", "esme.hoy/plazos", "esme.desconocida", "ESME.TAREAS", "esme.tareas ", ""])
+    // la Mesa ya no es de la lista: la sustituye el Lienzo
+    for (const vista of ["esme.casa.carpetas/lista", "esme.hoy/plazos", "esme.desconocida", "ESME.TAREAS", "esme.tareas ", "", "esme.mesa"])
       expect(errores(conSecciones({ id: "x", nombre: "X", vista })), vista).toContain("oficio.secciones.1.vista: una vista de la lista");
     expect(errores(conSecciones({ id: "x", nombre: "X" }))).toContain("oficio.secciones.1: le falta la vista");
   });
@@ -249,6 +256,92 @@ describe("el oficio — lo que se rechaza, con su motivo", () => {
     expect(con("esme.otro.piel/sobria")).toContain("oficio.piel: «esme.otro.piel» no está en uses");
     for (const piel of ["esme.prueba.piel-sobria", "Sobria", "esme.prueba.piel-sobria/", ""])
       expect(con(piel), piel).toContain("oficio.piel: una piel es un tema de la plantilla");
+  });
+});
+
+describe("el lienzo de partida de una sección del Lienzo", () => {
+  const MAPA = { id: "mapa", nombre: "Mapa del caso", vista: "esme.lienzo", lienzo: "lienzos/mapa.canvas" };
+  const LIENZO = JSON.stringify({
+    nodes: [
+      { id: "hechos", type: "text", x: 0, y: 0, width: 300, height: 120, text: "# Hechos\n\n- la fecha", "esme:z": 1 },
+      { id: "contrato", type: "file", x: 400, y: 0, width: 300, height: 200, file: "docs/contrato.md" },
+    ],
+    edges: [{ id: "e1", fromNode: "hechos", toNode: "contrato", label: "se apoya en" }],
+  });
+  const FICHEROS = { "lienzos/mapa.canvas": LIENZO, "docs/contrato.md": "# Contrato" };
+  const conLienzo = (seccion: Record<string, unknown>, ficheros: Record<string, string>) =>
+    validaPaqueteDatos({ manifiesto: conSecciones(seccion), ficheros });
+  const en = (p: string) => `oficio.secciones.1.lienzo: en «lienzos/mapa.canvas», ${p}`;
+
+  it("una sección del Lienzo puede traer su lienzo de partida, y vale si el fichero vale", () => {
+    expect(errores(conSecciones(MAPA))).toBe("");
+    const r = conLienzo(MAPA, FICHEROS);
+    expect(r.errores).toEqual([]);
+    expect(r.ok).toBe(true);
+    expect(r.paquete?.oficio?.secciones[1].lienzo).toBe("lienzos/mapa.canvas");
+  });
+
+  it("sin lienzo de partida, el Lienzo empieza en blanco: vale igual", () => {
+    const { lienzo: _, ...sin } = MAPA;
+    expect(conLienzo(sin, {}).errores).toEqual([]);
+  });
+
+  it("«./» y las barras de más no cambian nada: la ruta se mira limpia", () => {
+    expect(conLienzo({ ...MAPA, lienzo: "./lienzos//mapa.canvas" }, FICHEROS).errores).toEqual([]);
+  });
+
+  it("la ruta, un .canvas del paquete", () => {
+    for (const lienzo of ["mapa.json", "mapa.canvas.json", "../mapa.canvas", "/mapa.canvas", "lienzos\\mapa.canvas", "lienzos/.canvas", ""])
+      expect(errores(conSecciones({ ...MAPA, lienzo })), lienzo).toContain(
+        "oficio.secciones.1.lienzo: un lienzo de partida es un fichero .canvas del paquete (JSON Canvas 1.0)"
+      );
+  });
+
+  it("solo en una sección del Lienzo, y nunca en «hoy»", () => {
+    for (const vista of ["esme.tareas", "esme.memoria", "esme.proyectos"])
+      expect(errores(conSecciones({ ...MAPA, vista })), vista).toContain(
+        `oficio.secciones.1: ${vista} no es un lienzo: un lienzo de partida va con esme.lienzo`
+      );
+    expect(errores(plantilla({ secciones: [{ ...HOY, lienzo: "lienzos/mapa.canvas" }] })).split("\n")).toEqual([
+      "oficio.secciones.0: «hoy» va tal cual, sin vista, filtro ni lienzo: es tu día entero",
+    ]);
+    expect(errores(conSecciones({ ...MAPA, filtro: "estado:quieto" }))).toContain("oficio.secciones.1: esme.lienzo no lista tareas");
+  });
+
+  it("el fichero tiene que estar y valer; lo que no vale se dice con su sitio dentro del lienzo", () => {
+    expect(conLienzo(MAPA, { "docs/contrato.md": "# Contrato" }).errores).toEqual(["oficio.secciones.1.lienzo: falta «lienzos/mapa.canvas»"]);
+    expect(conLienzo(MAPA, { "lienzos/mapa.canvas": LIENZO }).errores).toEqual([
+      en("nodes.1.file: «docs/contrato.md» no está en el paquete"),
+    ]);
+    expect(conLienzo(MAPA, { ...FICHEROS, "lienzos/mapa.canvas": "{" }).errores).toEqual([en("no es JSON que se pueda leer")]);
+  });
+
+  it("muchos problemas no tapan el resto: se dicen los diez primeros y cuántos más hay", () => {
+    const nodes = Array.from({ length: 15 }, (_, n) => ({ id: `n${n}`, type: "text", x: 0.5, y: 0, width: 10, height: 10, text: "" }));
+    const r = conLienzo(MAPA, { ...FICHEROS, "lienzos/mapa.canvas": JSON.stringify({ nodes }) });
+    expect(r.errores).toHaveLength(11);
+    expect(r.errores[0]).toBe(en("nodes.0.x: un entero de -1000000 a 1000000"));
+    expect(r.errores[9]).toBe(en("nodes.9.x: un entero de -1000000 a 1000000"));
+    expect(r.errores[10]).toBe(en("y 5 problemas más"));
+  });
+
+  it("un fichero que el lienzo nombra muchas veces se lee una sola vez (un vídeo en 200 piezas no son 200 lecturas)", () => {
+    const nodes = Array.from({ length: 50 }, (_, n) => ({ id: `f${n}`, type: "file", x: 0, y: 0, width: 10, height: 10, file: "docs/contrato.md" }));
+    const ficheros: Record<string, string> = { "lienzos/mapa.canvas": JSON.stringify({ nodes }), "docs/contrato.md": "# Contrato" };
+    const leidas: string[] = [];
+    const leer = (r: string): string | null => {
+      leidas.push(r);
+      return ficheros[r] ?? null;
+    };
+    expect(compruebaFicheros(leePaquete(conSecciones(MAPA)).paquete!, leer)).toEqual([]);
+    expect(leidas.filter((r) => r === "docs/contrato.md")).toHaveLength(1);
+  });
+
+  it("dos secciones con el mismo lienzo de partida: cada una empieza con su copia, y se mira una vez", () => {
+    const otra = { ...MAPA, id: "otro-mapa", nombre: "Otro mapa" };
+    const roto = validaPaqueteDatos({ manifiesto: conSecciones(MAPA, otra), ficheros: { ...FICHEROS, "lienzos/mapa.canvas": "{" } });
+    expect(roto.errores).toEqual([en("no es JSON que se pueda leer")]);
+    expect(validaPaqueteDatos({ manifiesto: conSecciones(MAPA, otra), ficheros: FICHEROS }).errores).toEqual([]);
   });
 });
 

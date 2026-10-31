@@ -73,6 +73,13 @@ export const rutaDentro = (r: string): boolean =>
   !INVISIBLES.test(r) &&
   !r.split("/").includes("..");
 
+/** Una ruta del paquete, limpia: sin `./` ni barras de más (`.` es la raíz, ""). */
+export const limpia = (r: string): string =>
+  r
+    .split("/")
+    .filter((s) => s !== "" && s !== ".")
+    .join("/");
+
 /** Los motivos por los que una pieza de un permiso no vale (los dice el esquema del contrato). */
 export const MOTIVOS_PERMISO = {
   host: "un host va en minúsculas, sin esquema, sin puerto y sin ruta (a.com, *.a.com o *)",

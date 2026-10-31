@@ -25,7 +25,7 @@
 import { INVISIBLES } from "./permisos.ts";
 
 /** Las vistas que se conocen. La app que aún no tenga alguna enseña la de reserva. */
-export const VISTAS = ["esme.hoy", "esme.tareas", "esme.memoria", "esme.terminal", "esme.mesa"] as const;
+export const VISTAS = ["esme.hoy", "esme.tareas", "esme.memoria", "esme.terminal", "esme.lienzo", "esme.proyectos"] as const;
 export type Vista = (typeof VISTAS)[number];
 
 /** Las que listan tareas: las únicas que admiten un filtro. */
@@ -48,7 +48,7 @@ export const PRIMERA = "hoy";
 export const TOPES = { secciones: 12, ordenes: 40, largo: 32, opciones: 20, campos: 10 } as const;
 
 /** «a, b o c». */
-const oLista = (xs: readonly string[]): string => (xs.length > 1 ? `${xs.slice(0, -1).join(", ")} o ${xs[xs.length - 1]}` : xs.join(""));
+export const oLista = (xs: readonly string[]): string => (xs.length > 1 ? `${xs.slice(0, -1).join(", ")} o ${xs[xs.length - 1]}` : xs.join(""));
 
 export const MOTIVOS_OFICIO = {
   plantilla: "oficio es de las plantillas: un paquete aporta piezas, y la plantilla dice cómo se montan",
@@ -61,6 +61,7 @@ export const MOTIVOS_OFICIO = {
   orden: "una orden es un comando de la plantilla («burofax») o de un paquete que usa («esme.ana.cartas/carta»)",
   piel: "una piel es un tema de la plantilla («sobria») o de un paquete que usa («esme.casa.piel-sobria/sobria»)",
   tipo: `type es ${oLista(TIPOS_ENTRADA)}`,
+  lienzo: "un lienzo de partida es un fichero .canvas del paquete (JSON Canvas 1.0): ruta relativa, con «/», y que no sale con «..»",
 } as const;
 
 const KEBAB = /^[a-z0-9]+(-[a-z0-9]+)*$/;
@@ -92,6 +93,8 @@ export interface Seccion {
   nombre: string;
   vista?: string;
   filtro?: string;
+  /** El lienzo de partida de una sección del Lienzo (`lienzo.ts`). */
+  lienzo?: string;
 }
 
 /** El oficio de una plantilla. */
