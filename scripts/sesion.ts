@@ -177,8 +177,10 @@ function ver(a: Argumentos, io: Salida): number {
       t.plan ? `plan de ${plural(t.plan.length, "paso", "pasos")}` : "",
       cierreDe(t),
     ].filter(Boolean);
+    // de lo que respondió, lo último que dijo (es su conclusión)
+    const final = t.respuesta.trim().split(/\n\s*\n/).at(-1) ?? "";
     io.out(`  ${t.n}. «${corto(t.pedido)}»`);
-    io.out(`     ${t.respuesta.trim() ? `→ «${corto(t.respuesta)}» · ` : ""}${hizo.join(" · ")}`);
+    io.out(`     ${final ? `→ «${corto(final)}» · ` : ""}${hizo.join(" · ")}`);
   }
   if (s.permisos.length) io.out(`Esperan respuesta: ${plural(s.permisos.length, "permiso", "permisos")}.`);
   return 0;

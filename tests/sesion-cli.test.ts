@@ -131,6 +131,12 @@ describe("ver y verificar", () => {
     ]);
   });
 
+  it("de lo que respondió el motor, ver enseña lo último que dijo: su conclusión", () => {
+    const turnos = importarClaudeCode(readFileSync(fileURLToPath(new URL("./fixtures/sesiones/claude-code/turnos.jsonl", import.meta.url)), "utf8"), { de: "pc" });
+    expect(estadoDe(leer(turnos.texto)).turnos[0].respuesta).toMatch(/^Voy a leer el reloj\.\n\n/);
+    expect(corre("ver", registro("conclusion.jsonl", turnos.texto)).out).toContain("→ «Arreglado: el desfase era -1. Queda una prueba de la alarma que falla p…» · 3 herramientas (1 con error) · acabó en 14,0 s");
+  });
+
   it("con --en, como estaba tras el evento n; con --json, el estado entero", () => {
     const r = registro("ver-en.jsonl", IMPORTADA.texto);
     const l = leer(IMPORTADA.texto);

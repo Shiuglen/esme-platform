@@ -18,15 +18,16 @@
  *   2. LEERLO COMO TURNOS: lo que escribe la persona abre un turno (`orden
  *      {mensaje}`) o, si el turno está en marcha, lo corrige (`orden
  *      {corregir}`); Esc lo para (`orden {parar}`); un aviso que compuso el
- *      sistema es lo que recibió el motor (`usuario`), y con el turno en
- *      marcha no lo corta. Si Claude Code numera el turno (`turnPosition`),
- *      manda su número: uno nuevo abre turno aunque venga oculto o el motor
- *      deba una respuesta, y el del turno abierto sigue en él. Lo que llega a
- *      la cola con el turno en marcha (`queued_command`) es lo mismo: lo de
- *      la persona lo corrige, y un aviso no lo corta. Del motor: lo que
- *      piensa y dice, sus herramientas (con su clase, sus rutas, su diff y su
- *      error), el plan de TodoWrite, los reintentos de la API y el cambio de
- *      modelo (`opciones`). Cada turno acaba en su `fin`, con lo que gastó.
+ *      sistema abre su turno como lo que recibió el motor (`usuario`), y con
+ *      el turno en marcha no lo corta (se cuenta en `meta`). Si Claude Code
+ *      numera el turno (`turnPosition`), manda su número: uno nuevo abre
+ *      turno aunque venga oculto o el motor deba una respuesta, y el del turno
+ *      abierto sigue en él. Lo que llega a la cola con el turno en marcha
+ *      (`queued_command`) es lo mismo: lo de la persona lo corrige, y un aviso
+ *      no lo corta. Del motor: lo que piensa y dice, sus herramientas (con su
+ *      clase, sus rutas, su diff y su error), el plan de TodoWrite, los
+ *      reintentos de la API y el cambio de modelo (`opciones`). Cada turno
+ *      acaba en su `fin`, con lo que gastó.
  *   3. SELLARLO: un registro nuevo, que empieza con un `dueno` que dice de
  *      dónde viene (`origen: "claude-code"`).
  *
