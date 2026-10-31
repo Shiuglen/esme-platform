@@ -27,6 +27,7 @@
  */
 import { canonicoLock, type Lock } from "./lock.ts";
 import type { ManifiestoV2, PaqueteConocido } from "./manifiesto.ts";
+import { problemasEntrePaquetes } from "./oficio.ts";
 import { unePermisos, type Permiso } from "./permisos.ts";
 import { cumple } from "./semver.ts";
 
@@ -104,6 +105,9 @@ export function resuelve(raiz: ManifiestoV2, conocidos: PaqueteConocido[], opts:
     orden.push(conocido); // post-orden: sus dependencias ya están delante
   };
   for (const u of raiz.uses) visita(u, raiz.id);
+
+  // el oficio de la plantilla nombra temas y comandos de sus paquetes: con ellos delante, se mira que estén
+  if (raiz.oficio) errores.push(...problemasEntrePaquetes(raiz.oficio, (id) => elegidos.get(id)?.conocido.manifiesto));
 
   const permisos = unePermisos(raiz.permissions, ...orden.map((p) => p.manifiesto.permissions));
   const ok = errores.length === 0;

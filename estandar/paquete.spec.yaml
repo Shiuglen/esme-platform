@@ -46,7 +46,14 @@
 #      paquete (`entry` con `runtime`) o un servidor MCP (`mcp`), nunca las dos;
 #  10. lo de la v1 arriba del todo en un v2 (`category`, `entry`, `runtime`,
 #      `dependencies`, `sideEffects`, `engines`) se rechaza con el sitio donde
-#      va ahora: un v2 a medio migrar no se acepta en silencio.
+#      va ahora: un v2 a medio migrar no se acepta en silencio;
+#  11. `oficio` es de las plantillas (lo que monta al abrirla) y es cerrado
+#      (sección `oficio`): hasta 12 secciones, la primera «hoy»; ids en
+#      kebab-case; cada vista de una lista conocida, con una de reserva;
+#      filtros solo `estado:<estado>` o `etiqueta:<kebab-case>`, nada de
+#      expresiones; y hasta 40 órdenes, cada una un comando de la plantilla o
+#      de un paquete que usa, con todos sus campos con tipo y sin huecos
+#      libres en su prompt. Lo que nombra de un paquete lo mira el resolver.
 # Lo que se AVISA sin rechazar: una clave desconocida (arriba o dentro de una
 # entrada), un punto que esta versión no conoce, `net:fetch` con `*` (es toda
 # la red: que se diga a secas) y un MCP remoto por http sin cifrar.
@@ -82,11 +89,12 @@ manifiesto:
     tasks:
       - id: "tarjetas"
         title: "Prepara tarjetas"
-        prompt: "Prepara diez tarjetas del tema que te diga."
+        prompt: "Prepara diez tarjetas de {{tema}}."  # cada campo, en el prompt como {{clave}}
         inputs:
           - key: "tema"
             description: "el tema de las tarjetas"
             required: true
+            type: "text"                  # text | number | choice (con options); lo exige una orden
     routines:
       - id: "repaso"
         when: "cada día 20:00"
@@ -102,6 +110,13 @@ manifiesto:
   settings:                               # solo en plantillas
     rumbo: "Aprobar el examen de enero"   # texto
     budget_usd_per_day: 0.5               # número, 0 o más
+  oficio:                                 # solo en plantillas: lo que monta al abrirla (ver `oficio`)
+    piel: "esme.casa.piel-estudio/estudio"  # un tema suyo, o <paquete de uses>/<tema>
+    secciones:                            # hasta 12; «hoy» la primera, y tal cual
+      - { id: "hoy", nombre: "Hoy" }
+      - { id: "repasos", nombre: "Repasos", vista: "esme.tareas", filtro: "etiqueta:repaso" }
+      - { id: "apuntes", nombre: "Apuntes", vista: "esme.memoria" }
+    ordenes: ["tarjetas"]                 # hasta 40: comandos suyos, o <paquete de uses>/<comando>
   success:                                # cómo se ve que la plantilla funciona
     task: "Prepara diez tarjetas del tema 1"
     check: "schemas/tarjetas.json"
@@ -240,3 +255,40 @@ lock:
   claves: ["lock_version", "raiz", "paquetes", "permisos"]
   claves_raiz: ["id", "version", "sha256", "permisos"]
   claves_paquete: ["id", "version", "sha256", "permisos"]
+
+# --- El oficio de una plantilla: lo que monta al abrirla ---
+# `oficio: { piel?, secciones, ordenes? }`, solo en plantillas (regla 11), y
+# sin claves de más (dentro del oficio, una clave desconocida no se ignora:
+# se rechaza). Sus claves van en castellano, como las nombró el diseño de la
+# interfaz «Oficio».
+#   piel:      un tema de la plantilla («estudio») o de un paquete de `uses`
+#              («esme.casa.piel-estudio/estudio»);
+#   secciones: en orden, y la primera, `primera`, tal cual (sin vista ni
+#              filtro). Cada una `{ id, nombre, vista, filtro? }`: el id en
+#              kebab-case, sin repetir; el nombre, sin espacios a los lados ni
+#              nada invisible; la vista, de `vistas`;
+#   ordenes:   comandos de la plantilla («tarjetas») o de un paquete de `uses`
+#              («esme.ana.tarjetas/repasar»), sin repetir. Su tarea se lanza
+#              con un formulario: cada campo con `type` (de `tipos_de_entrada`;
+#              `choice` con sus `options`) y `description` (su etiqueta), sin
+#              `required: false`, con la clave en kebab-case y en el prompt
+#              (o en sus pasos) como `{{clave}}`; y ningún hueco del prompt
+#              que no sea un campo.
+# Un filtro es `estado:<uno de estados>` o `etiqueta:<kebab-case>`, nada de
+# expresiones, y solo va en una vista de `vistas_con_filtro` (las que listan
+# tareas). La app que no tenga la vista que se nombra enseña la de reserva.
+# Topes: `largo` es el de un id, un nombre, una etiqueta, una option o la
+# clave de un campo; `opciones`, las de un choice; `campos`, los de una orden.
+# Un campo con tipo vale en cualquier tarea: su default, uno de su tipo (un
+# número como `7`, `-2` o `2.5`; en un choice, una de sus options).
+oficio:
+  primera: "hoy"
+  vistas: ["esme.hoy", "esme.tareas", "esme.memoria", "esme.terminal", "esme.mesa"]
+  vistas_con_filtro: ["esme.hoy", "esme.tareas"]
+  vista_de_reserva: "esme.tareas"
+  estados: ["te-necesita", "en-marcha", "terminado", "quieto"]
+  tipos_de_entrada: ["text", "number", "choice"]
+  topes: { secciones: 12, ordenes: 40, largo: 32, opciones: 20, campos: 10 }
+  filtros:                                # probados con el código
+    validos: ["estado:te-necesita", "estado:en-marcha", "estado:terminado", "estado:quieto", "etiqueta:repaso", "etiqueta:por-revisar"]
+    no_validos: ["repaso", "estado:inventado", "estado:", "etiqueta:", "etiqueta:Repaso", "etiqueta:a:b", "etiqueta:*", "estado:quieto && etiqueta:x", "prioridad:alta"]

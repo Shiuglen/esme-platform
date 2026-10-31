@@ -50,6 +50,47 @@ describe("paquete <carpeta> — qué aporta, qué pide y dónde corre", () => {
     expect(texto(s)).toMatch(/dist\/index\.js.*constru/);
   });
 
+  it("una plantilla con oficio: dice qué monta al abrirla (su piel, sus secciones y sus órdenes)", () => {
+    const d = join(temporal(), "despacho");
+    escribePaquete(
+      {
+        manifiesto: {
+          schema_version: 2,
+          id: "esme.prueba.despacho",
+          version: "1.0.0",
+          name: "Despacho",
+          kind: "template",
+          description: "Una plantilla de prueba, sintética.",
+          author: "Prueba",
+          license: "MIT",
+          uses: [{ id: "esme.prueba.piel-sobria", version: "^1", sha256: "a".repeat(64) }],
+          contributes: {
+            tasks: [{ id: "plazos", title: "Plazos", prompt: "¿Qué vence en {{dias}} días?", inputs: [{ key: "dias", description: "días", type: "number" }] }],
+            commands: [{ id: "plazos", title: "Plazos", task: "plazos" }],
+          },
+          oficio: {
+            piel: "esme.prueba.piel-sobria/sobria",
+            secciones: [
+              { id: "hoy", nombre: "Hoy" },
+              { id: "expedientes", nombre: "Expedientes", vista: "esme.tareas", filtro: "etiqueta:expediente" },
+            ],
+            ordenes: ["plazos"],
+          },
+        },
+        ficheros: {},
+      },
+      d
+    );
+    const s = cli([d]);
+    expect(s.code).toBe(0);
+    const t = texto(s);
+    expect(t).toContain("Qué monta al abrirla:");
+    expect(t).toContain("  piel: esme.prueba.piel-sobria/sobria");
+    expect(t).toContain("  sección hoy · Hoy");
+    expect(t).toContain("  sección expedientes · Expedientes · esme.tareas · etiqueta:expediente");
+    expect(t).toContain("  órdenes: plazos");
+  });
+
   it("un manifiesto que no vale da code 1 y dice por qué", () => {
     const d = temporal();
     writeFileSync(join(d, "module.yaml"), "schema_version: 2\nid: esme.prueba.roto\n");

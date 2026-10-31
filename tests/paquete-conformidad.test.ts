@@ -29,8 +29,9 @@ describe("paquete.spec.yaml — la de verdad cuadra", () => {
     expect(fallos(spec())).toBe("");
   });
 
-  it("el ejemplo trae las veinte claves de arriba", () => {
-    expect(Object.keys(spec().manifiesto)).toHaveLength(20);
+  it("el ejemplo trae las veintiuna claves de arriba, el oficio también", () => {
+    expect(Object.keys(spec().manifiesto)).toHaveLength(21);
+    expect(spec().manifiesto.oficio.secciones[0].id).toBe("hoy");
   });
 });
 
@@ -120,6 +121,41 @@ describe("paquete.spec.yaml — y la comprobación ve cuando se separa", () => {
     const f = fallos(s);
     expect(f).toContain("raiz");
     expect(f).toContain("firma");
+  });
+
+  it("el oficio: una vista de más, otra de reserva, un estado o un tipo de menos", () => {
+    const s = spec();
+    s.oficio.vistas.push("esme.calendario");
+    s.oficio.vistas_con_filtro.push("esme.memoria");
+    s.oficio.vista_de_reserva = "esme.hoy";
+    s.oficio.estados.pop();
+    s.oficio.tipos_de_entrada = ["text", "number"];
+    s.oficio.primera = "tareas";
+    const f = fallos(s);
+    expect(f).toContain("esme.calendario");
+    expect(f).toContain("oficio.vistas_con_filtro");
+    expect(f).toContain("oficio.vista_de_reserva");
+    expect(f).toContain("oficio.estados");
+    expect(f).toContain("oficio.tipos_de_entrada");
+    expect(f).toContain("oficio.primera");
+  });
+
+  it("el oficio: un tope cambiado, o uno que falta", () => {
+    const s = spec();
+    s.oficio.topes.secciones = 20;
+    delete s.oficio.topes.campos;
+    const f = fallos(s);
+    expect(f).toContain("oficio.topes.secciones");
+    expect(f).toContain("oficio.topes.campos");
+  });
+
+  it("el oficio: un filtro que la spec da por bueno y el código no (o al revés)", () => {
+    const s = spec();
+    s.oficio.filtros.validos.push("estado:te-necesita && etiqueta:x");
+    s.oficio.filtros.no_validos.push("etiqueta:escrito");
+    const f = fallos(s);
+    expect(f).toContain("estado:te-necesita && etiqueta:x");
+    expect(f).toContain("etiqueta:escrito");
   });
 
   it("una spec sin una sección entera lo dice, no se rompe", () => {
