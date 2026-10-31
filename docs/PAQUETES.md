@@ -44,15 +44,16 @@ contributes:
     - id: "tarjetas"
       title: "Prepara tarjetas"
       prompt: "Prepara diez tarjetas de {{tema}}."
-      inputs: [{ key: "tema", required: true }]
+      inputs: [{ key: "tema", description: "el tema", type: "text" }]
 permissions:
   - kind: "net:fetch"
     hosts: ["ankiweb.net"]
 ```
 
-Las claves van en inglés, como en la v1; los mensajes, en castellano. La
-licencia es una de las que deja la spec (MIT, Apache-2.0, ESME-CL,
-BSD-2-Clause, BSD-3-Clause, ISC o Unlicense).
+Las claves van en inglés, como en la v1 (salvo las del `oficio` de una
+plantilla, §5, que van como las nombró el diseño de la interfaz); los
+mensajes, en castellano. La licencia es una de las que deja la spec (MIT,
+Apache-2.0, ESME-CL, BSD-2-Clause, BSD-3-Clause, ISC o Unlicense).
 
 **La v1 sigue valiendo tal cual.** `core/ipc/module-schema.ts` la lee como
 siempre y, además, `deV1` la ve como un paquete de una sola contribución
@@ -79,7 +80,7 @@ corre: en la **ventana** (la interfaz), en la **sesión** (cuando trabajas),
 | `views` | una vista propia, en su cápsula | código aislado | ventana |
 | `agents` | un agente: receta del kit, `claude-md` o `comando` (una línea de comandos) | datos | sesión |
 | `teams` | un equipo de agentes | datos | sesión |
-| `tasks` | un encargo listo para lanzar, con sus `inputs` (`{{clave}}` en el prompt) | datos | sesión |
+| `tasks` | un encargo listo para lanzar, con sus `inputs` (`{{clave}}` en el prompt; con `type`, se piden con un formulario) | datos | sesión |
 | `routines` | lo que corre solo, a su hora (`when`) | datos | siempre |
 | `channels` | por dónde llega trabajo (una herramienta del paquete) | datos | siempre |
 | `memory` | código de la mente | código | mente |
@@ -173,6 +174,57 @@ es otra, así que se pregunta una vez. Un candado roto, ajeno (de
 otra plantilla) o que no está equivale a «nada consentido»: equivocarse aquí
 es preguntar de más, nunca de menos. Se escribe siempre igual (paquetes por
 id, dos espacios), para que un diff del candado diga solo lo que cambió.
+
+### El oficio: lo que la plantilla monta al abrirla
+
+Una plantilla puede decir cómo se ve al abrirla: su `oficio`. Es solo de
+las plantillas (un paquete aporta piezas; la plantilla dice cómo se
+montan), y sus claves van en castellano, como las nombró el diseño de la
+interfaz.
+
+```yaml
+oficio:
+  piel: "esme.casa.piel-estudio/estudio"   # un tema suyo, o <paquete de uses>/<tema>
+  secciones:
+    - { id: "hoy", nombre: "Hoy" }         # la primera, siempre, y tal cual
+    - { id: "repasos", nombre: "Repasos", vista: "esme.tareas", filtro: "etiqueta:repaso" }
+    - { id: "pendiente", nombre: "Te necesita", vista: "esme.hoy", filtro: "estado:te-necesita" }
+    - { id: "apuntes", nombre: "Apuntes", vista: "esme.memoria" }
+  ordenes: ["tarjetas", "esme.ana.tarjetas/repasar"]
+```
+
+Es cerrado a propósito: lo que monta lo pinta una app que no escribió quien
+hizo la plantilla, y abrir más tarde no rompe ninguna plantilla; cerrar, sí.
+
+- **Topes:** hasta 12 secciones y 40 órdenes; un id, un nombre, una
+  etiqueta o una option, hasta 32 caracteres.
+- **Secciones:** la primera es `hoy`, sin vista ni filtro (es tu día
+  entero). Las demás llevan una vista de la lista: `esme.hoy`,
+  `esme.tareas`, `esme.memoria`, `esme.terminal` o `esme.mesa`; la app que
+  aún no tenga la que se nombra enseña `esme.tareas`. Los ids van en
+  kebab-case y no se repiten; los nombres, sin espacios a los lados ni nada
+  invisible.
+- **Filtros:** `estado:` con `te-necesita`, `en-marcha`, `terminado` o
+  `quieto`, o `etiqueta:` con una en kebab-case; y solo en una vista que
+  lista tareas (`esme.hoy` o `esme.tareas`). Nada de expresiones: ni `&&`,
+  ni `||`, ni otras claves.
+- **Órdenes:** un comando de la plantilla, o de un paquete que usa
+  (`<paquete>/<comando>`), y su tarea se lanza con un formulario: cada
+  campo dice su `type` (`text`, `number` o `choice`, este con sus
+  `options`) y su `description`, que es su etiqueta; se rellena (nada de
+  `required: false`); su clave va en kebab-case y sale en el prompt, o en
+  sus pasos, como `{{clave}}`; y el prompt no tiene huecos que no sean
+  campos. Como mucho 10 campos.
+- **Dentro del oficio, una clave de más no se ignora:** se rechaza, y se
+  dice cuál. Fuera (arriba del todo, en una entrada) se sigue avisando.
+
+Lo que el oficio nombra de la propia plantilla se mira al leerla; lo que
+nombra de un paquete (su tema, su comando y los campos de su tarea), al
+resolver, con ese paquete delante, fijado por su huella.
+
+Un campo con tipo vale en cualquier tarea, no solo en las órdenes: su
+`default`, si lo lleva, es de su tipo (un número como `7`, `-2` o `2.5`; en
+un `choice`, una de sus `options`).
 
 ## 6. Lo de casa, como paquetes: los adaptadores
 
@@ -320,6 +372,13 @@ Códigos: 0 bien; 1 no vale o no se pudo; 2 mal dicho (y el uso).
   publica la v1.
 - **Los puntos que aún no existen:** servidores LSP, estilos de salida,
   temas y workflows de Claude Code.
+- **Las vistas de un paquete en el oficio** (`<paquete>/<vista>`): hoy solo
+  valen las de la lista. Se abrirá cuando la app enseñe las vistas de un
+  paquete en su cápsula.
+- **Los tipos al importar:** los importadores aún no ponen `type` a los
+  campos (de una receta de goose con `input_type: select`, el campo sale
+  sin tipo, con sus opciones en la descripción): para lanzarla como orden, la
+  plantilla la envuelve en una tarea suya con sus campos con tipo.
 - **Las sesiones en el móvil y en la nube**, que el diseño aprobado pone
   junto a los paquetes: van en su propio trabajo.
 

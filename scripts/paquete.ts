@@ -145,6 +145,13 @@ function describe(m: ManifiestoV2, version: 1 | 2 | null): string[] {
   );
   lineas.push(aporta.length ? "Qué aporta:" : "Qué aporta: nada suyo", ...aporta);
   if (m.uses.length) lineas.push("Qué usa:", ...m.uses.map((u) => `  ${u.id} ${u.version} · huella ${u.sha256.slice(0, 12)}…`));
+  if (m.oficio)
+    lineas.push(
+      "Qué monta al abrirla:",
+      ...(m.oficio.piel ? [`  piel: ${m.oficio.piel}`] : []),
+      ...m.oficio.secciones.map((s) => `  sección ${[s.id, s.nombre, s.vista, s.filtro].filter(Boolean).join(" · ")}`),
+      `  órdenes: ${m.oficio.ordenes.join(", ") || "ninguna"}`
+    );
   lineas.push(m.permissions.length ? "Qué pide:" : "Qué pide: nada", ...sangra(m.permissions.map(permisoEnTexto)));
   const n = nivelDe(m);
   lineas.push(`Aislamiento: nivel ${n} (${NIVELES[n]})`);

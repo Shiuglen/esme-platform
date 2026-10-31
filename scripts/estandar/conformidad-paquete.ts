@@ -7,11 +7,11 @@
  *
  *   - el ejemplo trae todas las claves y el código lo acepta, sin avisos;
  *   - los tipos, las licencias, los formatos, los puntos, los alcances, los
- *     niveles, las variables y las claves del candado son los del código
- *     (ni uno más, ni uno menos);
- *   - los rangos y los hosts de la spec se PRUEBAN con el código: un host
- *     parecido (`evil-figma.com`) que la spec da por no cubierto y el
- *     código cubre es una puerta de atrás, y aquí se ve.
+ *     niveles, las variables, las claves del candado y las listas y los
+ *     topes del oficio son los del código (ni uno más, ni uno menos);
+ *   - los rangos, los hosts y los filtros del oficio de la spec se PRUEBAN
+ *     con el código: un host parecido (`evil-figma.com`) que la spec da por
+ *     no cubierto y el código cubre es una puerta de atrás, y aquí se ve.
  *
  * Recibe la spec ya leída (y no la lee ella) para que la prueba pueda darle
  * una spec separada a propósito y ver que lo dice.
@@ -30,6 +30,16 @@ import {
   leePaquete,
   type Punto,
 } from "../../core/paquetes/manifiesto.ts";
+import {
+  ESTADOS,
+  PRIMERA,
+  TIPOS_ENTRADA,
+  TOPES,
+  VISTAS,
+  VISTAS_CON_FILTRO,
+  VISTA_DE_RESERVA,
+  esFiltro,
+} from "../../core/paquetes/oficio.ts";
 import { ALCANCES, permiteHost } from "../../core/paquetes/permisos.ts";
 import { cumple, esRango } from "../../core/paquetes/semver.ts";
 import { CLAVES_ENTRADA_LOCK, CLAVES_LOCK, CLAVES_RAIZ_LOCK } from "../../core/paquetes/lock.ts";
@@ -174,5 +184,26 @@ export function compruebaPaquete(spec: Objeto, anota: (problema: string) => void
     mismaLista("lock.claves", lock.claves, CLAVES_LOCK);
     mismaLista("lock.claves_raiz", lock.claves_raiz, CLAVES_RAIZ_LOCK);
     mismaLista("lock.claves_paquete", lock.claves_paquete, CLAVES_ENTRADA_LOCK);
+  }
+
+  // el oficio: sus listas y sus topes, y los filtros que la spec da por buenos (y por malos), probados con el código
+  const oficio = objeto(seccion("oficio"));
+  if (oficio) {
+    const mismo = (que: string, deSpec: unknown, codigo: string | number): void => {
+      if (deSpec !== codigo) anota(`oficio.${que}: «${String(deSpec)}» en la spec, «${codigo}» en el código`);
+    };
+    mismo("primera", oficio.primera, PRIMERA);
+    mismaLista("oficio.vistas", oficio.vistas, VISTAS);
+    mismaLista("oficio.vistas_con_filtro", oficio.vistas_con_filtro, VISTAS_CON_FILTRO);
+    mismo("vista_de_reserva", oficio.vista_de_reserva, VISTA_DE_RESERVA);
+    mismaLista("oficio.estados", oficio.estados, ESTADOS);
+    mismaLista("oficio.tipos_de_entrada", oficio.tipos_de_entrada, TIPOS_ENTRADA);
+    const topes = objeto(oficio.topes) ?? {};
+    for (const [k, v] of Object.entries(TOPES)) mismo(`topes.${k}`, topes[k], v);
+    for (const k of Object.keys(topes)) if (!(k in TOPES)) anota(`oficio.topes: «${k}» no es un tope del código`);
+    const filtros = objeto(oficio.filtros) ?? {};
+    for (const f of textos(filtros.validos) ?? []) if (!esFiltro(f)) anota(`oficio.filtros: la spec da por bueno «${f}» y el código no`);
+    for (const f of textos(filtros.no_validos) ?? [])
+      if (esFiltro(f)) anota(`oficio.filtros: la spec no da por bueno «${f}» y el código sí`);
   }
 }
