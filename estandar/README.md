@@ -13,6 +13,7 @@
 | [`motor-capability.spec.yaml`](motor-capability.spec.yaml) | lo que declara cada motor (ventana, herramientas, red, MCP, desbordamiento) | `motores/laya-adapter.ts`, `motores/acp-motores.ts` |
 | [`contexto.spec.yaml`](contexto.spec.yaml) | los tres modos de contexto y sus presupuestos | `core/talamus/modos.ts` |
 | [`turno.spec.yaml`](turno.spec.yaml) | lo que lleva un turno (respuesta, pasos plegados, cambios, tokens, coste) | `core/turnos/turno.ts` |
+| [`sesion.spec.yaml`](sesion.spec.yaml) | una sesión es su registro: el sobre, la cadena de huellas, el dueño y la época, bifurcar y compactar | `core/sesiones/` |
 | [`equipo.spec.yaml`](equipo.spec.yaml) | un equipo de agentes: un arquitecto, un presupuesto repartido, sin conflictos | `core/equipo.ts` |
 | [`bot.spec.yaml`](bot.spec.yaml) | un bot: la puerta, los permisos concedidos y el techo por hora | `core/bot.ts` |
 | [`agente.spec.yaml`](agente.spec.yaml) | la receta de un agente (motor, encargo, presupuesto, memoria) | `tienda/agente.ts` |
