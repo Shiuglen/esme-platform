@@ -84,10 +84,10 @@ Cumple: llega en 200 ms.
   otro límite.
 
 Lo que sale en una máquina en la nube de 4 núcleos compartidos, con ruido de
-una vuelta a otra: con sobre, entre 100 y 125 ms la primera vez y entre 55 y
-65 ms en marcha. Como la escribe hoy el Taller, entre 130 y 140 ms en marcha,
-y unos 200 ms la primera vez: esa casilla **no** llegaría, y la regla no se la
-pide. Es una razón más para escribir con sobre.
+una vuelta a otra: con sobre, entre 100 y 125 ms la primera vez y entre 50 y
+80 ms en marcha. Como la escribe hoy el Taller, entre 130 y 160 ms en marcha,
+y entre 195 y 215 ms la primera vez: esa casilla **no** llegaría, y la regla no
+se la pide. Es una razón más para escribir con sobre.
 
 Lo que sí fija una prueba ([`tests/sesion-escala.test.ts`](../tests/sesion-escala.test.ts))
 es lo que no depende de la máquina: que las tres formas dan lo mismo, cuánto
