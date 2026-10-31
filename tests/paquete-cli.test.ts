@@ -15,7 +15,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { cli } from "../scripts/paquete.ts";
 import { conocidoDeCarpeta, escribePaquete, leePaqueteDeCarpeta } from "../tienda/paquete-disco.ts";
-import { leeLock } from "../core/paquetes/lock.ts";
+import { escribeLock, leeLock } from "../core/paquetes/lock.ts";
 
 const HOLA = join(import.meta.dirname, "..", "modulos", "ejemplo-hola-mundo");
 const FIX = join(import.meta.dirname, "fixtures", "importar");
@@ -31,6 +31,28 @@ afterEach(() => {
 });
 
 const texto = (s: { lineas: string[] }): string => s.lineas.join("\n");
+
+/** Una plantilla con recuerdos de partida: lo que su oficio ya sabe. */
+const AUDITORIA = {
+  schema_version: 2,
+  id: "esme.prueba.auditoria",
+  version: "1.0.0",
+  name: "Auditoría",
+  kind: "template",
+  description: "Una plantilla de prueba, sintética.",
+  author: "Prueba",
+  license: "MIT",
+  contributes: { tasks: [{ id: "t", title: "Una tarea", prompt: "Haz algo útil." }] },
+  recuerdos: [
+    { id: "alcance", texto: "Solo se audita con permiso firmado y dentro de su alcance.", tipo: "decision" },
+    { id: "informes", texto: "Prefiero informes cortos, con la prueba de cada hallazgo." },
+  ],
+};
+
+const SUS_RECUERDOS = [
+  "  alcance · decision · Solo se audita con permiso firmado y dentro de su alcance.",
+  "  informes · nota · Prefiero informes cortos, con la prueba de cada hallazgo.",
+];
 
 describe("paquete <carpeta> — qué aporta, qué pide y dónde corre", () => {
   it("hola-mundo: una herramienta que corre en la sesión, pide mind:read y va en el nivel 2", () => {
@@ -114,6 +136,14 @@ describe("paquete <carpeta> — qué aporta, qué pide y dónde corre", () => {
         "  miembro pasante · Pasante · busca jurisprudencia · meticuloso",
       ].join("\n")
     );
+  });
+
+  it("una plantilla con recuerdos: dice qué deja en tu mente al aceptarla, cada uno con su tipo", () => {
+    const d = join(temporal(), "auditoria");
+    escribePaquete({ manifiesto: AUDITORIA, ficheros: {} }, d);
+    const s = cli([d]);
+    expect(s.code).toBe(0);
+    expect(texto(s)).toContain(["Qué deja en tu mente al aceptarla:", ...SUS_RECUERDOS].join("\n"));
   });
 
   it("una sección del Lienzo dice su lienzo de partida; si el lienzo no vale, code 1 y dónde", () => {
@@ -300,6 +330,51 @@ describe("paquete resolver — el candado solo se escribe con tu sí", () => {
     const s = cli(["resolver", m.plantilla, "--en", m.en]);
     expect(texto(s)).toContain("Ya no están: esme.prueba.notas");
     expect(texto(s)).toContain("esme.prueba.estudio cambió de huella");
+    expect(texto(s)).toContain("pide tu permiso");
+  });
+
+  /** La plantilla con recuerdos, sola (sin paquetes), y su carpeta de paquetes vacía. */
+  const conRecuerdos = () => {
+    const raiz = temporal();
+    const en = join(raiz, "paquetes");
+    mkdirSync(en);
+    const plantilla = join(raiz, "auditoria");
+    escribePaquete({ manifiesto: AUDITORIA, ficheros: {} }, plantilla);
+    return { en, plantilla, lock: `${plantilla}.lock.json` };
+  };
+
+  const DEJA = ["Al aceptarla, deja en tu mente (como esme.prueba.auditoria/<id>):", ...SUS_RECUERDOS].join("\n");
+
+  it("una plantilla con recuerdos: al pedir tu sí enseña lo que deja en tu mente; con el candado ya aceptado, no", () => {
+    const m = conRecuerdos();
+    const s = cli(["resolver", m.plantilla, "--en", m.en]);
+    expect(s.code).toBe(0);
+    expect(texto(s)).toContain("Nada consentido aún: no hay candado de esta plantilla.");
+    expect(texto(s)).not.toContain("Lo nuevo desde el candado:");
+    expect(texto(s)).toContain(DEJA);
+    expect(texto(s)).toContain("pide tu permiso");
+
+    const acepta = cli(["resolver", m.plantilla, "--en", m.en, "--aceptar"]);
+    expect(texto(acepta)).toContain(DEJA);
+    expect(leeLock(m.lock)?.raiz.sha256).toMatch(/^[0-9a-f]{64}$/);
+
+    const otra = cli(["resolver", m.plantilla, "--en", m.en]);
+    expect(texto(otra)).toContain("no hay nada nuevo que consentir");
+    expect(texto(otra)).not.toContain("deja en tu mente");
+  });
+
+  it("un candado que no fijaba la plantilla (sin su huella) vuelve a pedir tu sí, lo dice y enseña sus recuerdos", () => {
+    const m = conRecuerdos();
+    escribeLock(m.lock, {
+      lock_version: 1,
+      raiz: { id: "esme.prueba.auditoria", version: "1.0.0", permisos: [] },
+      paquetes: [],
+      permisos: [],
+    });
+    const s = cli(["resolver", m.plantilla, "--en", m.en]);
+    expect(s.code).toBe(0);
+    expect(texto(s)).toMatch(/Lo nuevo desde el candado:\n  esme\.prueba\.auditoria no estaba fijada por su huella; ahora sí: [0-9a-f]{12}…/);
+    expect(texto(s)).toContain(DEJA);
     expect(texto(s)).toContain("pide tu permiso");
   });
 

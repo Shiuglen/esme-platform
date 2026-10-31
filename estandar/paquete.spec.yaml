@@ -1,7 +1,7 @@
 # **Spec abierta v1 — el paquete (module.yaml v2).** Referencia: `docs/PAQUETES.md`.
 # Lo implementan `core/paquetes/manifiesto.ts`, `core/paquetes/permisos.ts`,
 # `core/paquetes/semver.ts`, `core/paquetes/lock.ts`, `core/paquetes/oficio.ts`,
-# `core/paquetes/lienzo.ts` y `core/paquetes/caracter.ts`. La conformidad
+# `core/paquetes/lienzo.ts`, `core/paquetes/caracter.ts` y `core/paquetes/recuerdos.ts`. La conformidad
 # (`scripts/estandar/conformidad-paquete.ts`) compara cada sección con el
 # código: el ejemplo tiene que valer, y los puntos, los alcances, los niveles,
 # los rangos y los hosts tienen que ser los mismos.
@@ -63,7 +63,12 @@
 #      un sonido de la lista o ninguno; solo las palabras que la app sabe
 #      cambiar; y un equipo de hasta 12, cada miembro con su id, su nombre,
 #      su rol y su carácter, los cuatro y nada más. El color no: es de la
-#      piel de quien la usa.
+#      piel de quien la usa;
+#  13. `recuerdos` es de las plantillas (un paquete no escribe en tu mente
+#      al instalarse) y es cerrado (sección `recuerdos`): hasta 20, cada uno
+#      con su id, su texto de una línea y su tipo de la lista, sin repetir
+#      ni un id ni lo que dicen. La procedencia no la escribe la plantilla:
+#      la pone el kit desde el candado que la persona aceptó.
 # Lo que se AVISA sin rechazar: una clave desconocida (arriba o dentro de una
 # entrada), un punto que esta versión no conoce, `net:fetch` con `*` (es toda
 # la red: que se diga a secas) y un MCP remoto por http sin cifrar.
@@ -137,6 +142,10 @@ manifiesto:
     vocabulario: { hoy: "Hoy toca", encargar: "Pedir a la tutora" }  # palabra → cómo se dice aquí
     equipo:                               # hasta 12; los cuatro, siempre
       - { id: "tutora", nombre: "Tutora", rol: "te pregunta y te corrige", caracter: "paciente, vuelve a lo que fallas" }
+  recuerdos:                              # solo en plantillas: lo que deja en tu mente al aceptarla (ver `recuerdos`)
+    - id: "tarjetas-cortas"
+      texto: "Prefiero repasar con tarjetas cortas, de una idea cada una."
+      tipo: "preferencia"                 # nota | decision | preferencia (si falta, nota)
   success:                                # cómo se ve que la plantilla funciona
     task: "Prepara diez tarjetas del tema 1"
     check: "schemas/tarjetas.json"
@@ -272,8 +281,9 @@ variables:
 # permisos) o un permiso nuevo, se vuelve a pedir permiso. La raíz (la
 # plantilla) es uno más: su huella y sus propios permisos también cuentan,
 # así que quitar un paquete, que no pide nada por sí mismo, se pregunta una
-# vez (la plantilla que lo quita es otra). Un candado roto o que no está
-# equivale a «nada consentido».
+# vez (la plantilla que lo quita es otra). Y si el candado de antes no tenía
+# la huella de la plantilla y el nuevo sí, también: aquel sí no la fijaba.
+# Un candado roto o que no está equivale a «nada consentido».
 lock:
   claves: ["lock_version", "raiz", "paquetes", "permisos"]
   claves_raiz: ["id", "version", "sha256", "permisos"]
@@ -399,3 +409,30 @@ caracter:
   paletas: ["costura"]
   palabras: ["hoy", "tarea", "tareas", "asunto", "asuntos", "equipo", "te-necesita", "en-marcha", "terminado", "quieto", "encargar", "memoria"]
   topes: { miembros: 12, nombre: 32, rol: 60, caracter: 120, palabra: 32 }
+
+# --- Los recuerdos de partida de una plantilla: lo que deja en tu mente ---
+# Lo que el oficio de una plantilla ya sabe (solo se audita con permiso
+# firmado; los plazos se cuentan en días hábiles). Hasta `topes.recuerdos`,
+# cada uno con `id` (kebab-case, sin repetir), `texto` (una línea de 1 a
+# `topes.texto` caracteres, sin espacios a los lados ni nada invisible; dos
+# que dicen lo mismo, salvo las mayúsculas, no valen) y `tipo` (de `tipos`;
+# si falta, nota), que en la mente es el de `en_la_mente` (`remember`).
+# Escriben en tu mente, y lo que hay en tu mente condiciona lo que hace el
+# modelo. Por eso:
+#   - son de las plantillas: un paquete no escribe en tu mente al instalarse;
+#   - la procedencia no la escribe la plantilla (`procedencia` se rechaza):
+#     la pone el kit desde el candado que la persona aceptó (la plantilla,
+#     su versión y su huella), y cada recuerdo se conoce por
+#     `<plantilla>/<id>`, para cambiarlo o quitarlo;
+#   - entran con el sí de la persona al aceptar el candado (la app los
+#     enseña antes);
+#   - sin la huella de la plantilla en el candado no se escriben: el sí
+#     tiene que fijar lo que se escribe. Con ella, cualquier cambio de la
+#     plantilla, también en sus recuerdos, vuelve a preguntar;
+#   - se van con la plantilla (al quitarla, o cuando una versión nueva ya no
+#     los trae), salvo lo que la persona hizo suyo: una versión nueva nunca
+#     pisa lo que ella cambió o quitó.
+recuerdos:
+  tipos: ["nota", "decision", "preferencia"]
+  en_la_mente: { nota: "note", decision: "decision", preferencia: "preference" }
+  topes: { recuerdos: 20, texto: 280 }

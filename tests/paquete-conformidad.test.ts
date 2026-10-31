@@ -29,10 +29,11 @@ describe("paquete.spec.yaml — la de verdad cuadra", () => {
     expect(fallos(spec())).toBe("");
   });
 
-  it("el ejemplo trae las veintidós claves de arriba, el oficio y el carácter también", () => {
-    expect(Object.keys(spec().manifiesto)).toHaveLength(22);
+  it("el ejemplo trae las veintitrés claves de arriba, el oficio, el carácter y los recuerdos también", () => {
+    expect(Object.keys(spec().manifiesto)).toHaveLength(23);
     expect(spec().manifiesto.oficio.secciones[0].id).toBe("hoy");
     expect(spec().manifiesto.caracter.equipo[0].id).toBe("tutora");
+    expect(spec().manifiesto.recuerdos[0].id).toBe("tarjetas-cortas");
   });
 });
 
@@ -216,6 +217,21 @@ describe("paquete.spec.yaml — y la comprobación ve cuando se separa", () => {
     expect(f).toContain("caracter.topes.miembros: «undefined» en la spec, «12» en el código");
   });
 
+  it("los recuerdos: un tipo de más, otro nombre en la mente o un tope cambiado", () => {
+    const s = spec();
+    s.recuerdos.tipos.push("regla");
+    s.recuerdos.en_la_mente.preferencia = "preferred";
+    delete s.recuerdos.en_la_mente.nota;
+    s.recuerdos.topes.texto = 500;
+    s.recuerdos.topes.peso = 1;
+    const f = fallos(s);
+    expect(f).toContain("recuerdos.tipos no cuadran");
+    expect(f).toContain("recuerdos.en_la_mente.preferencia: «preferred» en la spec, «preference» en el código");
+    expect(f).toContain("recuerdos.en_la_mente.nota: «undefined» en la spec, «note» en el código");
+    expect(f).toContain("recuerdos.topes.texto: «500» en la spec, «280» en el código");
+    expect(f).toContain("recuerdos.topes: «peso» no es un tope del código");
+  });
+
   it("una lista cerrada que falta en la spec también se dice (no se da por buena)", () => {
     const s = spec();
     delete s.oficio.estados;
@@ -234,8 +250,10 @@ describe("paquete.spec.yaml — y la comprobación ve cuando se separa", () => {
     delete s.hosts;
     delete s.puntos;
     delete s.caracter;
+    delete s.recuerdos;
     expect(() => fallos(s)).not.toThrow();
     expect(fallos(s)).toContain("hosts");
     expect(fallos(s)).toContain("falta la sección «caracter»");
+    expect(fallos(s)).toContain("falta la sección «recuerdos»");
   });
 });

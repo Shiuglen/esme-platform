@@ -72,6 +72,7 @@ import {
   esLinea,
   esPalabra,
 } from "./caracter.ts";
+import { MOTIVOS_RECUERDOS, TIPOS_RECUERDO, TOPES_RECUERDOS, esTextoDeRecuerdo, mismoTexto } from "./recuerdos.ts";
 
 /** De qué está hecho lo que aporta un punto. */
 export type Naturaleza = "datos" | "código" | "código aislado";
@@ -159,6 +160,7 @@ export const CLAVES_PAQUETE = [
   "settings",
   "oficio",
   "caracter",
+  "recuerdos",
   "success",
   "source",
   "works_with",
@@ -436,6 +438,43 @@ const Caracter = z
   )
   .strict();
 
+/**
+ * Un recuerdo de partida: su id, su texto de una línea y su tipo. La
+ * procedencia no: la pone el kit desde el candado (`recuerdos.ts`).
+ */
+const Recuerdo = z
+  .object(
+    {
+      id: z.string({ error: MOTIVOS_OFICIO.id }).refine(esKebab, MOTIVOS_OFICIO.id),
+      texto: z.string({ error: MOTIVOS_RECUERDOS.texto }).refine(esTextoDeRecuerdo, MOTIVOS_RECUERDOS.texto),
+      tipo: z.enum(TIPOS_RECUERDO, { error: MOTIVOS_RECUERDOS.tipo }).default("nota"),
+      procedencia: z.never({ error: MOTIVOS_RECUERDOS.procedencia }).optional(),
+    },
+    { error: MOTIVOS_RECUERDOS.recuerdo }
+  )
+  .strict();
+
+/** Los recuerdos de partida de una plantilla: con tope, y sin repetir ni un id ni lo que dicen. */
+const Recuerdos = z.array(Recuerdo, { error: MOTIVOS_RECUERDOS.lista }).superRefine((recuerdos, ctx) => {
+  const dice = (message: string) => ctx.addIssue({ code: "custom", message });
+  if (recuerdos.length > TOPES_RECUERDOS.recuerdos) dice(MOTIVOS_RECUERDOS.muchos);
+  const ids = new Set<string>();
+  const repetidos = new Set<string>();
+  const textos = new Map<string, string>();
+  for (const r of recuerdos) {
+    if (ids.has(r.id)) {
+      if (!repetidos.has(r.id)) dice(MOTIVOS_RECUERDOS.repetido(r.id));
+      repetidos.add(r.id);
+      continue;
+    }
+    ids.add(r.id);
+    const t = mismoTexto(r.texto);
+    const otro = textos.get(t);
+    if (otro !== undefined) dice(MOTIVOS_RECUERDOS.mismoTexto(r.id, otro));
+    else textos.set(t, r.id);
+  }
+});
+
 /** El nombre lógico de lo que se lanza (`${ESME_PAQUETE}/bin/x` lanza «x»). */
 export const programaDe = (comando: string): string => comando.split(/[\\/]/).pop() || comando;
 
@@ -449,6 +488,7 @@ type Leido = Record<string, unknown> & {
   settings?: unknown;
   oficio?: z.infer<typeof Oficio>;
   caracter?: z.infer<typeof Caracter>;
+  recuerdos?: z.infer<typeof Recuerdos>;
 };
 
 type Anota = (message: string, path?: (string | number)[]) => void;
@@ -562,6 +602,7 @@ function reglas(m: Leido, ctx: z.RefinementCtx): void {
     issue("settings es de las plantillas: un paquete no crea proyectos", ["settings"]);
   }
   if (m.caracter !== undefined && m.kind !== "template") issue(MOTIVOS_CARACTER.plantilla, ["caracter"]);
+  if (m.recuerdos !== undefined && m.kind !== "template") issue(MOTIVOS_RECUERDOS.plantilla, ["recuerdos"]);
 
   const herramientas = new Set((c.tools ?? []).map((t) => t.id));
   for (const canal of c.channels ?? []) {
@@ -630,6 +671,7 @@ export const ManifiestoV2Schema = z
     settings: Ajustes.optional(),
     oficio: Oficio.optional(),
     caracter: Caracter.optional(),
+    recuerdos: Recuerdos.optional(),
     success: z.object({ task: z.string().min(1), check: Ruta.optional() }).strict().optional(),
     source: z.object({ from: z.string().min(1), ref: z.string().min(1), commit: z.string().optional() }).strict().optional(),
     works_with: z.array(z.string()).optional(),

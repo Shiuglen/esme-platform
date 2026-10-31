@@ -32,6 +32,7 @@ import {
 import { INVISIBLES, type Permiso } from "../core/paquetes/permisos.ts";
 import { resuelve } from "../core/paquetes/resolver.ts";
 import { cambiosDesde, escribeLock, leeLock } from "../core/paquetes/lock.ts";
+import { recuerdosDePartida } from "../core/paquetes/recuerdos.ts";
 import { conocidoDeCarpeta, escribePaquete, leePaqueteDeCarpeta } from "../tienda/paquete-disco.ts";
 import { importaCarpetaSkill } from "../tienda/importa-skill.ts";
 import { importaMarketplaceClaude, importaPluginClaude } from "../tienda/importa-claude.ts";
@@ -170,6 +171,7 @@ function describe(m: ManifiestoV2, version: 1 | 2 | null): string[] {
       `  órdenes: ${m.oficio.ordenes.join(", ") || "ninguna"}`
     );
   if (m.caracter) lineas.push(...comoSeSiente(m.caracter));
+  if (m.recuerdos?.length) lineas.push("Qué deja en tu mente al aceptarla:", ...m.recuerdos.map((r) => `  ${r.id} · ${r.tipo} · ${r.texto}`));
   lineas.push(m.permissions.length ? "Qué pide:" : "Qué pide: nada", ...sangra(m.permissions.map(permisoEnTexto)));
   const n = nivelDe(m);
   lineas.push(`Aislamiento: nivel ${n} (${NIVELES[n]})`);
@@ -346,11 +348,24 @@ function resolver(args: string[]): Salida {
   if (cambios.quitados.length) lineas.push(`Ya no están: ${cambios.quitados.join(", ")}`);
 
   if (cambios.pideConsentimiento) {
-    lineas.push("Lo nuevo desde el candado:");
-    if (cambios.nuevos.length) lineas.push(`  paquetes nuevos: ${cambios.nuevos.join(", ")}`);
-    for (const h of cambios.huellas) lineas.push(`  ${h.id} cambió de huella: ${h.antes.slice(0, 12)}… → ${h.despues.slice(0, 12)}…`);
-    if (cambios.permisosNuevos.length)
-      lineas.push("  permisos nuevos:", ...sangra(sangra(cambios.permisosNuevos.map(permisoEnTexto))));
+    const nuevo = [
+      ...(cambios.nuevos.length ? [`  paquetes nuevos: ${cambios.nuevos.join(", ")}`] : []),
+      ...cambios.huellas.map((h) =>
+        h.antes === null
+          ? `  ${h.id} no estaba fijada por su huella; ahora sí: ${h.despues.slice(0, 12)}…`
+          : `  ${h.id} cambió de huella: ${h.antes.slice(0, 12)}… → ${h.despues.slice(0, 12)}…`
+      ),
+      ...(cambios.permisosNuevos.length ? ["  permisos nuevos:", ...sangra(sangra(cambios.permisosNuevos.map(permisoEnTexto)))] : []),
+    ];
+    // sin nada que listar, es que no hay candado de esta plantilla (o está roto)
+    lineas.push(...(nuevo.length ? ["Lo nuevo desde el candado:", ...nuevo] : ["Nada consentido aún: no hay candado de esta plantilla."]));
+    // lo que tu sí deja en tu mente, tal cual se escribe (con la procedencia de este candado)
+    const recuerdos = recuerdosDePartida(raiz.manifiesto, r.lock);
+    if (recuerdos.length)
+      lineas.push(
+        `Al aceptarla, deja en tu mente (como ${raiz.manifiesto.id}/<id>):`,
+        ...recuerdos.map((x) => `  ${x.id} · ${x.tipo} · ${x.texto}`)
+      );
   } else lineas.push("El candado ya lo cubre todo: no hay nada nuevo que consentir.");
 
   if (!a.opciones.has("--aceptar")) {
