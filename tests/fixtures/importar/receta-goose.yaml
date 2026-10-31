@@ -1,0 +1,58 @@
+version: "1.0.0"
+title: Plan de estudio
+description: Prepara un plan de estudio para un tema y una fecha. Sintético, para las pruebas.
+author:
+  contact: ana-prueba
+instructions: |
+  Eres un tutor que planifica con calma y sin prisas.
+prompt: |
+  Prepara un plan para estudiar {{ tema }} antes del {{ fecha }}.
+parameters:
+  - key: tema
+    input_type: string
+    requirement: required
+    description: El tema que estudiar
+  - key: fecha
+    input_type: date
+    requirement: optional
+    default: "2026-12-01"
+    description: Cuándo es el examen
+extensions:
+  - type: stdio
+    name: calendario
+    cmd: uvx
+    args: ["calendario-mcp==1.0.0"]
+    env_keys: ["CALENDARIO_TOKEN"]
+    timeout: 300
+  - type: streamable_http
+    name: apuntes
+    uri: https://apuntes.example.com/mcp
+    headers:
+      Authorization: "Bearer $APUNTES_TOKEN"
+    env_keys: ["APUNTES_TOKEN"]
+    timeout: 300
+  - type: builtin
+    name: developer
+settings:
+  goose_provider: anthropic
+  goose_model: un-modelo
+  temperature: 0.2
+activities:
+  - "Plan para el examen de enero"
+sub_recipes:
+  - name: repaso
+    path: ./repaso.yaml
+response:
+  json_schema:
+    type: object
+    properties:
+      pasos:
+        type: array
+        items:
+          type: string
+    required: [pasos]
+retry:
+  max_retries: 2
+  checks:
+    - type: shell
+      command: test -f plan.md

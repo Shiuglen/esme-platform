@@ -1,0 +1,448 @@
+{
+  "fuente": {
+    "repo": "Shiuglen/esme",
+    "commit": "bdb809f8c56aced6d211fc8c2cfa71c9b974ac4c",
+    "fichero": "app/src/renderer/tinta/pieles-casa.ts"
+  },
+  "datos": [
+    {
+      "version": 1,
+      "nombre": "Tinta y Luz",
+      "color": {
+        "tipo": "libre",
+        "noche": {
+          "fondo": "#070b14",
+          "superficie": "#0d1424",
+          "texto": "#ece6d8",
+          "acento": "#4fe3c1",
+          "atencion": "#f2b45b",
+          "peligro": "#ff7a6b",
+          "exito": "#7ee0a1"
+        },
+        "dia": {
+          "fondo": "#eeebe3",
+          "superficie": "#fbfaf6",
+          "texto": "#141821",
+          "acento": "#08705e",
+          "atencion": "#9a5b00",
+          "peligro": "#b42318",
+          "exito": "#1f7a3f"
+        }
+      },
+      "letra": {
+        "titulos": "bodoni",
+        "texto": "geist",
+        "escala": 1
+      },
+      "forma": {
+        "radio": 1,
+        "sombra": "honda"
+      },
+      "densidad": "comoda",
+      "movimiento": "vivo",
+      "caracter": "magnetico",
+      "fondo": "aurora",
+      "navegacion": "muelle",
+      "portada": "mando",
+      "escena": "aurora-suave",
+      "presencia": "orbe-voz",
+      "piezas": {
+        "superficie": "vidrio",
+        "saludo": "enfoque",
+        "pulsar": "nada",
+        "sonido": "avisos",
+        "trabajo": "brillo"
+      }
+    },
+    {
+      "version": 1,
+      "nombre": "Grabado",
+      "color": {
+        "tipo": "estilo",
+        "estilo": "grabado"
+      },
+      "letra": {
+        "titulos": "bodoni",
+        "texto": "funnel",
+        "escala": 1
+      },
+      "forma": {
+        "radio": 0.8,
+        "sombra": "plana"
+      },
+      "densidad": "comoda",
+      "movimiento": "vivo",
+      "caracter": "magnetico",
+      "fondo": "papel",
+      "navegacion": "muelle",
+      "portada": "mando",
+      "escena": "aurora-suave",
+      "presencia": "orbe-voz",
+      "piezas": {
+        "superficie": "vidrio",
+        "saludo": "enfoque",
+        "pulsar": "nada",
+        "sonido": "avisos",
+        "trabajo": "brillo"
+      }
+    },
+    {
+      "version": 1,
+      "nombre": "Cuarzo",
+      "color": {
+        "tipo": "estilo",
+        "estilo": "quartz"
+      },
+      "letra": {
+        "titulos": "inter",
+        "texto": "inter",
+        "escala": 1
+      },
+      "forma": {
+        "radio": 1.2,
+        "sombra": "suave"
+      },
+      "densidad": "comoda",
+      "movimiento": "vivo",
+      "caracter": "magnetico",
+      "fondo": "aurora",
+      "navegacion": "muelle",
+      "portada": "mando",
+      "escena": "aurora-suave",
+      "presencia": "orbe-voz",
+      "piezas": {
+        "superficie": "vidrio",
+        "saludo": "enfoque",
+        "pulsar": "nada",
+        "sonido": "avisos",
+        "trabajo": "brillo"
+      }
+    },
+    {
+      "version": 1,
+      "nombre": "Lima",
+      "color": {
+        "tipo": "estilo",
+        "estilo": "lime"
+      },
+      "letra": {
+        "titulos": "grotesk",
+        "texto": "grotesk",
+        "escala": 1
+      },
+      "forma": {
+        "radio": 0.6,
+        "sombra": "plana"
+      },
+      "densidad": "compacta",
+      "movimiento": "vivo",
+      "caracter": "lanzado",
+      "fondo": "liso",
+      "navegacion": "muelle",
+      "portada": "mando",
+      "escena": "aurora-suave",
+      "presencia": "orbe-voz",
+      "piezas": {
+        "superficie": "vidrio",
+        "saludo": "enfoque",
+        "pulsar": "nada",
+        "sonido": "avisos",
+        "trabajo": "brillo"
+      }
+    },
+    {
+      "version": 1,
+      "nombre": "Medianoche",
+      "color": {
+        "tipo": "libre",
+        "noche": {
+          "fondo": "#08090c",
+          "superficie": "#101116",
+          "texto": "#f7f8f8",
+          "acento": "#8a91ff"
+        },
+        "dia": {
+          "fondo": "#fafafa",
+          "superficie": "#ffffff",
+          "texto": "#0b0c10",
+          "acento": "#4f58c4"
+        }
+      },
+      "letra": {
+        "titulos": "inter",
+        "texto": "inter",
+        "escala": 1
+      },
+      "forma": {
+        "radio": 0.7,
+        "sombra": "suave"
+      },
+      "densidad": "compacta",
+      "movimiento": "vivo",
+      "caracter": "magnetico",
+      "fondo": "liso",
+      "navegacion": "riel",
+      "portada": "mando",
+      "escena": "aurora-suave",
+      "presencia": "orbe-voz",
+      "piezas": {
+        "superficie": "vidrio",
+        "saludo": "enfoque",
+        "pulsar": "nada",
+        "sonido": "avisos",
+        "trabajo": "brillo"
+      }
+    },
+    {
+      "version": 1,
+      "nombre": "Monocromo",
+      "color": {
+        "tipo": "libre",
+        "noche": {
+          "fondo": "#0a0a0a",
+          "superficie": "#121212",
+          "texto": "#ededed",
+          "acento": "#ededed"
+        },
+        "dia": {
+          "fondo": "#ffffff",
+          "superficie": "#fafafa",
+          "texto": "#171717",
+          "acento": "#171717"
+        }
+      },
+      "letra": {
+        "titulos": "geist",
+        "texto": "geist",
+        "escala": 1
+      },
+      "forma": {
+        "radio": 0.6,
+        "sombra": "plana"
+      },
+      "densidad": "comoda",
+      "movimiento": "vivo",
+      "caracter": "magnetico",
+      "fondo": "liso",
+      "navegacion": "muelle",
+      "portada": "mando",
+      "escena": "aurora-suave",
+      "presencia": "orbe-voz",
+      "piezas": {
+        "superficie": "vidrio",
+        "saludo": "enfoque",
+        "pulsar": "nada",
+        "sonido": "avisos",
+        "trabajo": "brillo"
+      }
+    },
+    {
+      "version": 1,
+      "nombre": "Editorial",
+      "color": {
+        "tipo": "libre",
+        "noche": {
+          "fondo": "#14110f",
+          "superficie": "#1c1815",
+          "texto": "#efe8de",
+          "acento": "#e2a46b"
+        },
+        "dia": {
+          "fondo": "#f7f3ec",
+          "superficie": "#fffdf8",
+          "texto": "#1f1a14",
+          "acento": "#8a4316"
+        }
+      },
+      "letra": {
+        "titulos": "newsreader",
+        "texto": "instrument",
+        "escala": 1.05
+      },
+      "forma": {
+        "radio": 0.4,
+        "sombra": "plana"
+      },
+      "densidad": "amplia",
+      "movimiento": "vivo",
+      "caracter": "pesado",
+      "fondo": "papel",
+      "navegacion": "muelle",
+      "portada": "mando",
+      "escena": "aurora-suave",
+      "presencia": "orbe-voz",
+      "piezas": {
+        "superficie": "vidrio",
+        "saludo": "enfoque",
+        "pulsar": "nada",
+        "sonido": "avisos",
+        "trabajo": "brillo"
+      }
+    },
+    {
+      "version": 1,
+      "nombre": "Boreal",
+      "color": {
+        "tipo": "gustos",
+        "gustos": {
+          "tono": 280,
+          "papel": 10,
+          "fuerza": 85
+        }
+      },
+      "letra": {
+        "titulos": "sora",
+        "texto": "sora",
+        "escala": 1
+      },
+      "forma": {
+        "radio": 1.6,
+        "sombra": "honda"
+      },
+      "densidad": "comoda",
+      "movimiento": "vivo",
+      "caracter": "elastico",
+      "fondo": "aurora",
+      "navegacion": "muelle",
+      "portada": "mando",
+      "escena": "aurora-suave",
+      "presencia": "orbe-voz",
+      "piezas": {
+        "superficie": "vidrio",
+        "saludo": "enfoque",
+        "pulsar": "nada",
+        "sonido": "avisos",
+        "trabajo": "brillo"
+      }
+    },
+    {
+      "version": 1,
+      "nombre": "Terminal",
+      "color": {
+        "tipo": "libre",
+        "noche": {
+          "fondo": "#050805",
+          "superficie": "#0b120b",
+          "texto": "#d6f5d6",
+          "acento": "#4ade80"
+        },
+        "dia": {
+          "fondo": "#f4faf4",
+          "superficie": "#ffffff",
+          "texto": "#0b1a0b",
+          "acento": "#15703a"
+        }
+      },
+      "letra": {
+        "titulos": "mono",
+        "texto": "mono",
+        "escala": 0.95
+      },
+      "forma": {
+        "radio": 0.15,
+        "sombra": "plana"
+      },
+      "densidad": "compacta",
+      "movimiento": "nada",
+      "caracter": "magnetico",
+      "fondo": "liso",
+      "navegacion": "riel",
+      "portada": "mando",
+      "escena": "aurora-suave",
+      "presencia": "orbe-voz",
+      "piezas": {
+        "superficie": "vidrio",
+        "saludo": "enfoque",
+        "pulsar": "nada",
+        "sonido": "avisos",
+        "trabajo": "brillo"
+      }
+    },
+    {
+      "version": 1,
+      "nombre": "Nube",
+      "color": {
+        "tipo": "libre",
+        "noche": {
+          "fondo": "#120f1d",
+          "superficie": "#1a1628",
+          "texto": "#efeaff",
+          "acento": "#b794f6"
+        },
+        "dia": {
+          "fondo": "#f6f3ff",
+          "superficie": "#ffffff",
+          "texto": "#1d1730",
+          "acento": "#6d28d9"
+        }
+      },
+      "letra": {
+        "titulos": "manrope",
+        "texto": "manrope",
+        "escala": 1.02
+      },
+      "forma": {
+        "radio": 2,
+        "sombra": "suave"
+      },
+      "densidad": "amplia",
+      "movimiento": "vivo",
+      "caracter": "elastico",
+      "fondo": "aurora",
+      "navegacion": "muelle",
+      "portada": "mando",
+      "escena": "aurora-suave",
+      "presencia": "orbe-voz",
+      "piezas": {
+        "superficie": "vidrio",
+        "saludo": "enfoque",
+        "pulsar": "nada",
+        "sonido": "avisos",
+        "trabajo": "brillo"
+      }
+    },
+    {
+      "version": 1,
+      "nombre": "Estudio",
+      "color": {
+        "tipo": "libre",
+        "noche": {
+          "fondo": "#111110",
+          "superficie": "#191917",
+          "texto": "#eeeeec",
+          "acento": "#f97316"
+        },
+        "dia": {
+          "fondo": "#f5f4f0",
+          "superficie": "#fcfcfa",
+          "texto": "#1b1b18",
+          "acento": "#b6430b"
+        }
+      },
+      "letra": {
+        "titulos": "fraunces",
+        "texto": "dmsans",
+        "escala": 1
+      },
+      "forma": {
+        "radio": 1,
+        "sombra": "suave"
+      },
+      "densidad": "comoda",
+      "movimiento": "vivo",
+      "caracter": "pesado",
+      "fondo": "aurora",
+      "navegacion": "muelle",
+      "portada": "mando",
+      "escena": "aurora-suave",
+      "presencia": "orbe-voz",
+      "piezas": {
+        "superficie": "vidrio",
+        "saludo": "enfoque",
+        "pulsar": "nada",
+        "sonido": "avisos",
+        "trabajo": "brillo"
+      }
+    }
+  ]
+}
