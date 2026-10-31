@@ -93,6 +93,7 @@ manifiesto:
       - id: "tarjetas"
         title: "Prepara tarjetas"
         prompt: "Prepara diez tarjetas de {{tema}}."  # cada campo, en el prompt como {{clave}}
+        tags: ["tarjetas", "repaso"]      # hasta 8, en kebab-case: las que busca el filtro etiqueta:
         inputs:
           - key: "tema"
             description: "el tema de las tarjetas"
@@ -160,6 +161,9 @@ formatos_agente: ["receta", "claude-md", "comando"]
 #   skills.scripts: true si la skill trae scripts (sube el nivel a 3)
 #   tools.mcp: { command, args?, env_keys? } (local) o { url, headers? } (remoto)
 #   engines.binaries: programas por su nombre, nunca por su ruta
+#   tasks.tags: sus etiquetas, las que busca el filtro `etiqueta:` de una
+#     sección: en kebab-case (hasta `oficio.topes.largo` caracteres), como
+#     mucho `oficio.topes.etiquetas` y ninguna dos veces
 puntos:
   themes:   { naturaleza: "datos",          corre: "ventana", claves: ["id", "file"] }
   skills:   { naturaleza: "datos",          corre: "sesión",  claves: ["id", "path", "remote", "scripts"] }
@@ -167,7 +171,7 @@ puntos:
   views:    { naturaleza: "código aislado", corre: "ventana", claves: ["id", "entry", "title"] }
   agents:   { naturaleza: "datos",          corre: "sesión",  claves: ["id", "recipe", "format"] }
   teams:    { naturaleza: "datos",          corre: "sesión",  claves: ["id", "file"] }
-  tasks:    { naturaleza: "datos",          corre: "sesión",  claves: ["id", "title", "prompt", "steps", "roles", "category", "icon", "inputs"] }
+  tasks:    { naturaleza: "datos",          corre: "sesión",  claves: ["id", "title", "prompt", "steps", "roles", "category", "icon", "inputs", "tags"] }
   routines: { naturaleza: "datos",          corre: "siempre", claves: ["id", "when", "task", "agent"] }
   channels: { naturaleza: "datos",          corre: "siempre", claves: ["id", "tool"] }
   memory:   { naturaleza: "código",         corre: "mente",   claves: ["id", "entry", "runtime"] }
@@ -283,7 +287,8 @@ lock:
 # expresiones, y solo va en una vista de `vistas_con_filtro` (las que listan
 # tareas). La app que no tenga la vista que se nombra enseña la de reserva.
 # Topes: `largo` es el de un id, un nombre, una etiqueta, una option o la
-# clave de un campo; `opciones`, las de un choice; `campos`, los de una orden.
+# clave de un campo; `opciones`, las de un choice; `campos`, los de una orden;
+# `etiquetas`, las de una tarea (`tasks[].tags`, las que busca un filtro).
 # Un campo con tipo vale en cualquier tarea: su default, uno de su tipo (un
 # número como `7`, `-2` o `2.5`; en un choice, una de sus options).
 oficio:
@@ -293,7 +298,7 @@ oficio:
   vista_de_reserva: "esme.tareas"
   estados: ["te-necesita", "en-marcha", "terminado", "quieto"]
   tipos_de_entrada: ["text", "number", "choice"]
-  topes: { secciones: 12, ordenes: 40, largo: 32, opciones: 20, campos: 10 }
+  topes: { secciones: 12, ordenes: 40, largo: 32, opciones: 20, campos: 10, etiquetas: 8 }
   filtros:                                # probados con el código
     validos: ["estado:te-necesita", "estado:en-marcha", "estado:terminado", "estado:quieto", "etiqueta:repaso", "etiqueta:por-revisar"]
     no_validos: ["repaso", "estado:inventado", "estado:", "etiqueta:", "etiqueta:Repaso", "etiqueta:a:b", "etiqueta:*", "estado:quieto && etiqueta:x", "prioridad:alta"]

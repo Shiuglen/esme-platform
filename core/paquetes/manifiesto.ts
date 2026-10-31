@@ -82,7 +82,7 @@ export const PUNTOS = {
   tasks: {
     naturaleza: "datos",
     corre: "sesión",
-    claves: ["id", "title", "prompt", "steps", "roles", "category", "icon", "inputs"],
+    claves: ["id", "title", "prompt", "steps", "roles", "category", "icon", "inputs", "tags"],
   },
   routines: { naturaleza: "datos", corre: "siempre", claves: ["id", "when", "task", "agent"] },
   channels: { naturaleza: "datos", corre: "siempre", claves: ["id", "tool"] },
@@ -227,6 +227,29 @@ const EntradaTarea = z
     for (const x of problemasDeCampo(c)) ctx.addIssue({ code: "custom", path: x.camino, message: x.mensaje });
   });
 
+/**
+ * Las etiquetas de una tarea: las que busca el filtro `etiqueta:` de una
+ * sección. Kebab-case, como mucho `TOPES.etiquetas` y ninguna dos veces.
+ */
+const Etiquetas = z
+  .array(z.string({ error: MOTIVOS_OFICIO.etiqueta }).refine(esKebab, MOTIVOS_OFICIO.etiqueta), {
+    error: "una lista de etiquetas",
+  })
+  .superRefine((etiquetas, ctx) => {
+    // aquí y no con .max(): .max() también mira el largo de un texto que no es una lista
+    if (etiquetas.length > TOPES.etiquetas)
+      ctx.addIssue({ code: "custom", message: `como mucho ${TOPES.etiquetas} etiquetas` });
+    const vistas = new Set<string>();
+    const dichas = new Set<string>();
+    for (const e of etiquetas) {
+      if (vistas.has(e) && !dichas.has(e)) {
+        ctx.addIssue({ code: "custom", message: `la etiqueta «${e}» está dos veces` });
+        dichas.add(e);
+      }
+      vistas.add(e);
+    }
+  });
+
 /** La forma de una entrada de cada punto (los campos de más se avisan, no se rechazan). */
 const ENTRADAS = {
   themes: z.object({ id: IdEntrada, file: Ruta }).passthrough(),
@@ -252,6 +275,7 @@ const ENTRADAS = {
       category: z.string().optional(),
       icon: z.string().optional(),
       inputs: z.array(EntradaTarea).optional(),
+      tags: Etiquetas.optional(),
     })
     .passthrough(),
   routines: z

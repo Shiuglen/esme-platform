@@ -119,8 +119,10 @@ function detalle(punto: Punto, e: Record<string, unknown>): string | undefined {
       return e.remote ? `remota: ${e.remote}` : `${e.path}${e.scripts ? ", con scripts" : ""}`;
     case "agents":
       return `${e.format ?? "receta"}: ${e.recipe}`;
-    case "tasks":
-      return `«${e.title}»`;
+    case "tasks": {
+      const etiquetas = Array.isArray(e.tags) && e.tags.length ? ` · etiquetas: ${e.tags.join(", ")}` : "";
+      return `«${e.title}»${etiquetas}`;
+    }
     case "channels":
       return `por la herramienta ${e.tool}`;
     case "commands":

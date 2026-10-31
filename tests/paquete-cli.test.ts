@@ -65,7 +65,15 @@ describe("paquete <carpeta> — qué aporta, qué pide y dónde corre", () => {
           license: "MIT",
           uses: [{ id: "esme.prueba.piel-sobria", version: "^1", sha256: "a".repeat(64) }],
           contributes: {
-            tasks: [{ id: "plazos", title: "Plazos", prompt: "¿Qué vence en {{dias}} días?", inputs: [{ key: "dias", description: "días", type: "number" }] }],
+            tasks: [
+              {
+                id: "plazos",
+                title: "Plazos",
+                prompt: "¿Qué vence en {{dias}} días?",
+                inputs: [{ key: "dias", description: "días", type: "number" }],
+                tags: ["expediente", "plazo"],
+              },
+            ],
             commands: [{ id: "plazos", title: "Plazos", task: "plazos" }],
           },
           oficio: {
@@ -89,6 +97,7 @@ describe("paquete <carpeta> — qué aporta, qué pide y dónde corre", () => {
     expect(t).toContain("  sección hoy · Hoy");
     expect(t).toContain("  sección expedientes · Expedientes · esme.tareas · etiqueta:expediente");
     expect(t).toContain("  órdenes: plazos");
+    expect(t).toContain("«Plazos» · etiquetas: expediente, plazo");
   });
 
   it("una sección del Lienzo dice su lienzo de partida; si el lienzo no vale, code 1 y dónde", () => {

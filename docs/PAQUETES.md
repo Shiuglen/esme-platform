@@ -80,7 +80,7 @@ corre: en la **ventana** (la interfaz), en la **sesión** (cuando trabajas),
 | `views` | una vista propia, en su cápsula | código aislado | ventana |
 | `agents` | un agente: receta del kit, `claude-md` o `comando` (una línea de comandos) | datos | sesión |
 | `teams` | un equipo de agentes | datos | sesión |
-| `tasks` | un encargo listo para lanzar, con sus `inputs` (`{{clave}}` en el prompt; con `type`, se piden con un formulario) | datos | sesión |
+| `tasks` | un encargo listo para lanzar, con sus `inputs` (`{{clave}}` en el prompt; con `type`, se piden con un formulario) y sus etiquetas (`tags`) | datos | sesión |
 | `routines` | lo que corre solo, a su hora (`when`) | datos | siempre |
 | `channels` | por dónde llega trabajo (una herramienta del paquete) | datos | siempre |
 | `memory` | código de la mente | código | mente |
@@ -89,6 +89,11 @@ corre: en la **ventana** (la interfaz), en la **sesión** (cuando trabajas),
 
 Lo que se nombra existe: `channels[].tool` es una herramienta del paquete y
 `commands[].task`, una tarea suya. Un id no se repite dentro de su punto.
+
+Las etiquetas de una tarea (`tags`) son las que busca el filtro `etiqueta:`
+de una sección del oficio: en kebab-case (hasta 32 caracteres), como mucho
+8 y ninguna dos veces. Una tarea con `tags: [escrito]` sale en la sección
+de los escritos.
 
 ## 3. Lo que pide: permisos con alcance
 
@@ -206,9 +211,9 @@ hizo la plantilla, y abrir más tarde no rompe ninguna plantilla; cerrar, sí.
   `esme.tareas`. Los ids van en kebab-case y no se repiten; los nombres, sin
   espacios a los lados ni nada invisible.
 - **Filtros:** `estado:` con `te-necesita`, `en-marcha`, `terminado` o
-  `quieto`, o `etiqueta:` con una en kebab-case; y solo en una vista que
-  lista tareas (`esme.hoy` o `esme.tareas`). Nada de expresiones: ni `&&`,
-  ni `||`, ni otras claves.
+  `quieto`, o `etiqueta:` con una en kebab-case (la de los `tags` de una
+  tarea); y solo en una vista que lista tareas (`esme.hoy` o
+  `esme.tareas`). Nada de expresiones: ni `&&`, ni `||`, ni otras claves.
 - **Órdenes:** un comando de la plantilla, o de un paquete que usa
   (`<paquete>/<comando>`), y su tarea se lanza con un formulario: cada
   campo dice su `type` (`text`, `number` o `choice`, este con sus
