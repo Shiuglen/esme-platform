@@ -253,10 +253,21 @@ otro y lo enseña la app:
 - **Los ids,** de 1 a 64 letras, cifras, `-` o `_`, sin repetir entre piezas
   y conexiones. **Las rutas,** desde la raíz del paquete (no desde la carpeta
   del lienzo), y que estén. **Nada invisible que mande** en ningún texto.
-- **Lo propio de Esme** va con el prefijo `esme:` y el nombre en kebab-case
-  (`esme:z`, `esme:profundidad`): hasta 8 claves en cada pieza o conexión, y
-  de valor un número, un sí o no, o un texto de hasta 120 caracteres.
-  Cualquier otra clave que no sea de la spec se rechaza.
+- **Lo propio de Esme** va con el prefijo `esme:`, y también es una lista
+  cerrada, la que usa la app. Una pieza puede llevar su tipo (`esme:tipo`,
+  el que casa con su clase: una pieza `text` es `nota` o `tarea`; una
+  `file`, `documento` o `imagen`, y una imagen va en un fichero de imagen;
+  una `link`, `enlace`, y una `group`, `grupo`), su altura sobre el plano
+  (`esme:z`, un entero en las unidades de x e y, hasta un millón a cada lado
+  del cero) y su grosor (`esme:profundidad`, un entero de 0, una pieza
+  plana, a 100 000). Una conexión puede ser un flujo (`esme:tipo: flujo`),
+  y entonces lleva su orden (`esme:orden`, una línea de hasta 120
+  caracteres); sin tipo, es un enlace. Cualquier otra clave que no sea de
+  la spec se rechaza, también una `esme:` que no esté en la lista.
+- **Nada que apunte a tu Taller:** `esme:tarea` une una pieza o una
+  conexión con una tarea de quien hizo el lienzo, y quien abre la plantilla
+  no la tiene (y podría dar con una suya que se llame igual). Un lienzo de
+  partida va sin ella.
 
 Lo que no vale se dice con su sitio dentro del lienzo:
 `oficio.secciones.3.lienzo: en «lienzos/esquemas.canvas», nodes.2.file:

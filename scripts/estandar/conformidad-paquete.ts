@@ -49,6 +49,10 @@ import {
   FORMATOS_FONDO,
   LADOS,
   PREFIJO_PROPIO,
+  PROPIAS_CONEXION,
+  PROPIAS_DEL_TALLER,
+  PROPIAS_PIEZA,
+  TIPOS_ESME,
   TIPOS_PIEZA,
   TOPES_LIENZO,
   VISTA_LIENZO,
@@ -234,6 +238,19 @@ export function compruebaPaquete(spec: Objeto, anota: (problema: string) => void
       mismaLista("oficio.lienzo.formatos_fichero", lienzo.formatos_fichero, FORMATOS_FICHERO);
       mismaLista("oficio.lienzo.formatos_fondo", lienzo.formatos_fondo, FORMATOS_FONDO);
       mismaLista("oficio.lienzo.dominios_locales", lienzo.dominios_locales, DOMINIOS_LOCALES);
+      // lo propio de Esme: una lista cerrada en cada pieza y cada conexión, lo que no va, y los tipos de Esme por clase
+      const propias = objeto(lienzo.propias) ?? {};
+      mismaLista("oficio.lienzo.propias.pieza", propias.pieza, PROPIAS_PIEZA);
+      mismaLista("oficio.lienzo.propias.conexion", propias.conexion, PROPIAS_CONEXION);
+      mismaLista("oficio.lienzo.del_taller", lienzo.del_taller, PROPIAS_DEL_TALLER);
+      const tiposEsme = objeto(lienzo.tipos_esme) ?? {};
+      const deLasPiezas = objeto(tiposEsme.piezas) ?? {};
+      for (const clase of TIPOS_PIEZA)
+        mismaLista(`oficio.lienzo.tipos_esme.piezas.${clase}`, deLasPiezas[clase], TIPOS_ESME.piezas[clase]);
+      for (const clase of Object.keys(deLasPiezas))
+        if (!(TIPOS_PIEZA as readonly string[]).includes(clase))
+          anota(`oficio.lienzo.tipos_esme.piezas: «${clase}» no es una clase de pieza`);
+      mismaLista("oficio.lienzo.tipos_esme.conexiones", tiposEsme.conexiones, TIPOS_ESME.conexiones);
       const topesLienzo = objeto(lienzo.topes) ?? {};
       for (const [k, v] of Object.entries(TOPES_LIENZO)) mismo(`lienzo.topes.${k}`, topesLienzo[k], v);
       for (const k of Object.keys(topesLienzo)) if (!(k in TOPES_LIENZO)) anota(`oficio.lienzo.topes: «${k}» no es un tope del código`);

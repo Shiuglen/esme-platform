@@ -320,9 +320,17 @@ oficio:
   #     carpeta del lienzo), y que estén; nada invisible que mande en ningún
   #     texto; una etiqueta o un subpath, hasta `topes.etiqueta`;
   #   - una clave que no es de la spec para lo que es no vale, salvo lo propio
-  #     de Esme: con `prefijo_propio` y el nombre en kebab-case (`esme:z`,
-  #     `esme:profundidad`), hasta `topes.propios` en cada pieza o conexión, y
-  #     de valor un número, un sí/no o un texto de hasta `topes.etiqueta`.
+  #     de Esme (con `prefijo_propio`), que también es una lista cerrada
+  #     (`propias`). Una pieza puede llevar `esme:tipo`, de `tipos_esme.piezas`
+  #     para su clase (una `imagen`, en un fichero de `formatos_fondo`);
+  #     `esme:z`, su altura sobre el plano, entera y en las unidades de x e y
+  #     (hasta `topes.coordenada` a cada lado del cero); y `esme:profundidad`,
+  #     su grosor, entero de 0 (una pieza plana) a `topes.profundidad`. Una
+  #     conexión puede llevar `esme:tipo`, de `tipos_esme.conexiones` (sin
+  #     él, es un enlace), y `esme:orden`, una línea de 1 a `topes.etiqueta`
+  #     caracteres: un flujo lleva su orden, y una orden va en un flujo;
+  #   - lo de `del_taller` no va: apunta a una tarea del Taller de quien hizo
+  #     el lienzo, que quien abre la plantilla no tiene.
   # `bytes` es lo que pesa el fichero entero. Lo que no vale se dice con su
   # sitio dentro del lienzo (`nodes.2.file: …`).
   lienzo:
@@ -337,7 +345,14 @@ oficio:
     formatos_fondo: ["png", "jpg", "jpeg", "webp", "gif", "avif"]
     dominios_locales: ["localhost", "local", "internal", "home.arpa"]
     prefijo_propio: "esme:"
-    topes: { bytes: 262144, piezas: 200, conexiones: 400, texto: 4000, etiqueta: 120, propios: 8, coordenada: 1000000, medida: 100000, url: 2048 }
+    propias:
+      pieza: ["esme:tipo", "esme:z", "esme:profundidad"]
+      conexion: ["esme:tipo", "esme:orden"]
+    del_taller: ["esme:tarea"]
+    tipos_esme:
+      piezas: { text: ["nota", "tarea"], file: ["documento", "imagen"], link: ["enlace"], group: ["grupo"] }
+      conexiones: ["flujo"]
+    topes: { bytes: 262144, piezas: 200, conexiones: 400, texto: 4000, etiqueta: 120, coordenada: 1000000, medida: 100000, profundidad: 100000, url: 2048 }
     rutas:                                # probadas con el código
       validas: ["mapa.canvas", "lienzos/mapa.canvas", "./lienzos/de-trabajo.canvas"]
       no_validas: ["mapa.json", "mapa.canvas.json", ".canvas", "lienzos/.canvas", "../mapa.canvas", "/mapa.canvas", "C:/mapa.canvas", "lienzos\\mapa.canvas"]

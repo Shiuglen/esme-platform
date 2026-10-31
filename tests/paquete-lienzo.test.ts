@@ -1,9 +1,10 @@
 /**
  * EL LIENZO DE PARTIDA — lo que trae una sección con la vista `esme.lienzo`:
  * un fichero JSON Canvas 1.0, cerrado y con topes. Las claves de la spec y
- * nada más, salvo lo propio de Esme con el prefijo `esme:` (la z y la
- * profundidad de una pieza, para lo espacial); las rutas, del paquete y que
- * estén; los enlaces, https.
+ * nada más, salvo lo propio de Esme, que también es una lista cerrada: en
+ * una pieza, su tipo, su z y su profundidad (lo espacial); en una conexión,
+ * el flujo y su orden. Nada que apunte al Taller de quien lo hizo. Las rutas,
+ * del paquete y que estén; los enlaces, https.
  *
  * Lienzos sintéticos, escritos aquí mismo.
  *
@@ -19,6 +20,10 @@ import {
   FORMATOS_FONDO,
   LADOS,
   PREFIJO_PROPIO,
+  PROPIAS_CONEXION,
+  PROPIAS_DEL_TALLER,
+  PROPIAS_PIEZA,
+  TIPOS_ESME,
   TIPOS_PIEZA,
   TOPES_LIENZO,
   VISTA_LIENZO,
@@ -26,7 +31,7 @@ import {
   problemasDelLienzo,
 } from "../core/paquetes/lienzo.ts";
 
-/** Un lienzo que vale: las cuatro clases de pieza, dos conexiones y lo propio de Esme. */
+/** Un lienzo que vale: las cuatro clases de pieza, un flujo, un enlace y lo propio de Esme. */
 const LIENZO = {
   nodes: [
     {
@@ -40,6 +45,7 @@ const LIENZO = {
       color: "4",
       background: "fondos/papel.png",
       backgroundStyle: "repeat",
+      "esme:tipo": "grupo",
     },
     {
       id: "a1",
@@ -50,11 +56,22 @@ const LIENZO = {
       height: 120,
       text: "# El caso\n\nLo que sabemos:\n\t- la fecha\r\n",
       color: "#1E88E5",
+      "esme:tipo": "nota",
       "esme:z": 2,
-      "esme:profundidad": 0.5,
+      "esme:profundidad": 4,
     },
-    { id: "a2", type: "file", x: 400, y: 0, width: 300, height: 200, file: "docs/contrato.md", subpath: "#Cláusulas" },
-    { id: "A_3", type: "link", x: 0, y: 300, width: 300, height: 120, url: "https://www.boe.es/" },
+    {
+      id: "a2",
+      type: "file",
+      x: 400,
+      y: 0,
+      width: 300,
+      height: 200,
+      file: "docs/contrato.md",
+      subpath: "#Cláusulas",
+      "esme:tipo": "documento",
+    },
+    { id: "A_3", type: "link", x: 0, y: 300, width: 300, height: 120, url: "https://www.boe.es/", "esme:tipo": "enlace" },
   ],
   edges: [
     {
@@ -67,7 +84,8 @@ const LIENZO = {
       toEnd: "arrow",
       color: "1",
       label: "se apoya en",
-      "esme:peso": 3,
+      "esme:tipo": "flujo",
+      "esme:orden": "Resume lo que dice el contrato de los hechos",
     },
     { id: "e2", fromNode: "A_3", toNode: "a1" },
   ],
@@ -112,6 +130,13 @@ describe("el lienzo de partida — lo que vale", () => {
     expect([...EXTREMOS]).toEqual(["none", "arrow"]);
     expect([...FONDOS]).toEqual(["cover", "ratio", "repeat"]);
     expect(PREFIJO_PROPIO).toBe("esme:");
+    expect([...PROPIAS_PIEZA]).toEqual(["esme:tipo", "esme:z", "esme:profundidad"]);
+    expect([...PROPIAS_CONEXION]).toEqual(["esme:tipo", "esme:orden"]);
+    expect([...PROPIAS_DEL_TALLER]).toEqual(["esme:tarea"]);
+    expect(TIPOS_ESME).toEqual({
+      piezas: { text: ["nota", "tarea"], file: ["documento", "imagen"], link: ["enlace"], group: ["grupo"] },
+      conexiones: ["flujo"],
+    });
     expect([...FORMATOS_FICHERO]).toEqual(["md", "txt", "pdf", "png", "jpg", "jpeg", "webp", "gif", "avif", "mp3", "m4a", "ogg", "wav", "mp4", "webm"]);
     expect([...FORMATOS_FONDO]).toEqual(["png", "jpg", "jpeg", "webp", "gif", "avif"]);
     expect([...DOMINIOS_LOCALES]).toEqual(["localhost", "local", "internal", "home.arpa"]);
@@ -121,9 +146,9 @@ describe("el lienzo de partida — lo que vale", () => {
       conexiones: 400,
       texto: 4000,
       etiqueta: 120,
-      propios: 8,
       coordenada: 1000000,
       medida: 100000,
+      profundidad: 100000,
       url: 2048,
     });
   });
@@ -157,10 +182,37 @@ describe("el lienzo de partida — lo que vale", () => {
     for (const f of todos) expect(problemasDelLienzo(JSON.stringify(conPieza(2, { file: f })), hayTodos), f).toEqual([]);
   });
 
-  it("lo propio de Esme: esme:<kebab-case>, con un número, un sí/no o un texto corto, y hasta 8 por pieza", () => {
-    const propios = Object.fromEntries(Array.from({ length: TOPES_LIENZO.propios }, (_, n) => [`esme:p${n}`, n]));
-    expect(problemas(conPieza(1, { "esme:z": -3, "esme:visible": true, "esme:capa": "fondo" }))).toEqual([]);
-    expect(problemas(conPieza(1, { "esme:z": undefined, "esme:profundidad": undefined, ...propios }))).toEqual([]);
+  it("lo propio de Esme es opcional: un lienzo de otro programa, sin nada de Esme, vale", () => {
+    const sinEsme = JSON.parse(JSON.stringify(LIENZO), (k, v) => (k.startsWith("esme:") ? undefined : v));
+    expect(JSON.stringify(sinEsme)).not.toContain("esme:");
+    expect(problemas(sinEsme)).toEqual([]);
+  });
+
+  it("el tipo de Esme de una pieza, el que casa con su clase", () => {
+    for (const tipo of ["nota", "tarea"]) expect(problemas(conPieza(1, { "esme:tipo": tipo })), tipo).toEqual([]);
+    expect(problemas(conPieza(2, { "esme:tipo": "documento" }))).toEqual([]);
+    expect(problemas(conPieza(3, { "esme:tipo": "enlace" }))).toEqual([]);
+    expect(problemas(conPieza(0, { "esme:tipo": "grupo" }))).toEqual([]);
+    // un documento puede ser cualquier fichero que el lienzo sabe enseñar; una imagen, una imagen (sin mirar mayúsculas)
+    const imagenes = new Set(["docs/plano.png", "docs/plano.JPG", "docs/plano.avif", ...EN_EL_PAQUETE]);
+    const hayImagenes = (r: string): true | null => (imagenes.has(r) ? true : null);
+    for (const file of ["docs/plano.png", "docs/plano.JPG", "docs/plano.avif"]) {
+      for (const tipo of ["imagen", "documento"])
+        expect(problemasDelLienzo(JSON.stringify(conPieza(2, { file, subpath: undefined, "esme:tipo": tipo })), hayImagenes), `${tipo} ${file}`).toEqual([]);
+    }
+  });
+
+  it("la z y la profundidad de una pieza: enteros, la z en el plano y la profundidad de 0 (una pieza plana) a 100000", () => {
+    const { coordenada: c, profundidad: p } = TOPES_LIENZO;
+    for (const z of [-c, 0, c]) expect(problemas(conPieza(1, { "esme:z": z })), String(z)).toEqual([]);
+    for (const profundidad of [0, 1, p]) expect(problemas(conPieza(1, { "esme:profundidad": profundidad })), String(profundidad)).toEqual([]);
+    expect(problemas(conPieza(2, { "esme:z": -7, "esme:profundidad": 0 }))).toEqual([]);
+  });
+
+  it("un flujo con su orden, de hasta 120; y una conexión sin tipo de Esme es un enlace", () => {
+    expect(problemas(conConexion(0, { "esme:orden": "x".repeat(TOPES_LIENZO.etiqueta) }))).toEqual([]);
+    expect(problemas(conConexion(1, { "esme:tipo": "flujo", "esme:orden": "Busca jurisprudencia que la respalde" }))).toEqual([]);
+    expect(problemas(conConexion(0, { "esme:tipo": undefined, "esme:orden": undefined }))).toEqual([]);
   });
 
   it("la ruta de un lienzo de partida: un .canvas del paquete", () => {
@@ -308,7 +360,7 @@ describe("el lienzo de partida — lo que se rechaza, con su motivo", () => {
     ]);
   });
 
-  it("las claves que no son de su clase de pieza, ni llevan el prefijo esme:, no valen", () => {
+  it("las claves que no son de su clase de pieza, ni de Esme, no valen", () => {
     expect(problemas(conPieza(1, { z: 1 }))).toEqual(["nodes.1: clave desconocida «z» (lo propio de Esme va con el prefijo esme:, como esme:z)"]);
     expect(problemas(conPieza(0, { "Esme:z": 1 }))).toEqual([
       "nodes.0: clave desconocida «Esme:z» (lo propio de Esme va con el prefijo esme:, como esme:z)",
@@ -322,24 +374,74 @@ describe("el lienzo de partida — lo que se rechaza, con su motivo", () => {
       "nodes.1: clave desconocida «url» (lo propio de Esme va con el prefijo esme:, como esme:z)",
     ]);
     expect(problemas(conConexion(1, { peso: 2 }))).toEqual([
-      "edges.1: clave desconocida «peso» (lo propio de Esme va con el prefijo esme:, como esme:z)",
+      "edges.1: clave desconocida «peso» (lo propio de Esme va con el prefijo esme:, como esme:orden)",
     ]);
   });
 
-  it("lo propio de Esme: con nombre en kebab-case, un valor simple y 8 como mucho", () => {
-    for (const k of ["esme:", "esme:Z", "esme:la z", "esme:" + "z".repeat(33)])
-      expect(problemas(conPieza(1, { [k]: 1 })), k).toEqual([`nodes.1: «${k}»: lo propio de Esme se nombra esme:<kebab-case>`]);
-    for (const v of [{ x: 1 }, [1], null, "x".repeat(121), "con\u202einvisible", "dos\nlíneas"])
-      expect(problemas(conPieza(1, { "esme:z": v })), JSON.stringify(v)).toEqual([
-        "nodes.1.esme:z: un número, un sí/no o un texto de hasta 120",
+  it("lo propio de Esme es una lista cerrada: en una pieza, su tipo, su z y su profundidad; en una conexión, su tipo y su orden", () => {
+    const enPieza = (k: string) =>
+      `nodes.1: clave propia desconocida «${k}»: en una pieza, lo de Esme es esme:tipo, esme:z o esme:profundidad`;
+    for (const k of ["esme:peso", "esme:", "esme:Z", "esme:la z", "esme:orden", "esme:tipo-fino"])
+      expect(problemas(conPieza(1, { [k]: 1 })), k).toEqual([enPieza(k)]);
+    const enConexion = (k: string) =>
+      `edges.1: clave propia desconocida «${k}»: en una conexión, lo de Esme es esme:tipo o esme:orden`;
+    for (const k of ["esme:z", "esme:profundidad", "esme:peso"]) expect(problemas(conConexion(1, { [k]: 1 })), k).toEqual([enConexion(k)]);
+  });
+
+  it("esme:tarea apunta al Taller de quien hizo el lienzo, que quien abre la plantilla no tiene: un lienzo de partida va sin ella", () => {
+    const motivo = "apunta a una tarea de tu Taller, que quien abre la plantilla no tiene: un lienzo de partida va sin ella";
+    expect(problemas(conPieza(1, { "esme:tipo": "tarea", "esme:tarea": "k3" }))).toEqual([`nodes.1.esme:tarea: ${motivo}`]);
+    expect(problemas(conConexion(0, { "esme:tarea": "k3" }))).toEqual([`edges.0.esme:tarea: ${motivo}`]);
+  });
+
+  it("el tipo de Esme casa con la clase de la pieza, y una imagen es un fichero de imagen", () => {
+    expect(problemas(conPieza(1, { "esme:tipo": "documento" }))).toEqual(["nodes.1.esme:tipo: una pieza text es nota o tarea"]);
+    expect(problemas(conPieza(2, { "esme:tipo": "nota" }))).toEqual(["nodes.2.esme:tipo: una pieza file es documento o imagen"]);
+    expect(problemas(conPieza(3, { "esme:tipo": "grupo" }))).toEqual(["nodes.3.esme:tipo: una pieza link es enlace"]);
+    expect(problemas(conPieza(0, { "esme:tipo": "enlace" }))).toEqual(["nodes.0.esme:tipo: una pieza group es grupo"]);
+    for (const tipo of ["Nota", "flujo", "", 1, null, ["nota"]])
+      expect(problemas(conPieza(1, { "esme:tipo": tipo })), JSON.stringify(tipo)).toEqual(["nodes.1.esme:tipo: una pieza text es nota o tarea"]);
+    expect(problemas(conPieza(2, { "esme:tipo": "imagen" }))).toEqual([
+      "nodes.2.esme:tipo: una imagen va en un fichero png, jpg, jpeg, webp, gif o avif",
+    ]);
+    // con una clase que no vale, o un fichero que no vale, no se dice nada más del tipo de Esme (sería su eco)
+    expect(problemas(conPieza(1, { type: "video", "esme:tipo": "nota" }))).toEqual(["nodes.1.type: text, file, link o group"]);
+    expect(problemas(conPieza(2, { file: "web/portada.html", "esme:tipo": "imagen" }))).toEqual([
+      "nodes.2.file: un fichero que el lienzo sabe enseñar: md, txt, pdf, png, jpg, jpeg, webp, gif, avif, mp3, m4a, ogg, wav, mp4 o webm",
+    ]);
+  });
+
+  it("la z, un entero del plano; la profundidad, un entero de 0 a 100000", () => {
+    const { coordenada: c, profundidad: p } = TOPES_LIENZO;
+    for (const z of [1.5, "3", c + 1, -c - 1, null, true])
+      expect(problemas(conPieza(1, { "esme:z": z })), JSON.stringify(z)).toEqual([
+        "nodes.1.esme:z: un entero de -1000000 a 1000000, en las unidades de x e y",
+      ]);
+    for (const profundidad of [-1, 0.5, p + 1, "4", null])
+      expect(problemas(conPieza(1, { "esme:profundidad": profundidad })), JSON.stringify(profundidad)).toEqual([
+        "nodes.1.esme:profundidad: un entero de 0 a 100000",
       ]);
     const infinito = JSON.stringify(LIENZO).replace('"esme:z":2', '"esme:z":1e400');
-    expect(problemasDelLienzo(infinito, hay)).toEqual(["nodes.1.esme:z: un número, un sí/no o un texto de hasta 120"]);
-    expect(problemas(conConexion(0, { "esme:Peso": 1 }))).toEqual(["edges.0: «esme:Peso»: lo propio de Esme se nombra esme:<kebab-case>"]);
-    const nueve = Object.fromEntries(Array.from({ length: TOPES_LIENZO.propios + 1 }, (_, n) => [`esme:p${n}`, n]));
-    expect(problemas(conPieza(1, { "esme:z": undefined, "esme:profundidad": undefined, ...nueve }))).toEqual([
-      "nodes.1: como mucho 8 claves propias (esme:)",
+    expect(problemasDelLienzo(infinito, hay)).toEqual(["nodes.1.esme:z: un entero de -1000000 a 1000000, en las unidades de x e y"]);
+  });
+
+  it("un flujo lleva su orden, una orden va en un flujo, y una conexión de Esme es un flujo o no lleva tipo", () => {
+    expect(problemas(conConexion(0, { "esme:orden": undefined }))).toEqual(["edges.0: le falta «esme:orden»: un flujo lleva su orden"]);
+    expect(problemas(conConexion(1, { "esme:orden": "Resume" }))).toEqual([
+      "edges.1.esme:orden: una orden va en un flujo (esme:tipo «flujo»)",
     ]);
+    for (const tipo of ["enlace", "Flujo", 1, null])
+      expect(problemas(conConexion(1, { "esme:tipo": tipo })), JSON.stringify(tipo)).toEqual([
+        "edges.1.esme:tipo: una conexión de Esme es un flujo, o no lleva tipo (y es un enlace)",
+      ]);
+    // con un tipo que no vale, la orden no se dice otra vez
+    expect(problemas(conConexion(0, { "esme:tipo": "enlace" }))).toEqual([
+      "edges.0.esme:tipo: una conexión de Esme es un flujo, o no lleva tipo (y es un enlace)",
+    ]);
+    for (const orden of ["", "   ", "x".repeat(TOPES_LIENZO.etiqueta + 1), "dos\nlíneas", "al revés \u202e", 3, null])
+      expect(problemas(conConexion(0, { "esme:orden": orden })), JSON.stringify(orden)).toEqual([
+        "edges.0.esme:orden: la orden de un flujo, de 1 a 120 caracteres y sin nada invisible",
+      ]);
   });
 
   it("las conexiones: entre piezas del lienzo, con lados y extremos de la lista", () => {

@@ -179,14 +179,35 @@ describe("paquete.spec.yaml — y la comprobación ve cuando se separa", () => {
     expect(f).toContain("lienzos/mapa.canvas");
   });
 
+  it("el lienzo de partida: lo propio de Esme, lo que apunta al Taller y los tipos de Esme, como en el código", () => {
+    const s = spec();
+    s.oficio.lienzo.propias.pieza.push("esme:peso");
+    s.oficio.lienzo.propias.conexion.pop();
+    s.oficio.lienzo.del_taller = [];
+    s.oficio.lienzo.tipos_esme.piezas.text.push("dibujo");
+    s.oficio.lienzo.tipos_esme.piezas.video = ["clip"];
+    s.oficio.lienzo.tipos_esme.conexiones.push("enlace");
+    s.oficio.lienzo.topes.propios = 8;
+    const f = fallos(s);
+    expect(f).toContain("oficio.lienzo.propias.pieza");
+    expect(f).toContain("oficio.lienzo.propias.conexion");
+    expect(f).toContain("oficio.lienzo.del_taller");
+    expect(f).toContain("oficio.lienzo.tipos_esme.piezas.text");
+    expect(f).toContain("oficio.lienzo.tipos_esme.piezas: «video» no es una clase de pieza");
+    expect(f).toContain("oficio.lienzo.tipos_esme.conexiones");
+    expect(f).toContain("oficio.lienzo.topes: «propios» no es un tope del código");
+  });
+
   it("una lista cerrada que falta en la spec también se dice (no se da por buena)", () => {
     const s = spec();
     delete s.oficio.estados;
     delete s.oficio.lienzo.lados;
+    delete s.oficio.lienzo.propias;
     delete s.lock.claves;
     const f = fallos(s);
     expect(f).toContain("oficio.estados: falta en la spec");
     expect(f).toContain("oficio.lienzo.lados: falta en la spec");
+    expect(f).toContain("oficio.lienzo.propias.pieza: falta en la spec");
     expect(f).toContain("lock.claves: falta en la spec");
   });
 

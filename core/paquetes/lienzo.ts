@@ -7,8 +7,11 @@
  *
  *   - Arriba, `nodes` y `edges`, y nada más.
  *   - En cada pieza y cada conexión, las claves de la spec para su clase, y
- *     lo propio de Esme con el prefijo `esme:` (`esme:z`, `esme:profundidad`):
- *     hasta 8, con el nombre en kebab-case y un valor simple.
+ *     lo propio de Esme, que también es una lista cerrada: en una pieza, su
+ *     tipo (`esme:tipo`, el que casa con su clase), su altura sobre el plano
+ *     (`esme:z`) y su grosor (`esme:profundidad`); en una conexión, si es un
+ *     flujo (`esme:tipo`) y su orden (`esme:orden`). `esme:tarea` apunta al
+ *     Taller de quien lo hizo, y en un lienzo de partida no va.
  *   - Los ids, de 1 a 64 letras, cifras, «-» o «_», sin repetir entre
  *     piezas y conexiones. La posición y el tamaño, enteros y dentro del plano.
  *   - Las rutas (`file`, `background`), del paquete y desde su raíz (no desde
@@ -23,7 +26,7 @@
  *
  * Referencia: estandar/paquete.spec.yaml (`oficio.lienzo`), docs/PAQUETES.md.
  */
-import { esKebab, oLista } from "./oficio.ts";
+import { oLista } from "./oficio.ts";
 import { INVISIBLES, limpia, rutaDentro } from "./permisos.ts";
 
 /** La vista que enseña un lienzo, y la única que trae uno de partida. */
@@ -51,11 +54,32 @@ export const DOMINIOS_LOCALES = ["localhost", "local", "internal", "home.arpa"] 
 /** Lo propio de Esme en una pieza o una conexión va con este prefijo. */
 export const PREFIJO_PROPIO = "esme:";
 
+/** Lo propio de Esme que lleva una pieza: su tipo, su altura sobre el plano y su grosor. */
+export const PROPIAS_PIEZA = ["esme:tipo", "esme:z", "esme:profundidad"] as const;
+/** Lo propio de Esme que lleva una conexión: si es un flujo, y su orden. */
+export const PROPIAS_CONEXION = ["esme:tipo", "esme:orden"] as const;
+/**
+ * Lo propio de Esme que apunta al Taller de quien hizo el lienzo (una tarea
+ * suya): quien abre la plantilla no lo tiene, y podría dar con una tarea suya
+ * que se llame igual. Un lienzo de partida va sin ello.
+ */
+export const PROPIAS_DEL_TALLER = ["esme:tarea"] as const;
+
+/**
+ * Los tipos de Esme: los de una pieza, según su clase de JSON Canvas, y el
+ * de una conexión (sin tipo, una conexión es un enlace).
+ */
+export const TIPOS_ESME = {
+  piezas: { text: ["nota", "tarea"], file: ["documento", "imagen"], link: ["enlace"], group: ["grupo"] },
+  conexiones: ["flujo"],
+} as const satisfies { piezas: Record<TipoPieza, readonly string[]>; conexiones: readonly string[] };
+
 /**
  * Los topes: lo que pesa el fichero, las piezas y las conexiones, los
- * caracteres de un texto de pieza y de una etiqueta (y de un subpath o un
- * valor propio), las claves propias de una pieza, el borde del plano (x e y,
- * a cada lado del cero), el lado de una pieza y lo largo de una URL.
+ * caracteres de un texto de pieza y de una etiqueta (y de un subpath o la
+ * orden de un flujo), el borde del plano (x, y y la z, a cada lado del
+ * cero), el lado de una pieza, su grosor (desde 0: una pieza plana) y lo
+ * largo de una URL.
  */
 export const TOPES_LIENZO = {
   bytes: 256 * 1024,
@@ -63,9 +87,9 @@ export const TOPES_LIENZO = {
   conexiones: 400,
   texto: 4000,
   etiqueta: 120,
-  propios: 8,
   coordenada: 1_000_000,
   medida: 100_000,
+  profundidad: 100_000,
   url: 2048,
 } as const;
 
@@ -113,10 +137,18 @@ const M = {
     `«${h}» no es un dominio de internet (ni una IP, ni ${DOMINIOS_LOCALES[0]}, ni ${oLista(DOMINIOS_LOCALES.slice(1).map((d) => `.${d}`))})`,
   lado: oLista(LADOS),
   extremo: oLista(EXTREMOS),
-  desconocida: (k: string) => `clave desconocida «${k}» (lo propio de Esme va con el prefijo ${PREFIJO_PROPIO}, como ${PREFIJO_PROPIO}z)`,
-  nombrePropio: (k: string) => `«${k}»: lo propio de Esme se nombra ${PREFIJO_PROPIO}<kebab-case>`,
-  valorPropio: `un número, un sí/no o un texto de hasta ${T.etiqueta}`,
-  propios: `como mucho ${T.propios} claves propias (${PREFIJO_PROPIO})`,
+  desconocida: (k: string, ejemplo: string) => `clave desconocida «${k}» (lo propio de Esme va con el prefijo ${PREFIJO_PROPIO}, como ${ejemplo})`,
+  propiaDesconocida: (k: string, donde: string, validas: readonly string[]) =>
+    `clave propia desconocida «${k}»: en ${donde}, lo de Esme es ${oLista(validas)}`,
+  delTaller: "apunta a una tarea de tu Taller, que quien abre la plantilla no tiene: un lienzo de partida va sin ella",
+  tipoPieza: (clase: TipoPieza) => `una pieza ${clase} es ${oLista(TIPOS_ESME.piezas[clase])}`,
+  imagen: `una imagen va en un fichero ${oLista(FORMATOS_FONDO)}`,
+  z: `un entero de -${T.coordenada} a ${T.coordenada}, en las unidades de x e y`,
+  profundidad: `un entero de 0 a ${T.profundidad}`,
+  tipoConexion: `una conexión de Esme es un ${oLista(TIPOS_ESME.conexiones)}, o no lleva tipo (y es un enlace)`,
+  orden: `la orden de un flujo, de 1 a ${T.etiqueta} caracteres y sin nada invisible`,
+  flujoSinOrden: "le falta «esme:orden»: un flujo lleva su orden",
+  ordenSinFlujo: "una orden va en un flujo (esme:tipo «flujo»)",
 };
 
 type Objeto = Record<string, unknown>;
@@ -133,7 +165,8 @@ const esEtiqueta = (v: unknown): v is string => typeof v === "string" && v.lengt
 const esTexto = (v: unknown): boolean =>
   typeof v === "string" && v.length <= T.texto && !INVISIBLES.test(v.replace(/[\t\n\r]/g, ""));
 const esSubpath = (v: unknown): boolean => esEtiqueta(v) && v.startsWith("#");
-const esValorPropio = (v: unknown): boolean => typeof v === "boolean" || (typeof v === "number" && Number.isFinite(v)) || esEtiqueta(v);
+/** La orden de un flujo: una línea con algo escrito, de hasta 120. */
+const esOrden = (v: unknown): boolean => esEtiqueta(v) && v.trim() !== "";
 const extension = (r: string): string => /\.([^./]+)$/.exec(r)?.[1].toLowerCase() ?? "";
 const IPV4 = /^\d{1,3}(?:\.\d{1,3}){3}$/;
 
@@ -171,18 +204,17 @@ const diceEn = (sitio: string, problemas: string[]): Dice => ({
   campo: (campo, motivo) => void problemas.push(`${sitio}.${campo}: ${motivo}`),
 });
 
-/** Las claves que no son de la spec para lo que es, ni propias. */
-function revisaClaves(o: Objeto, validas: readonly string[], dice: Dice): void {
-  for (const k of Object.keys(o)) if (!k.startsWith(PREFIJO_PROPIO) && !validas.includes(k)) dice.todo(M.desconocida(k));
+/** Las claves que no son de la spec para lo que es, ni propias (`ejemplo` es una propia que sí vale ahí). */
+function revisaClaves(o: Objeto, validas: readonly string[], ejemplo: string, dice: Dice): void {
+  for (const k of Object.keys(o)) if (!k.startsWith(PREFIJO_PROPIO) && !validas.includes(k)) dice.todo(M.desconocida(k, ejemplo));
 }
 
-/** Lo propio de Esme: hasta 8, con el nombre en kebab-case y un valor simple. */
-function revisaPropios(o: Objeto, dice: Dice): void {
-  const propios = Object.keys(o).filter((k) => k.startsWith(PREFIJO_PROPIO));
-  if (propios.length > T.propios) dice.todo(M.propios);
-  for (const k of propios) {
-    if (!esKebab(k.slice(PREFIJO_PROPIO.length))) dice.todo(M.nombrePropio(k));
-    else if (!esValorPropio(o[k])) dice.campo(k, M.valorPropio);
+/** Las claves propias que no son de la lista de lo que es (`donde`), o que apuntan al Taller de quien lo hizo. */
+function revisaNombresPropios(o: Objeto, validas: readonly string[], donde: string, dice: Dice): void {
+  for (const k of Object.keys(o)) {
+    if (!k.startsWith(PREFIJO_PROPIO)) continue;
+    if ((PROPIAS_DEL_TALLER as readonly string[]).includes(k)) dice.campo(k, M.delTaller);
+    else if (!validas.includes(k)) dice.todo(M.propiaDesconocida(k, donde, validas));
   }
 }
 
@@ -240,10 +272,46 @@ function revisaPieza(n: unknown, ids: Set<string>, hay: HayRuta, dice: Dice): bo
       if (tiene("background")) revisaRuta(n.background, "background", FORMATOS_FONDO, M.fondo, hay, dice);
       if (tiene("backgroundStyle") && !de(FONDOS, n.backgroundStyle)) dice.campo("backgroundStyle", M.estilo);
     }
-    revisaClaves(n, [...COMUNES, "color", ...piden, ...admiten], dice);
+    revisaClaves(n, [...COMUNES, "color", ...piden, ...admiten], "esme:z", dice);
   }
-  revisaPropios(n, dice);
+  revisaPropiosDePieza(n, clase, dice);
   return fiable;
+}
+
+/**
+ * Lo propio de Esme de una pieza: su tipo, que casa con su clase (sin una
+ * clase que valga, o con un fichero que no vale, no se dice: sería su eco),
+ * y su z y su profundidad, enteros.
+ */
+function revisaPropiosDePieza(n: Objeto, clase: TipoPieza | null, dice: Dice): void {
+  revisaNombresPropios(n, PROPIAS_PIEZA, "una pieza", dice);
+  const tiene = (k: string): boolean => Object.hasOwn(n, k);
+  if (tiene("esme:tipo") && clase !== null) {
+    const tipo = n["esme:tipo"];
+    if (!de(TIPOS_ESME.piezas[clase], tipo)) dice.campo("esme:tipo", M.tipoPieza(clase));
+    else if (tipo === "imagen" && typeof n.file === "string") {
+      const formato = extension(n.file);
+      const fichero = (FORMATOS_FICHERO as readonly string[]).includes(formato);
+      if (fichero && !(FORMATOS_FONDO as readonly string[]).includes(formato)) dice.campo("esme:tipo", M.imagen);
+    }
+  }
+  if (tiene("esme:z") && !esEntero(n["esme:z"], -T.coordenada, T.coordenada)) dice.campo("esme:z", M.z);
+  if (tiene("esme:profundidad") && !esEntero(n["esme:profundidad"], 0, T.profundidad)) dice.campo("esme:profundidad", M.profundidad);
+}
+
+/**
+ * Lo propio de Esme de una conexión: un flujo lleva su orden y una orden va
+ * en un flujo. Con un tipo que no vale, la orden no se dice otra vez.
+ */
+function revisaPropiosDeConexion(e: Objeto, dice: Dice): void {
+  revisaNombresPropios(e, PROPIAS_CONEXION, "una conexión", dice);
+  const tiene = (k: string): boolean => Object.hasOwn(e, k);
+  const tipo = e["esme:tipo"];
+  const tipoValido = de(TIPOS_ESME.conexiones, tipo);
+  if (tiene("esme:tipo") && !tipoValido) dice.campo("esme:tipo", M.tipoConexion);
+  if (tiene("esme:orden") && !esOrden(e["esme:orden"])) dice.campo("esme:orden", M.orden);
+  if (tipoValido && tipo === "flujo" && !tiene("esme:orden")) dice.todo(M.flujoSinOrden);
+  if (tiene("esme:orden") && !tiene("esme:tipo")) dice.campo("esme:orden", M.ordenSinFlujo);
 }
 
 /** Una conexión: entre dos piezas del lienzo (si sus ids se pueden mirar), con lados y extremos de la lista. */
@@ -267,8 +335,8 @@ function revisaConexion(e: unknown, piezas: ReadonlySet<string>, fiables: boolea
   for (const k of ["fromEnd", "toEnd"]) if (tiene(k) && !de(EXTREMOS, e[k])) dice.campo(k, M.extremo);
   if (tiene("color") && !esColor(e.color)) dice.campo("color", M.color);
   if (tiene("label") && !esEtiqueta(e.label)) dice.campo("label", M.etiqueta);
-  revisaClaves(e, [...CONEXION.piden, ...CONEXION.admiten], dice);
-  revisaPropios(e, dice);
+  revisaClaves(e, [...CONEXION.piden, ...CONEXION.admiten], "esme:orden", dice);
+  revisaPropiosDeConexion(e, dice);
 }
 
 /**
