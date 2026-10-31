@@ -103,12 +103,19 @@ límite):
 |---|---|---|
 | `net:fetch` | `hosts` | `ankiweb.net`, `*.figma.com` (sus subdominios, no `figma.com`) o `*` (toda la red, y se avisa) |
 | `proc:spawn` | `programs` | `npx`, `node`, `uvx`: por su nombre, nunca por su ruta |
-| `fs:project` | `paths` | `notas/`, relativas al proyecto; `**` es todo |
+| `fs:project` | `paths` | `notas/`, relativas al proyecto (sin `..` ni caracteres de control); `**` es todo |
 | `mind:read`, `mind:write`, `ipc:emit`, `ui:render` | ninguno | siempre en su forma corta |
 
 Los hosts se comparan por piezas, en minúsculas y sin el punto final, nunca
 por texto: `*.figma.com` no cubre `evil-figma.com` ni
 `mcp.figma.com.evil.net`. La spec trae la lista que la conformidad prueba.
+
+Lo que se lanza va **por su nombre**: el `command` de un servidor MCP local
+y el `comando` de un agente son `npx`, `node`, `uvx`…, y el anfitrión decide
+dónde están. Una ruta no vale, tampoco una del propio paquete
+(`${ESME_PAQUETE}/bin/npx`): lanzaría código del paquete con el permiso de un
+programa del sistema. Y una URL (la de un servidor, `homepage`) no lleva
+usuario ni contraseña: una credencial no viaja en el manifiesto.
 
 ## 4. Dónde tiene que correr: los niveles
 
@@ -158,7 +165,11 @@ Al volver a resolver se compara, y **se vuelve a pedir permiso** si hay:
 - un permiso nuevo, mirado paquete a paquete: que otro ya hablara con un
   host no se lo da a uno que antes no lo pedía.
 
-Quitar no lo pide: lo que se va ya no puede nada. Un candado roto, ajeno (de
+La plantilla es uno más: el candado guarda su huella y sus propios permisos,
+y si cambian, se pregunta (una plantilla también trae skills, tareas y
+agentes: lo que se le dice al modelo). Quitar un paquete no pide nada por sí
+mismo, porque lo que se va ya no puede nada; pero la plantilla que lo quita
+es otra, así que se pregunta una vez. Un candado roto, ajeno (de
 otra plantilla) o que no está equivale a «nada consentido»: equivocarse aquí
 es preguntar de más, nunca de menos. Se escribe siempre igual (paquetes por
 id, dos espacios), para que un diff del candado diga solo lo que cambió.
@@ -191,21 +202,34 @@ Tres reglas:
 
 1. **Lo escrito manda.** El autor, la licencia y la versión salen del
    original; `--autor` y `--licencia` solo rellenan lo que no dice. Una
-   licencia que un paquete no puede llevar (GPL, una cerrada…) es un error,
-   no un aviso, aunque digas otra; y si el original dice una y su LICENSE es
-   de esas, no se adivina cuál vale: error. Un correo nunca es un autor.
+   licencia que un paquete no puede llevar (GPL, una cerrada, una abierta
+   con una cláusula que la cierra, como la Commons Clause, «solo no
+   comercial», «solo uso personal» o «no para ganar dinero») es un error,
+   no un aviso, aunque digas otra. Esas cláusulas se buscan por sus frases
+   de siempre: una escrita de otra forma pasa, y «para uso comercial o no
+   comercial» (lo que dice el Unlicense) no cierra nada. Si el original
+   dice una y su LICENSE es de esas, no se adivina cuál vale: error. Si su
+   LICENSE no se reconoce, se avisa. En un marketplace, el autor y la
+   licencia son los del `plugin.json` (la entrada solo los rellena): si la
+   entrada dice otra licencia, error. Un correo nunca es un autor.
 2. **Nada se pierde en silencio.** Lo que no viaja se descarta con su
    motivo, y lo que cambia por el camino se avisa.
 3. **Los valores no viajan.** De las variables de entorno y las cabeceras
-   viaja el nombre, nunca el valor: los pone quien instala. Y los ficheros
-   que suelen guardar secretos (`.env`, `.npmrc`, `.netrc`, claves `id_*`,
-   `*.key`…) no viajan nunca; `.env.example` sí.
+   viaja el nombre, nunca el valor: los pone quien instala. Un servidor con
+   una credencial escrita en su URL (un usuario, `?api_key=…`) o en sus
+   argumentos (`--token x`, `GITHUB_TOKEN=x`, algo con forma de token) se
+   descarta, sin decir el valor. Y los ficheros que suelen guardar secretos
+   (`.env`, `.envrc`, `.npmrc`, `.netrc`, `.pgpass`, claves `id_*`, `*.key`,
+   `*.pem`, `credentials*`, `secrets*`, las carpetas `.aws/`, `.ssh/` y
+   `.gnupg/`…) no viajan nunca; los de ejemplo (`.env.example`,
+   `secrets.example.yaml`) sí. Tampoco la configuración de Claude Code
+   (`.claude/settings*.json`) ni un `.mcp.json` que no se convierte.
 
 Lo que se descarta, y por qué:
 
 | Qué | Por qué |
 |---|---|
-| hooks (de un plugin, de una skill o de un agente) | corren código en cada paso sin pasar por los permisos |
+| hooks (de un plugin, de una skill o de un agente) | corren código en cada paso sin pasar por los permisos. Si una cabecera los lleva de una forma que no se sabe quitar (con `<<`, `? hooks`…), la skill o el agente no viaja; y al leer un paquete de disco, una skill o un agente con hooks no vale |
 | `bin/` de un plugin | pone programas en el PATH sin pedir permiso |
 | `monitors` | un proceso que corre siempre: en Esme es una rutina, con permisos |
 | `userConfig`, `${user_config.*}` | llega con las llaves de Esme, en la Fase 2 |
@@ -213,10 +237,11 @@ Lo que se descarta, y por qué:
 | servidores LSP, estilos de salida, temas, workflows y `settings` de Claude Code | aún no tienen punto en Esme |
 | `allowed-tools`, `permissionMode` | dan permisos sin pasar por los del paquete (se quitan y se avisa) |
 | un servidor `.mcpb` o `.dxt` | aún no se abre: en la Fase 2 |
+| un servidor que se lanza por una ruta del paquete o relativa | un programa va por su nombre; lo que trae el paquete va en los argumentos (una ruta absoluta del sistema va por su nombre, con aviso) |
 | una skill que el plugin no carga, o con una licencia que no se puede llevar | no viaja |
 | un enlace simbólico, `node_modules/` | se copia el fichero de verdad; las dependencias se instalan donde corre |
 | en goose: extensiones `builtin`/`platform`, `frontend`, `inline_python`, `settings`, `activities`, `sub_recipes`, los `checks` y `on_failure` de `retry` | son de goose por dentro, o son código de shell, o no traen huella |
-| del registro MCP: las otras formas de llegar al mismo servidor | se elige una (remoto streamable-http, SSE, npm o PyPI, por ese orden) |
+| del registro MCP: las otras formas de llegar al mismo servidor | se elige una (remoto streamable-http, SSE, npm o PyPI, por ese orden). Un paquete de npm o PyPI cuyo nombre no es un nombre (o cuya versión empieza por «-») no se lanza |
 
 Lo que cambia por el camino:
 
@@ -230,7 +255,15 @@ Lo que cambia por el camino:
   `{{argumento-1}}`, y un argumento con nombre (`$tema`) es `{{tema}}`.
 - **Las órdenes que Claude Code corre al leer** (`` !`…` ``) se quedan como
   texto: en una tarea de Esme no se ejecutan, y se avisa. En una skill,
-  marcan `scripts: true`.
+  marcan `scripts: true`. Y si el plugin trae código en cualquier sitio,
+  todas sus skills llevan `scripts: true`: una skill puede correr cualquier
+  fichero del paquete.
+- **Un `server.json` del registro** es el puntero al servidor: su autor es
+  el espacio de quien lo publica (`io.github.ana`), y va con licencia MIT;
+  el servidor sigue con la suya. El espacio `mcp` no vale: es el de las
+  herramientas de Esme.
+- **Los args de goose** que son un número o un sí/no van como texto (`8080`,
+  `true`); otra cosa descarta la extensión, con su motivo.
 - Un `npx` o un `uvx` sin versión fija se avisa: bajaría la última cada vez.
 
 ## 8. La orden: `npm run paquete`

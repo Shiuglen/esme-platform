@@ -183,6 +183,26 @@ describe("paquete resolver — el candado solo se escribe con tu sí", () => {
     expect(existsSync(m.lock)).toBe(false);
   });
 
+  it("quitar un paquete cambia la plantilla: se dice qué ya no está, y la plantilla nueva se vuelve a consentir", () => {
+    const m = montaje();
+    expect(cli(["resolver", m.plantilla, "--en", m.en, "--aceptar"]).code).toBe(0);
+    escribePaquete(
+      {
+        manifiesto: {
+          ...cabecera("esme.prueba.estudio"),
+          kind: "template",
+          contributes: { tasks: [{ id: "repasa", title: "Repasa", prompt: "Repasa lo de hoy." }] },
+        },
+        ficheros: {},
+      },
+      m.plantilla
+    );
+    const s = cli(["resolver", m.plantilla, "--en", m.en]);
+    expect(texto(s)).toContain("Ya no están: esme.prueba.notas");
+    expect(texto(s)).toContain("esme.prueba.estudio cambió de huella");
+    expect(texto(s)).toContain("pide tu permiso");
+  });
+
   it("si no resuelve, code 1 y no escribe nada aunque digas --aceptar", () => {
     const m = montaje();
     rmSync(join(m.en, "notas"), { recursive: true });
@@ -190,6 +210,47 @@ describe("paquete resolver — el candado solo se escribe con tu sí", () => {
     expect(s.code).toBe(1);
     expect(texto(s)).toContain("esme.prueba.notas");
     expect(existsSync(m.lock)).toBe(false);
+  });
+});
+
+describe("paquete — lo que enseña no escribe en tu terminal, y un v1 raro no la tumba", () => {
+  it("los caracteres de control de un manifiesto salen escritos como \\u…, no crudos", () => {
+    const d = temporal();
+    escribePaquete(
+      {
+        manifiesto: {
+          schema_version: 2,
+          id: "esme.prueba.raro",
+          version: "1.0.0",
+          name: "Raro\u001b]0;hola\u0007\u202e",
+          kind: "package",
+          description: "Un paquete\u001b[2J de prueba,\nsintético.",
+          author: "Prueba",
+          license: "MIT",
+          contributes: { tasks: [{ id: "t", title: "Una tarea", prompt: "Haz algo útil." }] },
+        },
+        ficheros: {},
+      },
+      d
+    );
+    const s = cli([d]);
+    expect(s.code).toBe(0);
+    for (const l of s.lineas) expect(l, JSON.stringify(l)).not.toMatch(/[\p{Cc}\u202a-\u202e\u2066-\u2069]/u);
+    expect(texto(s)).toContain("\\u001b");
+  });
+
+  it("un módulo v1 que no se puede ver como paquete v2: code 1 y por qué, sin lanzar; al resolver, no cuenta", () => {
+    const raiz = temporal();
+    const v1 = join(raiz, "v1");
+    mkdirSync(v1);
+    writeFileSync(
+      join(v1, "module.yaml"),
+      "schema_version: 1\nid: esme.ana.hola\nname: Hola\nversion: 0.1.0\ncategory: tool\ndescription: Saluda al usuario y lo demuestra\nauthor: Ana Prueba\nlicense: MIT\nentry: ../compartido/index.js\nruntime: nodejs\npermissions: [mind:read]\n"
+    );
+    let s: ReturnType<typeof cli> | undefined;
+    expect(() => (s = cli([v1]))).not.toThrow();
+    expect(s!.code).toBe(1);
+    expect(texto(s!)).toContain("no se puede ver como paquete v2");
   });
 });
 

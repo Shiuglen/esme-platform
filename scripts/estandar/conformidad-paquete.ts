@@ -32,7 +32,7 @@ import {
 } from "../../core/paquetes/manifiesto.ts";
 import { ALCANCES, permiteHost } from "../../core/paquetes/permisos.ts";
 import { cumple, esRango } from "../../core/paquetes/semver.ts";
-import { CLAVES_ENTRADA_LOCK, CLAVES_LOCK } from "../../core/paquetes/lock.ts";
+import { CLAVES_ENTRADA_LOCK, CLAVES_LOCK, CLAVES_RAIZ_LOCK } from "../../core/paquetes/lock.ts";
 import { CAPABILITIES } from "../../core/extension-host/capability.ts";
 
 type Objeto = Record<string, unknown>;
@@ -172,6 +172,7 @@ export function compruebaPaquete(spec: Objeto, anota: (problema: string) => void
   const lock = objeto(seccion("lock"));
   if (lock) {
     mismaLista("lock.claves", lock.claves, CLAVES_LOCK);
+    mismaLista("lock.claves_raiz", lock.claves_raiz, CLAVES_RAIZ_LOCK);
     mismaLista("lock.claves_paquete", lock.claves_paquete, CLAVES_ENTRADA_LOCK);
   }
 }

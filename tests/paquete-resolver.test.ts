@@ -170,7 +170,7 @@ describe("el candado — lo que se resolvió, escrito", () => {
     const r = resuelve(plantilla("esme.t.r", [uso(B), uso(C)]), [D, B, C], { sha256Raiz: huella("f") });
     expect(r.lock).toEqual({
       lock_version: 1,
-      raiz: { id: "esme.t.r", version: "1.0.0", sha256: huella("f") },
+      raiz: { id: "esme.t.r", version: "1.0.0", sha256: huella("f"), permisos: [] },
       paquetes: [
         { id: "esme.t.b", version: "1.0.0", sha256: huella("b"), permisos: [] },
         { id: "esme.t.c", version: "1.0.0", sha256: huella("c"), permisos: [{ kind: "net:fetch", hosts: ["c.example.com"] }] },
@@ -198,7 +198,7 @@ describe("el candado — lo que se resolvió, escrito", () => {
         { permisos: [], sha256: huella("d"), version: "1.0.0", id: "esme.t.d" },
         { sha256: huella("b"), id: "esme.t.b", version: "1.0.0", permisos: [] },
       ],
-      raiz: { version: "1.0.0", id: "esme.t.r" },
+      raiz: { permisos: [], version: "1.0.0", id: "esme.t.r" },
       lock_version: 1,
     } as Lock;
     const ruta = join(temporal(), "esme.lock.json");
@@ -210,7 +210,7 @@ describe("el candado — lo que se resolvió, escrito", () => {
   });
 
   it("un candado roto no se escribe", () => {
-    const roto = { lock_version: 1, raiz: { id: "esme.t.r", version: "1.0.0" }, paquetes: [{ id: "esme.t.b", version: "1.0.0", sha256: "xyz", permisos: [] }], permisos: [] } as Lock;
+    const roto = { lock_version: 1, raiz: { id: "esme.t.r", version: "1.0.0", permisos: [] }, paquetes: [{ id: "esme.t.b", version: "1.0.0", sha256: "xyz", permisos: [] }], permisos: [] } as Lock;
     const ruta = join(temporal(), "esme.lock.json");
     expect(() => escribeLock(ruta, roto)).toThrow(/candado/);
     expect(leeLock(ruta)).toBeNull();
@@ -282,6 +282,27 @@ describe("cambiosDesde — cuándo se vuelve a pedir permiso", () => {
     const c = cambiosDesde(antes, ahora);
     expect(c.permisosNuevos).toEqual([netA]);
     expect(c.huellas.map((h) => h.id)).toEqual(["esme.t.y"]);
+  });
+
+  it("la plantilla es como un paquete más: si cambia de huella se vuelve a preguntar, y se nombra", () => {
+    const D = conocido("esme.t.d", "1.0.0", huella("d"));
+    const antes = resuelve(plantilla("esme.t.r", [uso(D)]), [D], { sha256Raiz: huella("1") }).lock!;
+    const ahora = resuelve(plantilla("esme.t.r", [uso(D)]), [D], { sha256Raiz: huella("2") }).lock!;
+    const c = cambiosDesde(antes, ahora);
+    expect(c.huellas).toEqual([{ id: "esme.t.r", antes: huella("1"), despues: huella("2") }]);
+    expect(c.pideConsentimiento).toBe(true);
+    expect(cambiosDesde(ahora, ahora).pideConsentimiento).toBe(false);
+  });
+
+  it("un permiso nuevo de la plantilla se pide, aunque un paquete suyo ya lo tuviera", () => {
+    const curl = { kind: "proc:spawn", programs: ["curl"] };
+    const D = conocido("esme.t.d", "1.0.0", huella("d"), { permissions: [curl] });
+    const antes = resuelve(plantilla("esme.t.r", [uso(D)]), [D]).lock!;
+    const ahora = resuelve(plantilla("esme.t.r", [uso(D)], { permissions: [curl] }), [D]).lock!;
+    expect(ahora.raiz.permisos).toEqual([curl]);
+    const c = cambiosDesde(antes, ahora);
+    expect(c.permisosNuevos).toEqual([curl]);
+    expect(c.pideConsentimiento).toBe(true);
   });
 
   it("el candado de otra plantilla no vale: todo es nuevo", () => {

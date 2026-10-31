@@ -8,9 +8,11 @@
  * otras formas se descartan («otra forma de llegar al mismo servidor») y las
  * que no sabe usar, con su motivo.
  *
- * Como con las herramientas destacadas de la app, el paquete es el PUNTERO,
- * no el servidor: va como de Esme, con licencia MIT, y el servidor sigue
- * siendo de quien lo publica (su nombre está en `source.ref`).
+ * El paquete es el PUNTERO, no el servidor: su autor es el espacio del
+ * registro de quien lo publica (`io.github.ana`, que el registro verifica),
+ * y va con licencia MIT; el servidor sigue con la suya (su nombre está en
+ * `source.ref`). El espacio `mcp` no vale: es el de las herramientas
+ * destacadas de Esme (`esme.mcp.…`), y así se haría pasar por una.
  *
  * Referencia: core/paquetes/adaptadores/herramientas.ts, tienda/importa-comun.ts.
  */
@@ -19,8 +21,10 @@ import { herramientaMcp, type ConexionMcp, type VariableMcp } from "../core/paqu
 import {
   MOTIVOS,
   cierra,
+  credencialEn,
   descripcionDe,
   falla,
+  idDe,
   versionImportada,
   type Descartado,
   type Importe,
@@ -30,6 +34,12 @@ import {
 type Forma = { que: string; prioridad: number; conexion: ConexionMcp; avisos: string[] } | { que: string; motivo: string };
 
 const MOTIVO_VARIABLES = "la URL lleva variables ({…}): se rellenan al instalar, en la Fase 2";
+/** Un nombre de paquete de npm (con su ámbito, si lo tiene); nunca empieza por «-», que npx leería como una opción. */
+const NPM = /^(@[a-z0-9~][a-z0-9-._~]*\/)?[a-z0-9~][a-z0-9-._~]*$/;
+/** Un nombre de paquete de PyPI (PEP 508). */
+const PYPI = /^([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9._-]*[A-Za-z0-9])$/;
+/** Una versión fija: ni empieza por «-» ni lleva espacios. */
+const VERSION_PAQUETE = /^[0-9A-Za-z][0-9A-Za-z.+_-]*$/;
 const MOTIVO_ARGUMENTOS = "necesita argumentos que pone quien lo instala: en la Fase 2";
 
 /** Las variables de un remoto (sus cabeceras) o de un paquete (su entorno): el nombre, nunca el valor. */
@@ -57,6 +67,7 @@ function formaRemota(r: unknown, i: number): Forma {
   if (!esTexto(r.url)) return { que, motivo: "no dice su URL" };
   if (/[{}]/.test(r.url)) return { que, motivo: MOTIVO_VARIABLES };
   if (!/^https?:\/\//i.test(r.url) || !URL.canParse(r.url)) return { que, motivo: "no es una URL http(s)" };
+  if (credencialEn(r.url, [])) return { que, motivo: MOTIVOS.credencial };
   return {
     que,
     prioridad,
@@ -87,8 +98,12 @@ function formaPaquete(p: unknown, i: number): Forma {
   if (tipo !== "npm" && tipo !== "pypi") return { que, motivo: `${tipo || "sin registryType"}: aún no se sabe lanzar` };
   const transporte = esObjeto(p.transport) ? p.transport.type : undefined;
   if (transporte !== undefined && transporte !== "stdio") return { que, motivo: "se lanza como servidor HTTP local: aún no" };
+  if (!(tipo === "npm" ? NPM : PYPI).test(p.identifier))
+    return { que, motivo: `«${p.identifier}» no es un nombre de paquete de ${tipo === "npm" ? "npm" : "PyPI"}` };
+  if (esTexto(p.version) && !VERSION_PAQUETE.test(p.version.trim())) return { que, motivo: `su versión «${p.version}» no vale` };
   const args = argumentosDe(p.packageArguments);
   if (!args) return { que, motivo: MOTIVO_ARGUMENTOS };
+  if (credencialEn(undefined, args)) return { que, motivo: MOTIVOS.credencial };
   const avisos: string[] = [];
   if (p.runtimeArguments !== undefined) avisos.push(`${que}: trae argumentos para el lanzador (runtimeArguments): no viajan`);
   const variables = variablesDe(p.environmentVariables, "entorno");
@@ -111,7 +126,12 @@ export function importaServidorMcp(json: unknown): Importe {
     return falla("server.json: «name» tiene que ser «espacio/nombre» (io.github.dueño/servidor)");
   const nombre = json.name.trim();
   const corto = nombre.split("/").pop()!;
+  const espacio = nombre.slice(0, nombre.lastIndexOf("/"));
   const herramienta = slug(corto) || slug(nombre);
+  if (slug(espacio) === "mcp")
+    return falla(`server.json: su espacio «${espacio}» es «mcp», el de las herramientas de Esme: así se haría pasar por una de ellas`);
+  const id = idDe(espacio, corto);
+  if (!id) return falla(`server.json: «${nombre}» no da un id (esme.<espacio>.<nombre>)`);
 
   const formas = [
     ...(Array.isArray(json.remotes) ? json.remotes : []).map(formaRemota),
@@ -128,7 +148,7 @@ export function importaServidorMcp(json: unknown): Importe {
     .map((f) => ({ que: f.que, motivo: "motivo" in f ? f.motivo : MOTIVOS.otraForma }));
 
   const avisos = [
-    `el paquete es un puntero al servidor, que sigue siendo de quien lo publica (${nombre}): va como de Esme, con licencia MIT`,
+    `el paquete es un puntero al servidor, que sigue siendo de quien lo publica (${nombre}) y con su licencia: el puntero va con licencia MIT`,
     ...elegida.avisos,
   ];
   const h = herramientaMcp(herramienta, elegida.conexion);
@@ -137,11 +157,11 @@ export function importaServidorMcp(json: unknown): Importe {
   const homepage = [json.websiteUrl, repositorio].find((u): u is string => esTexto(u) && /^https?:\/\//i.test(u) && URL.canParse(u));
   const p = paquete(
     {
-      id: `esme.mcp.${slug(nombre)}`,
+      id,
       version: versionImportada(json.version, "server.json", avisos),
       name: esTexto(json.title) ? json.title.trim() : corto,
       description: descripcionDe(json.description, `El servidor MCP ${nombre}.`, "server.json", avisos),
-      author: "Esme",
+      author: espacio,
       license: "MIT",
       ...(homepage ? { homepage } : {}),
       source: { from: "mcp-registry", ref: nombre },

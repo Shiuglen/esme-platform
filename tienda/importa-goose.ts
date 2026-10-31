@@ -27,8 +27,10 @@ import { herramientaMcp, type EntradaMcp } from "../core/paquetes/adaptadores/he
 import type { PaqueteDatos } from "../core/paquetes/manifiesto.ts";
 import type { Permiso } from "../core/paquetes/permisos.ts";
 import {
+  MOTIVOS,
   avisaSinFijar,
   cierra,
+  credencialEn,
   contribuciones,
   descripcionDe,
   eligeAutor,
@@ -87,6 +89,23 @@ function entradasDe(parametros: unknown, avisos: string[]): Array<Record<string,
   return entradas;
 }
 
+/**
+ * Los args de una extensión, como textos: un número o un sí/no del YAML
+ * (`8080`, `true`) es el texto que goose le pasaría al programa. Otra cosa
+ * (un objeto, una lista, nada) no se sabe pasar: null.
+ */
+function argumentosDe(args: unknown): string[] | null {
+  if (args === undefined) return [];
+  if (!Array.isArray(args)) return null;
+  const textos: string[] = [];
+  for (const a of args) {
+    if (typeof a === "string") textos.push(a);
+    else if (typeof a === "number" || typeof a === "boolean") textos.push(String(a));
+    else return null;
+  }
+  return textos;
+}
+
 /** Las extensiones de la receta, como herramientas (lo de goose por dentro se descarta). */
 function herramientasDe(
   extensiones: unknown,
@@ -125,7 +144,16 @@ function herramientasDe(
           fuera(que, "no dice qué programa lanza (cmd)");
           continue;
         }
-        const p = partida(e.cmd, esTextos(e.args) ? e.args : [], que, avisos);
+        const args = argumentosDe(e.args);
+        if (!args) {
+          fuera(que, "sus args no son una lista de textos");
+          continue;
+        }
+        if (credencialEn(undefined, [...e.cmd.trim().split(/\s+/), ...args])) {
+          fuera(que, MOTIVOS.credencial);
+          continue;
+        }
+        const p = partida(e.cmd, args, que, avisos);
         if ("motivo" in p) {
           fuera(que, p.motivo);
           continue;
@@ -160,6 +188,10 @@ function herramientasDe(
         }
         if (!/^https?:\/\//i.test(url) || !URL.canParse(url)) {
           fuera(que, "no es una URL http(s)");
+          continue;
+        }
+        if (credencialEn(url, [])) {
+          fuera(que, MOTIVOS.credencial);
           continue;
         }
         if (e.type === "sse") avisos.push(`${que}: usa SSE, que el estándar MCP ya da por viejo`);

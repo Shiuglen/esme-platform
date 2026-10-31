@@ -102,6 +102,9 @@ describe("PermisoSchema — la forma de un permiso", () => {
     expect(vale({ kind: "fs:project", paths: ["../x"] })).toBe(false);
     expect(vale({ kind: "fs:project", paths: ["/etc"] })).toBe(false);
     expect(vale({ kind: "fs:project", paths: ["a/../../b"] })).toBe(false);
+    // ni caracteres de control: una ruta así, al enseñarla, escribiría en tu terminal
+    for (const r of ["a\u001b[31mb", "a\nb", "a\tb", "a\u0000b", "a\u007fb", "a\u202eb"])
+      expect(vale({ kind: "fs:project", paths: [r] }), JSON.stringify(r)).toBe(false);
   });
 
   it("los alcances son los de la spec: red con hosts, disco con paths, procesos con programs", () => {

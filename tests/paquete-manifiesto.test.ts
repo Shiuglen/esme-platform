@@ -213,6 +213,24 @@ describe("el manifiesto v2 — lo que se rechaza, con su motivo", () => {
   });
 });
 
+describe("el manifiesto v2 — lo que lanza y con quién habla, sin trampas", () => {
+  it("un servidor MCP local se lanza por el nombre de su programa, nunca por una ruta (tampoco del paquete)", () => {
+    const conMcp = (command: string) =>
+      base({ contributes: { tools: [{ id: "x", mcp: { command } }] }, permissions: [{ kind: "proc:spawn", programs: ["npx"] }] });
+    expect(errores(conMcp("${ESME_PAQUETE}/bin/npx"))).toContain("un programa va por su nombre");
+    expect(errores(conMcp("/usr/bin/npx"))).toContain("un programa va por su nombre");
+    expect(errores(conMcp("npx"))).toBe("");
+  });
+
+  it("una URL con usuario o contraseña no vale (ni en un servidor ni en homepage)", () => {
+    const conUrl = (url: string) =>
+      base({ contributes: { tools: [{ id: "x", mcp: { url } }] }, permissions: [{ kind: "net:fetch", hosts: ["api.example.com"] }] });
+    expect(errores(conUrl("https://ana:clave@api.example.com/mcp"))).toContain("sin usuario ni contraseña");
+    expect(errores(base({ homepage: "https://ana@example.com" }))).toContain("sin usuario ni contraseña");
+    expect(errores(conUrl("https://api.example.com/mcp"))).toBe("");
+  });
+});
+
 describe("el manifiesto v2 — lo que se avisa, sin rechazar", () => {
   it("una clave desconocida, arriba o dentro de una entrada", () => {
     expect(avisos(base({ foo: 1 }))).toContain("clave desconocida «foo»");
@@ -257,6 +275,41 @@ describe("la v1 sigue valiendo — y se lee como un paquete de una contribución
       expect(nivelDe(p)).toBe(2);
     });
   }
+
+  const v1 = {
+    schema_version: 1,
+    id: "esme.ana.hola",
+    name: "Hola",
+    version: "0.1.0",
+    category: "tool",
+    description: "Saluda al usuario y lo demuestra",
+    author: "Ana Prueba",
+    license: "MIT",
+    entry: "dist/index.js",
+    runtime: "nodejs",
+    permissions: ["mind:read"],
+  };
+
+  it("un v1 válido que no se puede ver como v2 (una ruta con «..» o «\\», un id raro) es un error que lo dice, sin lanzar", () => {
+    for (const cambio of [{ entry: "../compartido/index.js" }, { entry: "dist\\index.js" }, { id: "esme.ana.-hola" }]) {
+      let r: ReturnType<typeof leePaquete> | undefined;
+      expect(() => (r = leePaquete({ ...v1, ...cambio })), JSON.stringify(cambio)).not.toThrow();
+      expect(r!.ok).toBe(false);
+      expect(r!.version).toBe(1);
+      expect(r!.errores.join("\n")).toContain("no se puede ver como paquete v2");
+    }
+  });
+
+  it("un v1 de piel o de agente con código: su código va como herramienta, y cuenta para el nivel", () => {
+    const piel = leePaquete({ ...v1, category: "theme", entry: "main.py", runtime: "python" });
+    expect(piel.errores).toEqual([]);
+    expect(piel.paquete!.contributes.themes).toEqual([{ id: "hola", file: "piel.json" }]);
+    expect(piel.paquete!.contributes.tools).toEqual([{ id: "hola", entry: "main.py", runtime: "python" }]);
+    expect(nivelDe(piel.paquete!)).toBe(3);
+    const agente = leePaquete({ ...v1, category: "agent" });
+    expect(agente.paquete!.contributes.tools).toEqual([{ id: "hola", entry: "dist/index.js", runtime: "nodejs" }]);
+    expect(nivelDe(agente.paquete!)).toBe(2);
+  });
 
   it("un v1 roto sigue siendo un error de v1 (no se cuela como v2)", () => {
     const r = leePaquete({ schema_version: 1, id: "esme.x.y" });
@@ -342,6 +395,17 @@ describe("rutasDe y validaPaqueteDatos — lo que el paquete dice que trae, lo t
     });
     expect(validaPaqueteDatos({ manifiesto, ficheros: { "agente.json": "{}" } }).errores.join("\n")).toContain(
       "comando"
+    );
+  });
+
+  it("un agente de formato comando lanza su programa por su nombre, no por una ruta", () => {
+    const manifiesto = base({
+      contributes: { agents: [{ id: "oc", recipe: "agente.json", format: "comando" }] },
+      permissions: [{ kind: "proc:spawn", programs: ["opencode"] }],
+    });
+    const ficheros = { "agente.json": JSON.stringify({ comando: '${ESME_PAQUETE}/bin/opencode -p "{tarea}"' }) };
+    expect(validaPaqueteDatos({ manifiesto, ficheros }).errores.join("\n")).toContain(
+      "agents.oc: lanza «${ESME_PAQUETE}/bin/opencode» por su ruta"
     );
   });
 });

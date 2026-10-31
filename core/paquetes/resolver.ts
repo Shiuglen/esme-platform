@@ -110,7 +110,12 @@ export function resuelve(raiz: ManifiestoV2, conocidos: PaqueteConocido[], opts:
   const lock = ok
     ? canonicoLock({
         lock_version: 1,
-        raiz: { id: raiz.id, version: raiz.version, ...(opts.sha256Raiz !== undefined ? { sha256: opts.sha256Raiz } : {}) },
+        raiz: {
+          id: raiz.id,
+          version: raiz.version,
+          ...(opts.sha256Raiz !== undefined ? { sha256: opts.sha256Raiz } : {}),
+          permisos: unePermisos(raiz.permissions),
+        },
         paquetes: orden.map((p) => ({
           id: p.manifiesto.id,
           version: p.manifiesto.version,

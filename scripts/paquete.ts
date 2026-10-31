@@ -29,7 +29,7 @@ import {
   type Nivel,
   type Punto,
 } from "../core/paquetes/manifiesto.ts";
-import type { Permiso } from "../core/paquetes/permisos.ts";
+import { INVISIBLES, type Permiso } from "../core/paquetes/permisos.ts";
 import { resuelve } from "../core/paquetes/resolver.ts";
 import { cambiosDesde, escribeLock, leeLock } from "../core/paquetes/lock.ts";
 import { conocidoDeCarpeta, escribePaquete, leePaqueteDeCarpeta } from "../tienda/paquete-disco.ts";
@@ -318,7 +318,7 @@ function resolver(args: string[]): Salida {
     `Aislamiento: hasta el nivel ${nivel} (${NIVELES[nivel]})`,
     ...avisos(noValen),
   ];
-  if (cambios.quitados.length) lineas.push(`Ya no están (quitar no pide permiso): ${cambios.quitados.join(", ")}`);
+  if (cambios.quitados.length) lineas.push(`Ya no están: ${cambios.quitados.join(", ")}`);
 
   if (cambios.pideConsentimiento) {
     lineas.push("Lo nuevo desde el candado:");
@@ -341,7 +341,24 @@ function resolver(args: string[]): Salida {
   return { code: 0, lineas: [...lineas, `Candado escrito en ${ruta}.`] };
 }
 
+const INVISIBLES_TODOS = new RegExp(INVISIBLES.source, "gu");
+
+/**
+ * Una línea que se puede enseñar tal cual: un salto de línea o un tabulador
+ * es un espacio (un salto inventaría otra línea, como «Qué pide: nada»), y
+ * lo demás que no se ve y manda (un ESC que escribe en tu terminal, un
+ * carácter que da la vuelta al texto) sale escrito como \uXXXX.
+ */
+const visible = (l: string): string =>
+  l.replace(INVISIBLES_TODOS, (c) => (/[\t\n\r]/.test(c) ? " " : `\\u${c.charCodeAt(0).toString(16).padStart(4, "0")}`));
+
+/** La orden entera: lo que sale, siempre visible (lo que enseña viene de paquetes de otros). */
 export function cli(argv: string[]): Salida {
+  const s = orden(argv);
+  return { ...s, lineas: s.lineas.map(visible) };
+}
+
+function orden(argv: string[]): Salida {
   const [verbo, ...args] = argv;
   if (verbo === "importar") return importar(args);
   if (verbo === "resolver") return resolver(args);

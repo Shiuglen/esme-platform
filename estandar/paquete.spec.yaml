@@ -31,11 +31,13 @@
 #   5. lo que lanzas o con quien hablas, lo pides: `tools[].mcp.url` exige un
 #      `net:fetch` que cubra su host; `tools[].mcp.command`,
 #      `engines[].binaries` y el `comando` de un agente `format: comando`
-#      exigen un `proc:spawn` que cubra el programa;
+#      exigen un `proc:spawn` que cubra el programa, que va por su nombre
+#      (`npx`), nunca por su ruta (tampoco una del paquete). Una URL no lleva
+#      usuario ni contraseña;
 #   6. cada `uses` lleva id, rango y huella (`sha256` del árbol). El rango no
 #      elige: comprueba que la huella fijada es de una versión que se quería;
-#   7. las rutas son del paquete: relativas, con `/`, sin `..`, sin `\` y sin
-#      letra de unidad;
+#   7. las rutas son del paquete: relativas, con `/`, sin `..`, sin `\`, sin
+#      letra de unidad y sin caracteres de control;
 #   8. un id no se repite dentro de su punto, y lo que se nombra existe:
 #      `channels[].tool` es una herramienta del paquete y `commands[].task`
 #      una tarea del paquete;
@@ -229,8 +231,12 @@ variables:
 # --- El candado: lo que se resolvió y lo que la persona consintió ---
 # Un JSON con dos espacios, los paquetes ordenados por id. Si al volver a
 # resolver hay un paquete nuevo, una huella cambiada (aunque pida los mismos
-# permisos) o un permiso nuevo, se vuelve a pedir permiso. Quitar no lo pide.
-# Un candado roto o que no está equivale a «nada consentido».
+# permisos) o un permiso nuevo, se vuelve a pedir permiso. La raíz (la
+# plantilla) es uno más: su huella y sus propios permisos también cuentan,
+# así que quitar un paquete, que no pide nada por sí mismo, se pregunta una
+# vez (la plantilla que lo quita es otra). Un candado roto o que no está
+# equivale a «nada consentido».
 lock:
   claves: ["lock_version", "raiz", "paquetes", "permisos"]
+  claves_raiz: ["id", "version", "sha256", "permisos"]
   claves_paquete: ["id", "version", "sha256", "permisos"]

@@ -159,7 +159,12 @@ const IdEntrada = z.string().regex(ID_ENTRADA, "un id de entrada va en minúscul
 const Ruta = z.string().refine(rutaDentro, "una ruta del paquete es relativa, con «/», y no sale con «..»");
 const Url = z
   .string()
-  .refine((u) => /^https?:\/\//.test(u) && URL.canParse(u), "una URL http(s) que se pueda leer");
+  .refine((u) => /^https?:\/\//.test(u) && URL.canParse(u), "una URL http(s) que se pueda leer")
+  .refine((u) => {
+    if (!URL.canParse(u)) return true; // ya lo dice la de arriba
+    const url = new URL(u);
+    return url.username === "" && url.password === "";
+  }, "una URL va sin usuario ni contraseña: una credencial no viaja en el manifiesto");
 
 const Remota = z
   .object({
@@ -181,7 +186,7 @@ const Cabecera = z
 
 const McpLocal = z
   .object({
-    command: z.string().min(1),
+    command: z.string().refine(esPrograma, MOTIVOS_PERMISO.programa),
     args: z.array(z.string()).optional(),
     env_keys: z.array(z.string()).optional(),
   })
@@ -417,7 +422,9 @@ const VersionEstricta = z.string().refine(esVersion, "version semver estricto");
 export const LockSchema = z
   .object({
     lock_version: z.literal(1),
-    raiz: z.object({ id: z.string().min(1), version: VersionEstricta, sha256: Huella.optional() }).strict(),
+    raiz: z
+      .object({ id: z.string().min(1), version: VersionEstricta, sha256: Huella.optional(), permisos: z.array(PermisoSchema) })
+      .strict(),
     paquetes: z
       .array(
         z.object({ id: z.string().min(1), version: VersionEstricta, sha256: Huella, permisos: z.array(PermisoSchema) }).strict()
@@ -506,25 +513,28 @@ function avisosDe(raw: Record<string, unknown>, m: ManifiestoV2): string[] {
 }
 
 /**
- * Un módulo v1, visto como un paquete de una sola contribución.
+ * Un módulo v1, visto como un paquete: su contribución, sin validar.
  *
  * La categoría dice el punto: `memory` → memory, `theme` → themes (su
  * `piel.json`), `agent` → agents (su `agente.json`), y lo demás (tool,
- * integration, thinking) → tools, con su entry y su runtime. Las
- * `dependencies` de la v1 (`esme.core@^1.0`) piden una versión del núcleo,
- * no un paquete: no son `uses`.
+ * integration, thinking) → tools, con su entry y su runtime. Una piel o un
+ * agente de la v1 traen además su código (entry y runtime): va en `tools`,
+ * que es donde la v2 pone el código, para que cuente al pedir aislamiento.
+ * Las `dependencies` de la v1 (`esme.core@^1.0`) piden una versión del
+ * núcleo, no un paquete: no son `uses`.
  */
-export function deV1(m: Manifest): ManifiestoV2 {
+function vistaV1(m: Manifest): Record<string, unknown> {
   const slug = m.id.split(".")[2];
+  const codigo = [{ id: slug, entry: m.entry, runtime: m.runtime }];
   const entrada =
     m.category === "memory"
-      ? { memory: [{ id: slug, entry: m.entry, runtime: m.runtime }] }
+      ? { memory: codigo }
       : m.category === "theme"
-        ? { themes: [{ id: slug, file: "piel.json" }] }
+        ? { themes: [{ id: slug, file: "piel.json" }], tools: codigo }
         : m.category === "agent"
-          ? { agents: [{ id: slug, recipe: "agente.json", format: "receta" }] }
-          : { tools: [{ id: slug, entry: m.entry, runtime: m.runtime }] };
-  return ManifiestoV2Schema.parse({
+          ? { agents: [{ id: slug, recipe: "agente.json", format: "receta" }], tools: codigo }
+          : { tools: codigo };
+  return {
     schema_version: 2,
     id: m.id,
     version: m.version,
@@ -539,7 +549,12 @@ export function deV1(m: Manifest): ManifiestoV2 {
     ...(m.decision_criteria.length ? { decision_criteria: m.decision_criteria } : {}),
     ...(m.benchmarks ? { benchmarks: m.benchmarks } : {}),
     ...(m.signatures ? { signatures: m.signatures } : {}),
-  });
+  };
+}
+
+/** Un módulo v1, visto como un paquete. Lanza si no se puede ver así (`leePaquete` no lanza: lo dice). */
+export function deV1(m: Manifest): ManifiestoV2 {
+  return ManifiestoV2Schema.parse(vistaV1(m));
 }
 
 /** Lee un manifiesto ya cargado (v1 o v2). La v1 se valida con su esquema de siempre. */
@@ -553,9 +568,17 @@ export function leePaquete(raw: unknown): LecturaPaquete {
     if (!r.ok) return { ok: false, version: 1, errores: r.errores, avisos: r.avisos };
     const avisos = [...r.avisos];
     const m = r.manifest!;
+    const v2 = ManifiestoV2Schema.safeParse(vistaV1(m));
+    if (!v2.success)
+      return {
+        ok: false,
+        version: 1,
+        errores: mensajes(v2.error.issues).map((e) => `es un módulo v1 válido, pero no se puede ver como paquete v2: ${e}`),
+        avisos,
+      };
     if (m.category === "theme" || m.category === "agent")
-      avisos.push(`el módulo v1 de «${m.category}» trae además código (entry): en la v2, eso iría en su propio punto`);
-    return { ok: true, version: 1, paquete: deV1(m), errores: [], avisos };
+      avisos.push(`el módulo v1 de «${m.category}» trae además código (entry): va como la herramienta «${m.id.split(".")[2]}», que es donde la v2 pone el código`);
+    return { ok: true, version: 1, paquete: v2.data, errores: [], avisos };
   }
   if (crudo.schema_version === 2) {
     const r = ManifiestoV2Schema.safeParse(crudo);
@@ -661,7 +684,16 @@ export function compruebaFicheros(m: ManifiestoV2, leer: LeeRuta, opts: { exigir
       errores.push(`agents.${a.id}: «${a.recipe}» no trae un «comando» que se pueda leer`);
       continue;
     }
-    const programa = programaDe(comando.trim().split(/\s+/)[0]);
+    const primero = comando.trim().split(/\s+/)[0];
+    if (!esPrograma(primero)) {
+      errores.push(
+        /[\\/]/.test(primero)
+          ? `agents.${a.id}: lanza «${primero}» por su ruta: un programa va por su nombre (npx, node), y el anfitrión decide dónde está`
+          : `agents.${a.id}: lanza «${primero}», que no es el nombre de un programa`
+      );
+      continue;
+    }
+    const programa = primero;
     if (!permitePrograma(m.permissions, programa))
       errores.push(`agents.${a.id}: lanza «${programa}» y no lo pide (permissions: proc:spawn con programs: [${programa}])`);
   }

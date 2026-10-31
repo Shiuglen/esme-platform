@@ -12,7 +12,13 @@
  * `realpathSync` y se compara, por piezas, con la carpeta del paquete; y se
  * recorre el árbol entero, porque un enlace que se sale es un problema
  * aunque el manifiesto no lo nombre (quien instala el paquete lo copiaría).
- * Al escribir, igual: nada se escribe a través de un enlace que se sale.
+ * Al escribir, más aún: nada se escribe a través de un enlace (uno roto
+ * crearía el fichero allí adonde apunte).
+ *
+ * Y lo que el manifiesto no ve: la cabecera de una skill o de un agente de
+ * Claude Code no puede llevar hooks ni darse permisos (`allowed-tools`,
+ * `permissionMode`, `mcpServers`). El importador lo quita; aquí se mira
+ * igual, porque un paquete también se escribe a mano.
  *
  * Referencia: estandar/paquete.spec.yaml, core/modulos/rutas.ts, tienda/empaque.ts.
  */
@@ -39,6 +45,20 @@ import {
 import { rutaDentro } from "../core/paquetes/permisos.ts";
 import { confinaRuta } from "../core/modulos/rutas.ts";
 import { arbolSha256 } from "./empaque.ts";
+import { MOTIVOS, clavesDeCabecera } from "./importa-comun.ts";
+
+/** Lo que la cabecera de una skill no puede llevar en un paquete, y por qué. */
+const PROHIBIDAS_SKILL: Record<string, string> = {
+  hooks: MOTIVOS.hooks,
+  "allowed-tools": "da permisos sin pasar por los del paquete",
+};
+
+/** Lo que la cabecera de un agente de Claude Code (`claude-md`) no puede llevar, y por qué. */
+const PROHIBIDAS_AGENTE: Record<string, string> = {
+  hooks: MOTIVOS.hooks,
+  mcpServers: "trae servidores MCP sin pasar por los permisos (van en tools)",
+  permissionMode: "cambia los permisos sin pasar por los del paquete",
+};
 
 /** Lo que se dictamina de la carpeta de un paquete. */
 export interface DictamenPaquete {
@@ -151,6 +171,20 @@ export function leePaqueteDeCarpeta(
   // los enlaces que el manifiesto no nombra (los que nombra ya tienen su error)
   const nombradas = new Set(rutasDe(m).map((x) => x.ruta));
   for (const { rel, problema } of enlacesMalos(raizReal, dir)) if (!nombradas.has(rel)) errores.push(problema);
+  // lo que la cabecera de una skill o de un agente no puede llevar
+  for (const r of rutasDe(m)) {
+    const agente = r.punto === "agents" && m.contributes.agents?.find((a) => a.id === r.id)?.format === "claude-md";
+    const prohibidas = r.punto === "skills" ? PROHIBIDAS_SKILL : agente ? PROHIBIDAS_AGENTE : null;
+    if (!prohibidas) continue;
+    const texto = leeDentro(raizReal, dir, r.ruta);
+    if (typeof texto !== "string") continue; // ya dicho arriba
+    for (const k of clavesDeCabecera(texto, Object.keys(prohibidas)))
+      errores.push(
+        r.punto === "skills"
+          ? `skills.${r.id}: su SKILL.md lleva «${k}»: ${prohibidas[k]}`
+          : `agents.${r.id}: «${r.ruta}» lleva «${k}»: ${prohibidas[k]}`
+      );
+  }
 
   if (m.license === "ESME-CL" && !m.signatures) errores.push("ESME-CL exige firma (licencia comunitaria, no anónima)");
   if (opts.exigirBenchmarks && !m.benchmarks) errores.push("la tienda exige benchmarks de la Prueba 0 en el manifiesto");
@@ -166,11 +200,26 @@ function existente(ruta: string): string {
   return a;
 }
 
+/** El primer trozo de `ruta` (dentro de `dir`) que es un enlace, aunque esté roto; null si ninguno. */
+function enlaceEnCamino(dir: string, ruta: string): string | null {
+  const piezas = ruta.split("/").filter((x) => x !== "" && x !== ".");
+  for (let i = 1; i <= piezas.length; i++) {
+    const rel = piezas.slice(0, i).join("/");
+    try {
+      if (lstatSync(join(dir, rel)).isSymbolicLink()) return rel;
+    } catch {
+      return null; // no está: lo de debajo tampoco
+    }
+  }
+  return null;
+}
+
 /**
  * Escribe un paquete en una carpeta: `module.yaml` (con `yaml.dump`) y luego
  * sus ficheros. Antes de escribir nada mira que ninguna ruta se salga, ni
- * por `..` ni a través de un enlace que ya esté en la carpeta: si una se
- * sale, lanza y no escribe.
+ * por `..` ni a través de un enlace que ya esté en la carpeta, y que nada
+ * se escriba a través de un enlace (ni el manifiesto, ni uno roto): si no,
+ * lanza y no escribe.
  */
 export function escribePaquete(p: PaqueteDatos, dir: string): void {
   for (const ruta of Object.keys(p.ficheros)) {
@@ -183,6 +232,10 @@ export function escribePaquete(p: PaqueteDatos, dir: string): void {
     const c = confinaRuta(dir, ruta);
     if ("error" in c || !dentroDe(raizReal, realpathSync(existente(c.ruta))))
       throw new Error(`«${ruta}» se sale del paquete`);
+  }
+  for (const ruta of ["module.yaml", ...Object.keys(p.ficheros)]) {
+    const enlace = enlaceEnCamino(dir, ruta);
+    if (enlace !== null) throw new Error(`«${ruta}» pasa por un enlace («${enlace}»): a través de un enlace no se escribe`);
   }
 
   writeFileSync(join(dir, "module.yaml"), yaml.dump(p.manifiesto, { lineWidth: -1, noRefs: true }));

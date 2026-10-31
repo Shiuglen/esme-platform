@@ -27,6 +27,7 @@ import {
   falla,
   ficherosDe,
   idDe,
+  noSeQuita,
   nombreDeAutor,
   partesMd,
   quitaClaves,
@@ -65,6 +66,7 @@ export function importaCarpetaSkill(dir: string, opts: OpcionesImporte = {}): Im
   if (!id || !skill) return falla(`«${autor}» y «${nombre}» no dan un id (esme.<autor>.<nombre>): dalo con --autor`);
 
   const q = quitaClaves(original, ["allowed-tools", "hooks"]);
+  if (q.quedan.length) return falla(`SKILL.md: ${noSeQuita(q.quedan)}`);
   for (const k of q.quitadas) {
     if (k === "hooks") descartado.push({ que: "SKILL.md: hooks", motivo: MOTIVOS.hooks });
     else avisos.push(`SKILL.md: «${k}» no viaja: da permisos sin pasar por los del paquete`);

@@ -40,6 +40,7 @@ import {
   cierra,
   contribuciones,
   correOrdenes,
+  credencialEn,
   dentroDe,
   descripcionDe,
   eligeAutor,
@@ -50,7 +51,9 @@ import {
   ficherosDe,
   idDe,
   leeLicenciaEscrita,
+  licenciaCanonica,
   licenciaDeCarpeta,
+  noSeQuita,
   nombreDeAutor,
   nuncaViaja,
   partesMd,
@@ -85,8 +88,13 @@ interface Entrada {
   esRaiz: boolean;
 }
 
-/** Lo de la entrada del marketplace que es presentación: si está, manda sobre el plugin.json. */
+/**
+ * Lo de la entrada del marketplace que es presentación: si está, manda sobre
+ * el plugin.json. Salvo quién lo hizo y con qué licencia (`DEL_PLUGIN`): eso
+ * lo dice el plugin, y la entrada solo lo rellena si el plugin no lo dice.
+ */
 const PRESENTACION = ["displayName", "description", "author", "homepage", "repository", "license", "keywords"];
+const DEL_PLUGIN = ["author", "license"];
 
 /** Lo que dice qué piezas trae un plugin. */
 const PIEZAS = [
@@ -321,6 +329,11 @@ function skillDelPlugin(cx: Contexto, rel: string, plugin: string, licencia: str
   ids.add(id);
 
   const q = quitaClaves(original, ["allowed-tools", "hooks"]);
+  if (q.quedan.length) {
+    descarta(cx, donde, noSeQuita(q.quedan));
+    cx.saltar.add(rel || ruta);
+    return null;
+  }
   for (const k of q.quitadas) {
     if (k === "hooks") descarta(cx, `${ruta}: hooks`, MOTIVOS.hooks);
     else cx.avisos.push(`${ruta}: «${k}» no viaja: da permisos sin pasar por los del paquete`);
@@ -518,6 +531,11 @@ function agentesDelPlugin(cx: Contexto, m: Record<string, unknown>): Array<{ id:
     }
     ids.add(id);
     const q = quitaClaves(original, ["hooks", "mcpServers", "permissionMode", "initialPrompt"]);
+    if (q.quedan.length) {
+      descarta(cx, rel, noSeQuita(q.quedan));
+      cx.saltar.add(rel);
+      continue;
+    }
     for (const k of q.quitadas) cx.avisos.push(`${rel}: «${k}» se quita: Claude Code no lo lee en el agente de un plugin`);
     const texto = aEsme(q.texto);
     for (const v of sinSustituir(texto)) cx.avisos.push(`${rel}: ${v}`);
@@ -579,6 +597,7 @@ function servidorRemoto(cx: Contexto, que: string, id: string, tipo: string, s: 
   if (url.includes("${user_config.")) return descarta(cx, que, "usa ${user_config.…} en su URL, y eso llega con las llaves de Esme, en la Fase 2");
   if (url.includes("${")) return descarta(cx, que, "la URL lleva variables (${…}): se rellenan al instalar, en la Fase 2");
   if (!/^https?:\/\//i.test(url) || !URL.canParse(url)) return descarta(cx, que, "no es una URL http(s)");
+  if (credencialEn(url, [])) return descarta(cx, que, MOTIVOS.credencial);
   if (s.headersHelper !== undefined) return descarta(cx, que, "saca sus cabeceras con un programa (headersHelper): eso es código sin permisos");
   if (s.oauth !== undefined) cx.avisos.push(`${que}: entra con OAuth: la sesión la abre quien instala, al conectarse`);
   if (tipo === "sse") cx.avisos.push(`${que}: usa SSE, que el estándar MCP ya da por viejo`);
@@ -606,6 +625,7 @@ function servidorLocal(cx: Contexto, que: string, id: string, s: Record<string, 
   const [comando, ...args] = crudos.map((x) => aEsme(x));
   const suelta = [comando, ...args].join(" ").match(/\$\{(?!ESME_PAQUETE\}|ESME_DATOS\})[^}]*\}/);
   if (suelta) return descarta(cx, que, `usa ${suelta[0]} en sus argumentos, y Esme solo pone \${ESME_PAQUETE} y \${ESME_DATOS}`);
+  if (credencialEn(undefined, [...comando.trim().split(/\s+/), ...args])) return descarta(cx, que, MOTIVOS.credencial);
   const p = partida(comando, args, que, cx.avisos);
   if ("motivo" in p) return descarta(cx, que, p.motivo);
   avisaSinFijar(p.comando, p.args, que, cx.avisos);
@@ -692,7 +712,13 @@ function importaPlugin(dir: string, opts: OpcionesImporte, entrada?: Entrada): I
   let vista = deEntrada;
   if (propio) {
     m = propio;
-    vista = { ...propio, ...Object.fromEntries(PRESENTACION.filter((k) => deEntrada[k] !== undefined).map((k) => [k, deEntrada[k]])) };
+    const suyo = propio;
+    vista = {
+      ...propio,
+      ...Object.fromEntries(
+        PRESENTACION.filter((k) => deEntrada[k] !== undefined && !(DEL_PLUGIN.includes(k) && suyo[k] !== undefined)).map((k) => [k, deEntrada[k]])
+      ),
+    };
     const extra = PIEZAS.filter((k) => deEntrada[k] !== undefined);
     if (extra.length && deEntrada.strict === false)
       return falla(`el plugin y su entrada del marketplace dicen los dos qué trae (${extra.join(", ")}), con strict: false: así ni Claude Code lo carga`);
@@ -700,6 +726,14 @@ function importaPlugin(dir: string, opts: OpcionesImporte, entrada?: Entrada): I
   }
   const nombre = esTexto(m.name) ? m.name.trim() : esTexto(deEntrada.name) ? deEntrada.name.trim() : basename(raiz);
   const quien = `el plugin «${nombre}»`;
+  if (propio && esTexto(propio.license) && esTexto(deEntrada.license)) {
+    const [suya, dicha] = [propio.license, deEntrada.license].map((l) => licenciaCanonica(l) ?? l.trim());
+    if (suya !== dicha)
+      return falla(`${quien}: su plugin.json dice «${suya}» y su entrada del marketplace «${dicha}»: no se sabe cuál vale`);
+  }
+  const [autorSuyo, autorDicho] = [nombreDeAutor(propio?.author), nombreDeAutor(deEntrada.author)];
+  if (propio && autorSuyo && autorDicho && autorSuyo !== autorDicho)
+    cx.avisos.push(`${quien}: su autor es «${autorSuyo}» (su plugin.json); la entrada del marketplace dice «${autorDicho}»: se queda el suyo`);
 
   const errores: string[] = [];
   let autor = eligeAutor(nombreDeAutor(vista.author), opts.autor, quien, cx.avisos);
@@ -773,7 +807,10 @@ function importaPlugin(dir: string, opts: OpcionesImporte, entrada?: Entrada): I
     if (!cx.textos.has(rel) && Buffer.from(contenido).includes("CLAUDE_PLUGIN_"))
       cx.avisos.push(`${rel}: nombra CLAUDE_PLUGIN_…, y no se toca: en Esme, la carpeta del paquete es ESME_PAQUETE (y la de sus datos, ESME_DATOS)`);
 
-  // lo que se nombra y no viaja (un enlace por el camino) se cae, y se dice
+  // lo que se nombra y no viaja (un enlace por el camino) se cae, y se dice.
+  // Una skill puede correr cualquier código del paquete (`${ESME_PAQUETE}/…`):
+  // si el paquete trae código, todas sus skills traen scripts.
+  const codigoEnPaquete = traeScripts(ficheros, "");
   const entradasSkill = skills
     .filter((s) => {
       const ruta = s.rel ? `${s.rel}/SKILL.md` : "SKILL.md";
@@ -787,7 +824,7 @@ function importaPlugin(dir: string, opts: OpcionesImporte, entrada?: Entrada): I
           .filter(([r]) => !s.rel || r.startsWith(`${s.rel}/`))
           .map(([r, x]) => [s.rel ? r.slice(s.rel.length + 1) : r, x])
       );
-      return { id: s.id, path: s.rel || ".", scripts: traeScripts(suyos, s.original) };
+      return { id: s.id, path: s.rel || ".", scripts: codigoEnPaquete || traeScripts(suyos, s.original) };
     });
   const entradasAgente = agentes.filter((a) => {
     if (a.recipe in ficheros) return true;

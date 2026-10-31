@@ -9,10 +9,13 @@
  *   - se vuelve a pedir si hay un paquete NUEVO, una HUELLA cambiada (aunque
  *     pida los mismos permisos: unos bytes nuevos con los permisos de antes
  *     son justo lo que haría una actualización envenenada) o un PERMISO nuevo;
- *   - quitar no lo pide: lo que se va ya no puede nada;
- *   - los permisos se comparan paquete a paquete: que otro ya hablara con
- *     un host no le da ese host a uno que antes no lo pedía. Los de la raíz,
- *     que el candado no guarda aparte, se comparan con la suma;
+ *   - la plantilla (la raíz) es uno más: si cambian sus bytes, o pide algo
+ *     nuevo, se pregunta. Por eso quitar un paquete, que no pide nada por sí
+ *     mismo (lo que se va ya no puede nada), sí se pregunta una vez: la
+ *     plantilla que lo quita es otra;
+ *   - los permisos se comparan paquete a paquete, y la raíz con los suyos:
+ *     que otro ya hablara con un host no le da ese host a uno que antes no
+ *     lo pedía;
  *   - un candado roto, ajeno (de otra plantilla) o que no está equivale a
  *     «nada consentido»: equivocarse aquí es preguntar de más, nunca de menos.
  *
@@ -31,6 +34,9 @@ import { permisosNuevos, unePermisos, type Permiso } from "./permisos.ts";
 /** Las claves de arriba del todo de un candado. */
 export const CLAVES_LOCK = ["lock_version", "raiz", "paquetes", "permisos"] as const;
 
+/** Las claves de la raíz del candado (la plantilla). */
+export const CLAVES_RAIZ_LOCK = ["id", "version", "sha256", "permisos"] as const;
+
 /** Las claves de cada paquete del candado. */
 export const CLAVES_ENTRADA_LOCK = ["id", "version", "sha256", "permisos"] as const;
 
@@ -45,7 +51,8 @@ export interface EntradaLock {
 /** El candado de una plantilla. */
 export interface Lock {
   lock_version: 1;
-  raiz: { id: string; version: string; sha256?: string };
+  /** La plantilla: su huella (si se midió) y lo que pide ella misma. */
+  raiz: { id: string; version: string; sha256?: string; permisos: Permiso[] };
   paquetes: EntradaLock[];
   /** La suma: los de la raíz y los de todos sus paquetes. */
   permisos: Permiso[];
@@ -71,6 +78,7 @@ export function canonicoLock(lock: Lock): Lock {
       id: lock.raiz.id,
       version: lock.raiz.version,
       ...(lock.raiz.sha256 !== undefined ? { sha256: lock.raiz.sha256 } : {}),
+      permisos: lock.raiz.permisos,
     },
     paquetes: [...lock.paquetes]
       .sort(porId)
@@ -118,14 +126,18 @@ export function cambiosDesde(antes: Lock | null, ahora: Lock): CambiosLock {
 
   const nuevos = ahora.paquetes.filter((p) => !previos.has(p.id)).map((p) => p.id).sort();
   const quitados = [...previos.keys()].filter((id) => !actuales.has(id)).sort();
-  const huellas = [...ahora.paquetes]
-    .sort(porId)
-    .flatMap((p) => {
+  const [raizAntes, raizAhora] = [base?.raiz.sha256, ahora.raiz.sha256];
+  const huellas = [
+    ...(raizAntes !== undefined && raizAhora !== undefined && raizAntes !== raizAhora
+      ? [{ id: ahora.raiz.id, antes: raizAntes, despues: raizAhora }]
+      : []),
+    ...[...ahora.paquetes].sort(porId).flatMap((p) => {
       const prev = previos.get(p.id);
       return prev && prev.sha256 !== p.sha256 ? [{ id: p.id, antes: prev.sha256, despues: p.sha256 }] : [];
-    });
+    }),
+  ];
   const permisos = unePermisos(
-    permisosNuevos(base?.permisos ?? [], ahora.permisos),
+    permisosNuevos(base?.raiz.permisos ?? [], ahora.raiz.permisos),
     ...ahora.paquetes.map((p) => permisosNuevos(previos.get(p.id)?.permisos ?? [], p.permisos))
   );
 

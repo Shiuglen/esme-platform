@@ -68,6 +68,10 @@ export const MOTIVOS = {
   secreto: "suele guardar secretos (llaves, tokens): no viaja nunca",
   manifiesto: "el manifiesto es el que sale de importar",
   otraForma: "otra forma de llegar al mismo servidor",
+  credencial: "lleva una credencial escrita (en su URL o en sus argumentos): no viaja; la pondrá quien instala, con las llaves de Esme, en la Fase 2",
+  ajustesClaude: "la configuración de Claude Code (hooks, permisos y variables): no viaja",
+  mcpJson: "una configuración de servidores MCP: puede llevar llaves escritas, y aquí no se convierte en herramientas",
+  porRuta: "lanza su programa por su ruta: un servidor se lanza por el nombre de su programa (npx, node, uvx…), y lo que trae el paquete va en sus argumentos",
 } as const;
 
 export const falla = (...errores: string[]): Importe => ({ ok: false, errores });
@@ -185,6 +189,32 @@ const FIRMAS: Array<[RegExp, string]> = [
 ];
 
 /**
+ * Lo que cierra una licencia abierta: la Commons Clause («no incluye el
+ * derecho a vender»), un «solo para uso no comercial» o «solo personal», un
+ * «no se puede vender» o «no se puede usar para ganar dinero». Con eso, un MIT
+ * o un Apache ya no son los nuestros. Es una lista de frases, no una lectura
+ * del texto: la que no está aquí pasa.
+ */
+const CIERRA: RegExp[] = [
+  /commons clause|right to sell|not\s+(be\s+)?(sell|sold)\b|prohibid[ao] (su )?venta/i,
+  /non-?commercial|no comercial/i,
+  /revenue[-\s]?generating/i,
+  /commercial(ly)?\s+(use|purposes?|exploitation)\b[^.]{0,40}\b(not\s+(be\s+)?(permitted|allowed)|prohibited|forbidden)/i,
+  /\bnot\s+(be\s+)?used\s+(for\s+)?(any\s+)?commercial/i,
+  /\b(may|must|shall|can)\s*not\s+use\b[^.]{0,40}\bcommercial/i,
+  /\b(for|to)\s+(personal|private|evaluation|educational|academic|research)\b[^.]{0,40}\bonly\b|\bonly\s+(for|to)\s+(personal|private|evaluation|educational|academic|research)\b/i,
+  /s[oó]lo\s+(para\s+)?(el\s+)?uso\s+personal|(uso|fines)\s+comercial(es)?[^.]{0,30}prohibid[oa]s?/i,
+];
+
+/** «Comercial o no comercial» no cierra nada: lo dice el Unlicense, o un «gratis para uso comercial y no comercial». */
+const AMBOS = /\b(non-?)?commercial\s+(and\/or|or|and)\s+(non-?)?commercial\b|\b(no\s+)?comercial(es)?\s+[oy]\s+(no\s+)?comercial(es)?\b/gi;
+
+const laCierra = (t: string): boolean => {
+  const sinAmbos = t.replace(AMBOS, " ");
+  return CIERRA.some((r) => r.test(sinAmbos));
+};
+
+/**
  * De qué licencia es el texto de un LICENSE: una de las de un paquete, una
  * ajena que se reconoce, o null. Manda la que se nombra ANTES (un Apache con
  * avisos de terceros en MIT al final es Apache), y se mira la variante: un
@@ -199,7 +229,13 @@ export function licenciaDeTexto(texto: string): { licencia: string } | { ajena: 
     if (donde >= 0 && (!primera || donde < primera.donde)) primera = { familia, donde };
   }
   if (!primera) return CERRADA.test(t) ? { ajena: "cerrada (todos los derechos reservados)" } : null;
-  switch (primera.familia) {
+  const r = familiaDeTexto(primera.familia, t);
+  return "licencia" in r && laCierra(t) ? { ajena: `${r.licencia} con una cláusula que la cierra (no comercial, o sin derecho a vender)` } : r;
+}
+
+/** La licencia de una familia, mirando su variante. */
+function familiaDeTexto(familia: string, t: string): { licencia: string } | { ajena: string } {
+  switch (familia) {
     case "MIT":
       return /\bMIT License\b|shall be included in all copies/i.test(t) ? { licencia: "MIT" } : { ajena: "MIT-0" };
     case "Apache":
@@ -212,7 +248,7 @@ export function licenciaDeTexto(texto: string): { licencia: string } | { ajena: 
     case "Unlicense":
       return { licencia: "Unlicense" };
     default:
-      return { ajena: primera.familia };
+      return { ajena: familia };
   }
 }
 
@@ -279,6 +315,8 @@ export function eligeLicencia(o: {
       if (e.nota) avisos.push(`${o.quien}: ${e.nota}`);
       if (f?.licencia && f.licencia !== e.licencia)
         avisos.push(`${o.quien}: dice ${e.licencia}, y su ${f.fichero} es ${f.licencia}: va la que dice`);
+      if (f && !f.licencia && !f.ajena)
+        avisos.push(`${o.quien}: dice ${e.licencia}, pero su ${f.fichero} no se reconoce: mira que diga lo mismo`);
       return suya(e.licencia, "la que está escrita");
     }
     nota = `su licencia dice «${e.texto}», y no se reconoce`;
@@ -344,9 +382,21 @@ export function descripcionDe(d: unknown, generica: string, quien: string, aviso
 /** Lo que nunca viaja ni se dice: lo que dejan por ahí el sistema y las herramientas. */
 const NUNCA = new Set([".git", ".DS_Store", "Thumbs.db", "__pycache__", ".mcpb-cache"]);
 
-/** Los ficheros que suelen guardar secretos (llaves, tokens). Un `.env.example` sí viaja. */
+/** Los ficheros que suelen guardar secretos (llaves, tokens, credenciales de la nube). */
 const SECRETO =
-  /^(\.env(\.(?!(example|sample|template|dist)$)[^/]+)?|\.npmrc|\.pypirc|\.netrc|\.git-credentials|id_(rsa|dsa|ecdsa|ed25519)|.+\.(key|p12|pfx))$/i;
+  /^(\.env(\..+)?|\.envrc|\.npmrc|\.pypirc|\.netrc|\.pgpass|\.htpasswd|\.git-credentials|id_(rsa|dsa|ecdsa|ed25519)|credentials(\..+)?|secrets?(\..+)?|service[-_]?account[^/]*\.json|.+\.(key|pem|p12|pfx|ppk|jks|keystore))$/i;
+/** …salvo los de ejemplo: un `.env.example` o un `secrets.example.yaml` sí viajan. */
+const DE_EJEMPLO = /\.(example|sample|template|dist)(\.[A-Za-z0-9]+)?$/i;
+/** Las carpetas de secretos (de la nube, de SSH, de GPG): no viajan enteras. */
+const CARPETA_SECRETA = new Set([".aws", ".ssh", ".gnupg", ".azure", ".gcloud"]);
+/** Ficheros de secretos que se reconocen por su carpeta. */
+const RUTA_SECRETA = /(^|\/)(\.docker\/config\.json|\.kube\/config)$/;
+/** La configuración de Claude Code: hooks, permisos y variables. */
+const AJUSTES_CLAUDE = /(^|\/)\.claude\/settings(\.local)?\.json$/;
+
+/** ¿Suele guardar secretos? Por su nombre o por su carpeta. */
+const esSecreto = (rel: string, nombre: string): boolean =>
+  (SECRETO.test(nombre) && !DE_EJEMPLO.test(nombre)) || RUTA_SECRETA.test(rel);
 
 /** ¿Es algo que nunca viaja ni se dice? */
 export const nuncaViaja = (nombre: string): boolean => NUNCA.has(nombre);
@@ -354,8 +404,9 @@ export const nuncaViaja = (nombre: string): boolean => NUNCA.has(nombre);
 /**
  * Los ficheros de una carpeta para el paquete, en orden. No viajan, y se
  * dice: un enlace (copia el fichero de verdad), `node_modules`, un fichero
- * de secretos, un nombre que no vale como ruta ni un `module.yaml` (el
- * manifiesto es el que sale de importar). `salta` deja fuera, sin decir
+ * o una carpeta de secretos, la configuración de Claude Code o de
+ * servidores MCP (llevan hooks, permisos o llaves), un nombre que no vale
+ * como ruta ni un `module.yaml` (el manifiesto es el que sale de importar). `salta` deja fuera, sin decir
  * nada, lo que el importador ya convirtió o ya descartó con su motivo.
  */
 export function ficherosDe(
@@ -372,10 +423,13 @@ export function ficherosDe(
       if (st.isSymbolicLink()) descartado.push({ que: r, motivo: MOTIVOS.enlace });
       else if (st.isDirectory()) {
         if (nombre === "node_modules") descartado.push({ que: `${r}/`, motivo: MOTIVOS.nodeModules });
+        else if (CARPETA_SECRETA.has(nombre)) descartado.push({ que: `${r}/`, motivo: MOTIVOS.secreto });
         else recorre(r);
       } else if (!st.isFile()) descartado.push({ que: r, motivo: "no es un fichero ni una carpeta" });
       else if (!rutaDentro(r)) descartado.push({ que: r, motivo: "su nombre no vale como ruta de un paquete" });
-      else if (SECRETO.test(nombre)) descartado.push({ que: r, motivo: MOTIVOS.secreto });
+      else if (esSecreto(r, nombre)) descartado.push({ que: r, motivo: MOTIVOS.secreto });
+      else if (AJUSTES_CLAUDE.test(r)) descartado.push({ que: r, motivo: MOTIVOS.ajustesClaude });
+      else if (nombre === ".mcp.json") descartado.push({ que: r, motivo: MOTIVOS.mcpJson });
       else if (r === "module.yaml") descartado.push({ que: r, motivo: MOTIVOS.manifiesto });
       else ficheros[r] = readFileSync(join(dir, r));
     }
@@ -406,27 +460,68 @@ export function partesMd(texto: string): { cabecera: Record<string, unknown>; cu
   return { cabecera, cuerpo: m[4] };
 }
 
+/** Una clave de primer nivel al principio de una línea, con o sin comillas (`hooks:`, `"hooks":`). */
+const CLAVE = /^(["']?)([A-Za-z0-9_-]+)\1\s*:/;
+
+/**
+ * Qué claves de `claves` lleva la cabecera de un Markdown, se escriba como
+ * se escriba: con comillas, sangrada, con «? clave» o traída con «<<». Si
+ * no es YAML estricto, se lee línea a línea (como la lee Claude Code); y si
+ * además usa lo que solo entiende el YAML («{», «[», «?», «<<», «&», «*»,
+ * «!»), no se puede saber qué lleva: se dan todas.
+ */
+export function clavesDeCabecera(texto: string, claves: readonly string[]): string[] {
+  const m = CABECERA.exec(texto);
+  if (!m) return [];
+  const crudo = m[2].replace(/\r/g, "");
+  let vistas: Set<string>;
+  try {
+    const c = yaml.load(crudo);
+    vistas = new Set(esObjeto(c) ? Object.keys(c) : []);
+    // «<<» trae las claves de otro mapa (si el lector lo junta, y el de Claude Code puede): cuentan como suyas
+    const juntado = esObjeto(c) ? c["<<"] : undefined;
+    for (const x of Array.isArray(juntado) ? juntado : [juntado]) if (esObjeto(x)) for (const k of Object.keys(x)) vistas.add(k);
+  } catch {
+    if (/^\s*([{[?&*!]|<<)/m.test(crudo)) return [...claves];
+    vistas = new Set(Object.keys(cabeceraDe(crudo)));
+  }
+  for (const linea of crudo.split("\n")) {
+    const k = CLAVE.exec(linea)?.[2];
+    if (k !== undefined) vistas.add(k);
+  }
+  return claves.filter((k) => vistas.has(k));
+}
+
 /**
  * Quita claves de primer nivel de la cabecera de un Markdown (con sus
- * líneas de continuación) sin tocar nada más del texto. Devuelve el texto y
- * las claves que estaban.
+ * líneas de continuación) sin tocar nada más del texto. Devuelve el texto,
+ * las claves que estaban y las que, aun así, quedan (escritas de una forma
+ * que no se sabe quitar sin reescribir la cabecera: quien llama la descarta).
  */
-export function quitaClaves(texto: string, claves: readonly string[]): { texto: string; quitadas: string[] } {
+export function quitaClaves(
+  texto: string,
+  claves: readonly string[]
+): { texto: string; quitadas: string[]; quedan: string[] } {
   const m = CABECERA.exec(texto);
-  if (!m) return { texto, quitadas: [] };
+  if (!m) return { texto, quitadas: [], quedan: [] };
   const quitadas: string[] = [];
-  const quedan: string[] = [];
+  const lineas: string[] = [];
   let quitando = false;
   for (const linea of m[2].split("\n")) {
-    const clave = /^([A-Za-z0-9_-]+)\s*:/.exec(linea)?.[1];
+    const clave = CLAVE.exec(linea)?.[2];
     if (clave !== undefined) {
       quitando = claves.includes(clave);
       if (quitando) quitadas.push(clave);
     } else if (quitando && !/^([ \t]|-|\r?$)/.test(linea)) quitando = false;
-    if (!quitando) quedan.push(linea);
+    if (!quitando) lineas.push(linea);
   }
-  return { texto: m[1] + quedan.join("\n") + m[3] + m[4], quitadas };
+  const limpio = m[1] + lineas.join("\n") + m[3] + m[4];
+  return { texto: limpio, quitadas, quedan: clavesDeCabecera(limpio, claves) };
 }
+
+/** Por qué no viaja una cabecera con claves que no se saben quitar. */
+export const noSeQuita = (quedan: string[]): string =>
+  `su cabecera lleva ${quedan.map((k) => `«${k}»`).join(", ")} de una forma que no se sabe quitar sin reescribirla: quítalo a mano`;
 
 /** ¿Lleva órdenes que Claude Code corre al leerlo (`` !`orden` `` o un bloque ```!)? */
 export const correOrdenes = (texto: string): boolean => /(^|[ \t])!`[^`\n]+`/m.test(texto) || /^```!/m.test(texto);
@@ -455,8 +550,11 @@ const PROGRAMA = /^[A-Za-z0-9._+-]+$/;
 /**
  * Un programa con sus argumentos. Un `command` con espacios y sin `args`
  * («node servidor.js») se parte; uno con comillas no se sabe partir, y uno
- * cuyo nombre no vale como programa tampoco. Lanzar por una ruta absoluta
- * vale, con aviso: en otra máquina puede no estar ahí.
+ * cuyo nombre no vale como programa tampoco. Un programa va por su nombre:
+ * el anfitrión decide dónde está. Una ruta absoluta del sistema
+ * (`/usr/local/bin/node`) va por su nombre, con aviso; una ruta del paquete
+ * (`${ESME_PAQUETE}/bin/x`) o relativa no viaja: lanzaría código del
+ * paquete con el permiso de un programa del sistema.
  */
 export function partida(
   comando: string,
@@ -476,8 +574,53 @@ export function partida(
   const programa = programaDe(c);
   if (!PROGRAMA.test(programa) || programa === "." || programa === "..")
     return { motivo: `«${programa}» no vale como nombre de programa` };
-  if (/^([\\/]|[A-Za-z]:)/.test(c)) avisos.push(`${quien}: lanza «${c}» por su ruta: en otra máquina puede no estar ahí`);
-  return { comando: c, args: a };
+  if (c !== programa) {
+    if (!/^([\\/]|[A-Za-z]:[\\/])/.test(c)) return { motivo: MOTIVOS.porRuta };
+    avisos.push(`${quien}: «${c}» va como «${programa}»: el programa lo pone quien instala, donde esté en su máquina`);
+  }
+  return { comando: programa, args: a };
+}
+
+/** Los nombres que suelen llevar una credencial, por piezas: «--api-key» sí, «--key-file» o «--auth-type» no. */
+const NOMBRE_CREDENCIAL =
+  /(^|[-_.])(api-?key|apikey|key|token|secret|password|passwd|pwd|pass|auth|authorization|credentials?|sig|signature|session|cookie)$/i;
+/** Lo que es una credencial por su forma: tokens de GitHub, OpenAI o Anthropic, Slack, AWS, Google y GitLab. */
+const TOKEN =
+  /(?:^|[^A-Za-z0-9])(gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}|xox[abprs]-[A-Za-z0-9-]{10,}|AKIA[0-9A-Z]{16}|AIza[0-9A-Za-z_-]{35}|glpat-[A-Za-z0-9_-]{20,})/;
+
+const esNombreCredencial = (n: string): boolean =>
+  NOMBRE_CREDENCIAL.test(n.replace(/^-+/, "").replace(/([a-z0-9])([A-Z])/g, "$1-$2"));
+/** Un valor escrito: ni vacío ni una referencia (`${X}`, `{x}`, `<x>`). */
+const esValor = (v: string): boolean => v.trim() !== "" && !/^(\$\{[^}]*\}|\{[^}]*\}|<[^>]*>)$/.test(v.trim());
+
+/**
+ * ¿Lleva una credencial escrita? En la URL: un usuario o una contraseña, o
+ * un parámetro con nombre de credencial (`?api_key=…`). En los argumentos:
+ * `--token x`, `--api-key=x`, `GITHUB_TOKEN=x`, o algo con forma de token
+ * (`ghp_…`, `sk-…`). Lo que va por referencia (`${TOKEN}`) no cuenta. Quien
+ * llama descarta sin decir el valor.
+ */
+export function credencialEn(url: string | undefined, args: readonly string[]): boolean {
+  if (url !== undefined) {
+    if (TOKEN.test(url)) return true;
+    if (URL.canParse(url)) {
+      const u = new URL(url);
+      if (u.username || u.password) return true;
+      for (const [n, v] of u.searchParams) if (esNombreCredencial(n) && esValor(v)) return true;
+    }
+  }
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i];
+    if (TOKEN.test(a)) return true;
+    const igual = /^(-{1,2}[A-Za-z0-9_.-]+|[A-Za-z_][A-Za-z0-9_]*)=([\s\S]*)$/.exec(a);
+    if (igual) {
+      if (esNombreCredencial(igual[1]) && esValor(igual[2])) return true;
+    } else if (/^-{1,2}[A-Za-z0-9_.-]+$/.test(a) && esNombreCredencial(a)) {
+      const v = args[i + 1];
+      if (v !== undefined && !v.startsWith("-") && esValor(v)) return true;
+    }
+  }
+  return false;
 }
 
 /** npx o uvx (y sus primos) sin versión fija bajan la última cada vez: se avisa. */

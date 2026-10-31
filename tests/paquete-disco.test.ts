@@ -11,7 +11,7 @@
  * Referencia: tienda/paquete-disco.ts, core/paquetes/manifiesto.ts.
  */
 import { afterEach, describe, expect, it } from "vitest";
-import { mkdtempSync, rmSync, symlinkSync, unlinkSync, writeFileSync, mkdirSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, symlinkSync, unlinkSync, writeFileSync, mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { leePaquete, type PaqueteDatos } from "../core/paquetes/manifiesto.ts";
@@ -91,6 +91,21 @@ describe("escribePaquete y leePaqueteDeCarpeta — ida y vuelta", () => {
     const p = { ...conPiel(), ficheros: { "pieles/piel.json": "{}" } };
     expect(() => escribePaquete(p, dir)).toThrow("se sale del paquete");
   });
+
+  it("no escribe a través de un module.yaml que es un enlace, ni de un enlace roto", () => {
+    const fuera = temporal();
+    writeFileSync(join(fuera, "suyo.yaml"), "de otro\n");
+    const dir = temporal();
+    symlinkSync(join(fuera, "suyo.yaml"), join(dir, "module.yaml"));
+    expect(() => escribePaquete(conPiel(), dir)).toThrow("enlace");
+    expect(readFileSync(join(fuera, "suyo.yaml"), "utf8")).toBe("de otro\n");
+
+    const otro = temporal();
+    symlinkSync(join(fuera, "nuevo.json"), join(otro, "piel.json")); // roto: lleva a algo que aún no está
+    expect(() => escribePaquete(conPiel(), otro)).toThrow("enlace");
+    expect(existsSync(join(fuera, "nuevo.json"))).toBe(false);
+    expect(existsSync(join(otro, "module.yaml"))).toBe(false); // no escribe nada
+  });
 });
 
 describe("leePaqueteDeCarpeta — lo que el manifiesto promete, el disco lo tiene", () => {
@@ -130,6 +145,27 @@ describe("leePaqueteDeCarpeta — lo que el manifiesto promete, el disco lo tien
     const r = leePaqueteDeCarpeta(dir, { exigirEntrada: false });
     expect(r.ok).toBe(false);
     expect(r.errores.join("\n")).toContain("tools.x: «dist/x.js» se sale del paquete");
+  });
+
+  it("una skill o un agente con hooks (o lo que da permisos) en su cabecera no vale, aunque el manifiesto esté bien", () => {
+    const dir = temporal();
+    const p = conPiel({
+      contributes: {
+        skills: [{ id: "a", path: "skills/a" }],
+        agents: [{ id: "g", recipe: "agents/g.md", format: "claude-md" }],
+      },
+    });
+    p.ficheros = {
+      "skills/a/SKILL.md": '---\nname: a\ndescription: Una skill.\n"hooks":\n  Stop: [{command: x}]\n---\nHola.\n',
+      "agents/g.md": "---\nname: g\ndescription: Un agente.\npermissionMode: bypassPermissions\n---\nHola.\n",
+    };
+    escribePaquete(p, dir);
+    const r = leePaqueteDeCarpeta(dir);
+    expect(r.ok).toBe(false);
+    expect(r.errores).toEqual([
+      expect.stringContaining("skills.a: su SKILL.md lleva «hooks»"),
+      expect.stringContaining("agents.g: «agents/g.md» lleva «permissionMode»"),
+    ]);
   });
 
   it("una ruta que es una carpeta no es un fichero", () => {

@@ -13,7 +13,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { validaPaqueteDatos, type PaqueteDatos } from "../core/paquetes/manifiesto.ts";
+import { leePaquete, nivelDe, validaPaqueteDatos, type PaqueteDatos } from "../core/paquetes/manifiesto.ts";
 import { leePaqueteDeCarpeta, escribePaquete } from "../tienda/paquete-disco.ts";
 import { importaCarpetaSkill } from "../tienda/importa-skill.ts";
 import { importaMarketplaceClaude, importaPluginClaude } from "../tienda/importa-claude.ts";
@@ -73,7 +73,8 @@ describe("importaPluginClaude — un plugin de Claude Code", () => {
     expect(m.homepage).toBe("https://example.com/estudio");
     expect(m.source).toEqual({ from: "claude-plugin", ref: "estudio-claude" });
 
-    expect(m.contributes.skills).toEqual([{ id: "repasar", path: "skills/repasar", scripts: false }]);
+    // trae servidor/notas.js, y una skill puede correr cualquier código del paquete
+    expect(m.contributes.skills).toEqual([{ id: "repasar", path: "skills/repasar", scripts: true }]);
     expect(m.contributes.tasks).toEqual([
       {
         id: "resumen",
@@ -327,9 +328,9 @@ describe("importaServidorMcp — un server.json del registro MCP", () => {
 
   it("con remotes y packages da una sola herramienta, la remota; el npm es otra forma de llegar", () => {
     const { m, descartado, avisos } = bien(importaServidorMcp(servidor()));
-    expect(m.id).toBe("esme.mcp.io-github-ana-prueba-notas");
+    expect(m.id).toBe("esme.io-github-ana-prueba.notas");
     expect(m.name).toBe("Notas");
-    expect(m.author).toBe("Esme");
+    expect(m.author).toBe("io.github.ana-prueba");
     expect(m.license).toBe("MIT");
     expect(m.homepage).toBe("https://notas.example.com");
     expect(m.source).toEqual({ from: "mcp-registry", ref: "io.github.ana-prueba/notas" });
@@ -581,5 +582,261 @@ describe("importar — lo que las fixtures no enseñan", () => {
     const { m, descartado } = bien(importaServidorMcp(s));
     expect(m.contributes.tools).toEqual([{ id: "py", mcp: { command: "uvx", args: ["py-mcp==2.0.0"] } }]);
     expect(descartado).toEqual([{ que: "packages[0]", motivo: "necesita argumentos que pone quien lo instala: en la Fase 2" }]);
+  });
+
+  it("hooks y allowed-tools con la clave entre comillas tampoco viajan", () => {
+    const md = `---\nname: a\ndescription: Una skill de prueba que hace algo útil.\n"allowed-tools": Bash(*)\n'hooks':\n  PreToolUse:\n    - hooks: [{type: command, command: "curl x"}]\n---\nHola.\n`;
+    const { paquete, descartado, avisos } = bien(importaPluginClaude(plugin(base, { "skills/a/SKILL.md": md })));
+    const sale = texto(paquete.ficheros["skills/a/SKILL.md"]);
+    expect(sale).not.toContain("hooks");
+    expect(sale).not.toContain("allowed-tools");
+    expect(descartado).toContainEqual({ que: "skills/a/SKILL.md: hooks", motivo: "un hook corre código en cada paso sin pasar por los permisos" });
+    expect(avisos).toContainEqual(expect.stringContaining("«allowed-tools» no viaja"));
+  });
+
+  it("unos hooks que no se saben quitar (con «<<» o «? hooks») no viajan: la skill se queda fuera, y si es suelta, error", () => {
+    const conMerge = "---\nname: b\ndescription: Una skill de prueba que hace algo útil.\n<<: {hooks: {Stop: [{command: x}]}}\n---\nHola.\n";
+    const explicita = "---\nname: c\ndescription: Una skill de prueba que hace algo útil.\n? hooks\n: {Stop: [{command: x}]}\n---\nHola.\n";
+    const agente = "---\nname: g\ndescription: Guía\n<<: {mcpServers: {x: {command: y}}}\n---\nHola.\n";
+    const dir = plugin(base, { "skills/b/SKILL.md": conMerge, "skills/c/SKILL.md": explicita, "skills/d/SKILL.md": skill("d"), "agents/g.md": agente });
+    const { m, paquete, descartado } = bien(importaPluginClaude(dir));
+    expect(m.contributes.skills.map((s: M) => s.id)).toEqual(["d"]);
+    expect(m.contributes.agents).toBeUndefined();
+    for (const que of ["skills/b", "skills/c", "agents/g.md"]) {
+      expect(descartado).toContainEqual({ que, motivo: expect.stringContaining("no se sabe quitar") });
+      expect(Object.keys(paquete.ficheros).some((f) => f.startsWith(que))).toBe(false);
+    }
+    const suelta = join(temporal(), "suelta");
+    mkdirSync(suelta);
+    writeFileSync(join(suelta, "SKILL.md"), conMerge.replace("name: b", "name: suelta\nlicense: MIT"));
+    const r = importaCarpetaSkill(suelta, { autor: "Ana Prueba" });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.errores).toEqual([expect.stringContaining("no se sabe quitar")]);
+  });
+
+  it("una credencial escrita en la URL o en los argumentos de un servidor no viaja, ni su valor en ningún mensaje", () => {
+    const fijo = "algo-mcp@1.0.0";
+    const dir = plugin(base, {
+      "skills/a/SKILL.md": skill("a"),
+      ".mcp.json": JSON.stringify({
+        mcpServers: {
+          enUrl: { type: "http", url: "https://api.example.com/mcp?api_key=valor-secreto-3" },
+          conUsuario: { type: "http", url: "https://ana:valor-secreto-4@api.example.com/mcp" },
+          enArgs: { command: "npx", args: ["-y", fijo, "--token", "valor-secreto-5"] },
+          conIgual: { command: "npx", args: ["-y", fijo, "--api-key=valor-secreto-6"] },
+          enEntorno: { command: "npx", args: ["-y", fijo, "GITHUB_TOKEN=valor-secreto-7"] },
+          conPrefijo: { command: "npx", args: ["-y", fijo, "ghp_abcdefghijklmnopqrstuvwxyz0123456789"] },
+          limpio: { command: "npx", args: ["-y", fijo, "--auth-type", "oauth", "--key-file", "llave.txt"] },
+        },
+      }),
+    });
+    const r = importaPluginClaude(dir);
+    const { m, descartado } = bien(r);
+    expect(m.contributes.tools.map((t: M) => t.id)).toEqual(["limpio"]);
+    for (const n of ["enUrl", "conUsuario", "enArgs", "conIgual", "enEntorno", "conPrefijo"])
+      expect(descartado).toContainEqual({ que: `mcpServers.${n}`, motivo: expect.stringContaining("credencial") });
+    expect(JSON.stringify(r)).not.toMatch(/valor-secreto|ghp_abc/);
+  });
+
+  it("goose y el registro MCP: una credencial en la URL o en los argumentos tampoco viaja", () => {
+    const ruta = join(temporal(), "receta.yaml");
+    writeFileSync(
+      ruta,
+      [
+        "title: Con llaves",
+        "description: Una receta de prueba, sintética.",
+        "instructions: Haz algo útil.",
+        "extensions:",
+        "  - {type: stdio, name: local, cmd: uvx, args: ['algo-mcp==1.0.0', '--api-key=valor-secreto-8']}",
+        "  - {type: streamable_http, name: remota, uri: 'https://api.example.com/mcp?token=valor-secreto-9'}",
+        "  - {type: stdio, name: bien, cmd: uvx, args: ['otro-mcp==1.0.0']}",
+      ].join("\n")
+    );
+    const g = importaRecetaGoose(ruta, { licencia: "MIT", autor: "Ana Prueba" });
+    const { m, descartado } = bien(g);
+    expect(m.contributes.tools.map((t: M) => t.id)).toEqual(["bien"]);
+    for (const que of ["extensions.local", "extensions.remota"])
+      expect(descartado).toContainEqual({ que, motivo: expect.stringContaining("credencial") });
+    expect(JSON.stringify(g)).not.toContain("valor-secreto");
+
+    const s = importaServidorMcp({
+      name: "io.github.ana-prueba/llaves",
+      description: "Un servidor MCP de prueba, sintético.",
+      version: "1.0.0",
+      remotes: [{ type: "streamable-http", url: "https://api.example.com/mcp?key=valor-secreto-10" }],
+      packages: [{ registryType: "npm", identifier: "@ana/llaves", version: "1.0.0", packageArguments: [{ type: "named", name: "--token", value: "valor-secreto-11" }] }],
+    });
+    expect(s.ok).toBe(false);
+    if (!s.ok) {
+      expect(s.errores.join("\n")).toContain("remotes[0]: lleva una credencial escrita");
+      expect(s.errores.join("\n")).toContain("packages[0]: lleva una credencial escrita");
+    }
+    expect(JSON.stringify(s)).not.toContain("valor-secreto");
+  });
+
+  it("server.json: un paquete de npm o de PyPI que no es un nombre (o una versión que es una opción) no se lanza", () => {
+    const s = importaServidorMcp({
+      name: "io.github.ana-prueba/raro",
+      description: "Un servidor MCP de prueba, sintético.",
+      version: "1.0.0",
+      packages: [
+        { registryType: "npm", identifier: "--registry=https://malo.example.com", version: "1.0.0" },
+        { registryType: "pypi", identifier: "-e git+https://malo.example.com/x", version: "1.0.0" },
+        { registryType: "pypi", identifier: "raro-mcp", version: "--pre" },
+      ],
+    });
+    expect(s.ok).toBe(false);
+    if (!s.ok) {
+      const todo = s.errores.join("\n");
+      expect(todo).toContain("packages[0]: «--registry=https://malo.example.com» no es un nombre de paquete de npm");
+      expect(todo).toContain("packages[1]: «-e git+https://malo.example.com/x» no es un nombre de paquete de PyPI");
+      expect(todo).toContain("packages[2]: su versión «--pre» no vale");
+    }
+  });
+
+  it("server.json: el autor es su espacio del registro; el espacio «mcp» es el de las herramientas de Esme", () => {
+    const r = importaServidorMcp({ name: "mcp/notas", description: "Un servidor MCP de prueba, sintético.", version: "1.0.0", remotes: [{ type: "streamable-http", url: "https://notas.example.com/mcp" }] });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.errores).toEqual([expect.stringContaining("«mcp»")]);
+  });
+
+  it("tampoco viajan las credenciales de la nube, las claves .pem, el .envrc ni la configuración de Claude Code (un ejemplo, sí)", () => {
+    const dir = plugin(base, {
+      "skills/a/SKILL.md": skill("a"),
+      ".aws/credentials": "x",
+      ".ssh/config": "x",
+      "credentials.json": "{}",
+      "secrets.yaml": "x: 1",
+      ".envrc": "export X=1",
+      "private.pem": "x",
+      ".docker/config.json": "{}",
+      ".kube/config": "x",
+      ".pgpass": "x",
+      "service-account.json": "{}",
+      ".claude/settings.json": "{}",
+      ".claude/settings.local.json": "{}",
+      "skills/a/.mcp.json": "{}",
+      "secrets.example.yaml": "x: <el tuyo>",
+    });
+    const { paquete, descartado } = bien(importaPluginClaude(dir));
+    const secreto = "suele guardar secretos (llaves, tokens): no viaja nunca";
+    for (const que of [".aws/", ".ssh/", "credentials.json", "secrets.yaml", ".envrc", "private.pem", ".docker/config.json", ".kube/config", ".pgpass", "service-account.json"])
+      expect(descartado).toContainEqual({ que, motivo: secreto });
+    for (const que of [".claude/settings.json", ".claude/settings.local.json"])
+      expect(descartado).toContainEqual({ que, motivo: expect.stringContaining("Claude Code") });
+    expect(descartado).toContainEqual({ que: "skills/a/.mcp.json", motivo: expect.stringContaining("servidores MCP") });
+    expect(Object.keys(paquete.ficheros).sort()).toEqual(["secrets.example.yaml", "skills/a/SKILL.md"]);
+  });
+
+  it("en un marketplace, la licencia y el autor del plugin.json mandan: si la entrada dice otra licencia, no se sabe cuál vale", () => {
+    const dir = join(temporal(), "mercado");
+    const escribe = (ruta: string, contenido: string) => {
+      mkdirSync(dirname(join(dir, ruta)), { recursive: true });
+      writeFileSync(join(dir, ruta), contenido);
+    };
+    escribe(
+      ".claude-plugin/marketplace.json",
+      JSON.stringify({
+        name: "mercado",
+        owner: { name: "Dueño" },
+        plugins: [
+          { name: "gpl", source: "./gpl", license: "MIT" },
+          { name: "otra", source: "./otra", license: "Apache-2.0" },
+          { name: "autor", source: "./autor", author: { name: "Otro Nombre" } },
+        ],
+      })
+    );
+    for (const [n, extra] of [["gpl", { license: "GPL-3.0" }], ["otra", {}], ["autor", {}]] as const) {
+      escribe(`${n}/.claude-plugin/plugin.json`, JSON.stringify({ ...base, name: n, ...extra }));
+      escribe(`${n}/skills/a/SKILL.md`, skill("a"));
+    }
+    const [gpl, otra, autor] = importaMarketplaceClaude(dir).importados;
+    expect(gpl.ok).toBe(false);
+    expect(otra.ok).toBe(false);
+    if (!otra.ok) expect(otra.errores).toEqual([expect.stringContaining("no se sabe cuál vale")]);
+    const a = bien(autor);
+    expect(a.m.author).toBe("Ana Prueba");
+    expect(a.avisos).toContainEqual(expect.stringContaining("«Otro Nombre»"));
+  });
+
+  it("una licencia permisiva con una cláusula que la cierra (Commons Clause, solo no comercial) no es la permisiva", () => {
+    const commons =
+      'Apache License\nVersion 2.0, January 2004\n...\n"Commons Clause" License Condition v1.0\nThe Software is provided to you by the Licensor under the License, as defined below, subject to the following condition. Without limiting other conditions in the License, the grant of rights under the License will not include, and the License does not grant to you, the right to Sell the Software.';
+    const noComercial =
+      "MIT License\n\nPermission is hereby granted, free of charge, to any person obtaining a copy...\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nAdditional terms: this software may only be used for non-commercial purposes.";
+    const mit = (cola: string) =>
+      `MIT License\n\nCopyright (c) 2026 Ana\n\nPermission is hereby granted, free of charge, to any person obtaining a copy...\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\n${cola}\n`;
+    const otras = [
+      "Additional restriction: the Software may not be used for any revenue-generating purpose.",
+      "Commercial use of this software is not permitted.",
+      "You may not use the Software for commercial purposes.",
+      "For personal use only.",
+    ].map(mit);
+    for (const LICENSE of [commons, noComercial, ...otras]) {
+      const r = importaPluginClaude(plugin({ ...base, license: undefined }, { "skills/a/SKILL.md": skill("a"), LICENSE }), { licencia: "MIT" });
+      expect(r.ok, LICENSE.slice(-90)).toBe(false);
+    }
+  });
+
+  it("«para uso comercial o no comercial» no cierra nada: el Unlicense lo dice, y un MIT que lo repite sigue siendo MIT", () => {
+    const unlicense =
+      "This is free and unencumbered software released into the public domain.\n\nAnyone is free to copy, modify, publish, use, compile, sell, or distribute this software, either in source code form or as a compiled binary, for any purpose, commercial or non-commercial, and by any means.\n";
+    const mit =
+      "MIT License\n\nPermission is hereby granted, free of charge, to any person obtaining a copy...\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nThis library is free for commercial and non-commercial use.\n";
+    for (const [LICENSE, licencia] of [[unlicense, "Unlicense"], [mit, "MIT"]]) {
+      const { m } = bien(importaPluginClaude(plugin({ ...base, license: undefined }, { "skills/a/SKILL.md": skill("a"), LICENSE })));
+      expect(m.license).toBe(licencia);
+    }
+  });
+
+  it("una licencia escrita con un LICENSE que no se reconoce va, pero se avisa", () => {
+    const dir = plugin(base, { "skills/a/SKILL.md": skill("a"), LICENSE: "Licencia de la casa: úsalo en tus proyectos personales." });
+    const { m, avisos } = bien(importaPluginClaude(dir));
+    expect(m.license).toBe("MIT");
+    expect(avisos).toContainEqual(expect.stringContaining("su LICENSE no se reconoce"));
+  });
+
+  it("si el plugin trae código fuera de sus skills, sus skills pueden correrlo: scripts: true, y el nivel lo dice", () => {
+    const dir = plugin(base, { "skills/a/SKILL.md": skill("a", "Corre ${CLAUDE_PLUGIN_ROOT}/scripts/borra.py."), "scripts/borra.py": "print('x')\n" });
+    const { m } = bien(importaPluginClaude(dir));
+    expect(m.contributes.skills).toEqual([{ id: "a", path: "skills/a", scripts: true }]);
+    expect(nivelDe(leePaquete(m).paquete!)).toBe(3);
+  });
+
+  it("un servidor que se lanza por una ruta del paquete (o relativa) no viaja; por una ruta absoluta, va por su nombre", () => {
+    const dir = plugin(base, {
+      ".mcp.json": JSON.stringify({
+        mcpServers: {
+          propio: { command: "${CLAUDE_PLUGIN_ROOT}/bin/npx", args: ["x"] },
+          relativo: { command: "./bin/servidor" },
+          absoluto: { command: "/usr/local/bin/node", args: ["${CLAUDE_PLUGIN_ROOT}/servidor.js"] },
+        },
+      }),
+      "servidor.js": "export {};\n",
+    });
+    const { m, descartado, avisos } = bien(importaPluginClaude(dir));
+    expect(m.contributes.tools).toEqual([{ id: "absoluto", mcp: { command: "node", args: ["${ESME_PAQUETE}/servidor.js"] } }]);
+    expect(m.permissions).toEqual([{ kind: "proc:spawn", programs: ["node"] }]);
+    for (const que of ["mcpServers.propio", "mcpServers.relativo"])
+      expect(descartado).toContainEqual({ que, motivo: expect.stringContaining("por su ruta") });
+    expect(avisos).toContainEqual(expect.stringContaining("«/usr/local/bin/node» va como «node»"));
+  });
+
+  it("goose: los números y los sí/no de los args van como texto; otra cosa descarta la extensión", () => {
+    const ruta = join(temporal(), "receta.yaml");
+    writeFileSync(
+      ruta,
+      [
+        "title: Args",
+        "description: Una receta de prueba, sintética.",
+        "instructions: Haz algo útil.",
+        "extensions:",
+        "  - {type: stdio, name: bien, cmd: uvx, args: ['otro-mcp==1.0.0', '--port', 8080, '--verbose', true]}",
+        "  - {type: stdio, name: raro, cmd: uvx, args: ['x-mcp==1.0.0', {a: 1}]}",
+      ].join("\n")
+    );
+    const { m, descartado } = bien(importaRecetaGoose(ruta, { licencia: "MIT", autor: "Ana Prueba" }));
+    expect(m.contributes.tools).toEqual([{ id: "bien", mcp: { command: "uvx", args: ["otro-mcp==1.0.0", "--port", "8080", "--verbose", "true"] } }]);
+    expect(descartado).toContainEqual({ que: "extensions.raro", motivo: "sus args no son una lista de textos" });
   });
 });

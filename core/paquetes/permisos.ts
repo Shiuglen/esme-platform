@@ -57,18 +57,26 @@ const HOST_CONCRETO = /^[a-z0-9-]+(\.[a-z0-9-]+)*$/;
 /** Un programa por su nombre lógico: el anfitrión decide dónde está. */
 const PROGRAMA = /^[A-Za-z0-9._+-]+$/;
 
-/** Una ruta dentro del proyecto: relativa, sin `..` y con barras `/`. */
+/**
+ * Los caracteres que no se ven y mandan: los de control (un ESC escribe en
+ * la terminal de quien lee) y los que dan la vuelta al texto (con uno, «txt.exe»
+ * se lee «exe.txt»).
+ */
+export const INVISIBLES = /[\p{Cc}\u061c\u200e\u200f\u2028\u2029\u202a-\u202e\u2066-\u2069]/u;
+
+/** Una ruta dentro del proyecto: relativa, sin `..`, con barras `/` y sin caracteres que no se ven. */
 export const rutaDentro = (r: string): boolean =>
   r.length > 0 &&
   !r.startsWith("/") &&
   !r.includes("\\") &&
   !/^[A-Za-z]:/.test(r) &&
+  !INVISIBLES.test(r) &&
   !r.split("/").includes("..");
 
 /** Los motivos por los que una pieza de un permiso no vale (los dice el esquema del contrato). */
 export const MOTIVOS_PERMISO = {
   host: "un host va en minúsculas, sin esquema, sin puerto y sin ruta (a.com, *.a.com o *)",
-  ruta: "una ruta del proyecto es relativa y no sale con «..»",
+  ruta: "una ruta del proyecto es relativa, no sale con «..» y no lleva caracteres de control",
   programa: "un programa va por su nombre (npx, node), no por su ruta",
   vacio: "un alcance vacío no deja nada: quítalo o pon algo",
 } as const;
