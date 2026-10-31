@@ -50,9 +50,9 @@ permissions:
     hosts: ["ankiweb.net"]
 ```
 
-Las claves van en inglés, como en la v1 (salvo las del `oficio` de una
-plantilla, §5, que van como las nombró el diseño de la interfaz); los
-mensajes, en castellano. La licencia es una de las que deja la spec (MIT,
+Las claves van en inglés, como en la v1 (salvo las del `oficio` y el
+`caracter` de una plantilla, §5, que van como las nombró el diseño de la
+interfaz); los mensajes, en castellano. La licencia es una de las que deja la spec (MIT,
 Apache-2.0, ESME-CL, BSD-2-Clause, BSD-3-Clause, ISC o Unlicense).
 
 **La v1 sigue valiendo tal cual.** `core/ipc/module-schema.ts` la lee como
@@ -144,7 +144,8 @@ Una **plantilla** (`kind: template`) es un paquete solo de datos que junta
 otros paquetes y unos ajustes en una forma de trabajar lista para usar
 («Esme para estudiar»). No trae código (ni `tools`, ni `views`, ni `memory`):
 si hace falta, va en un paquete, y la plantilla lo usa. Sus `settings` (el
-rumbo, el presupuesto por día) son solo de las plantillas, y `success` dice
+rumbo, el presupuesto por día), su `oficio` (lo que monta al abrirla) y su
+`caracter` (cómo se siente) son solo de las plantillas, y `success` dice
 cómo se ve que funciona.
 
 Cada `uses` lleva **id, rango y huella**: el `sha256` del árbol del paquete
@@ -279,6 +280,44 @@ Lo que no vale se dice con su sitio dentro del lienzo:
 `oficio.secciones.3.lienzo: en «lienzos/esquemas.canvas», nodes.2.file:
 «docs/tema-1.md» no está en el paquete`. Si son muchos, los diez primeros y
 cuántos más hay.
+
+### El carácter: cómo se siente al abrirla
+
+El oficio dice qué monta una plantilla; su `caracter`, cómo se siente lo
+que monta. Una plantilla lo transforma todo, no solo el color: la letra, la
+densidad, el movimiento, el sonido, cómo se llaman las cosas en ese oficio
+y quién hace qué.
+
+```yaml
+caracter:
+  letra: "editorial"          # editorial | tecnica | mixta
+  densidad: "amplia"          # compacta | comoda | amplia
+  movimiento: "sobrio"        # sobrio | vivo
+  sonido: { paleta: null }    # costura, o null: sin sonido
+  vocabulario: { hoy: "Hoy en el despacho", tarea: "asunto", tareas: "asuntos" }
+  equipo:
+    - { id: "pasante", nombre: "Pasante", rol: "busca jurisprudencia", caracter: "meticuloso, cita siempre la fuente" }
+    - { id: "redactora", nombre: "Redactora", rol: "prepara escritos", caracter: "formal, cuida el tono y los plazos" }
+```
+
+Es de las plantillas y es cerrado, por lo mismo que el oficio: lo pinta una
+app que no escribió quien hizo la plantilla. Todo es opcional, y lo que
+falta lo pone la app (el carácter de Esme).
+
+- **Letra, densidad y movimiento**, de sus listas; el **sonido**, una paleta
+  de la lista (hoy, `costura`) o `null`, que es no sonar.
+- **Vocabulario:** solo las palabras que la app sabe cambiar (`hoy`,
+  `tarea`, `tareas`, `asunto`, `asuntos`, `equipo`, `te-necesita`,
+  `en-marcha`, `terminado`, `quieto`, `encargar` y `memoria`), cada una de 1
+  a 32 caracteres.
+- **Equipo:** hasta 12 miembros, cada uno con su `id` (en kebab-case, sin
+  repetir), su `nombre` (hasta 32), su `rol` (hasta 60) y su `caracter`
+  (hasta 120): los cuatro y nada más. Un miembro no es por fuerza un agente
+  con receta; si un día lo es, se dirá cómo se une con él sin romper nada.
+- Cada texto va en una línea, sin espacios a los lados ni nada invisible.
+- **El color no es del carácter:** es de la piel de quien la usa. Y quien
+  la usa puede cambiarlo todo en su propia capa, que no viaja en el
+  manifiesto.
 
 ## 6. Lo de casa, como paquetes: los adaptadores
 

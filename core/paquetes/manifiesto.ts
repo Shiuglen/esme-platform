@@ -62,6 +62,16 @@ import {
   referencia,
 } from "./oficio.ts";
 import { VISTA_LIENZO, esRutaLienzo, problemasDelLienzo } from "./lienzo.ts";
+import {
+  DENSIDADES,
+  LETRAS,
+  MOTIVOS_CARACTER,
+  MOVIMIENTOS,
+  PALETAS,
+  TOPES_CARACTER,
+  esLinea,
+  esPalabra,
+} from "./caracter.ts";
 
 /** De qué está hecho lo que aporta un punto. */
 export type Naturaleza = "datos" | "código" | "código aislado";
@@ -148,6 +158,7 @@ export const CLAVES_PAQUETE = [
   "permissions",
   "settings",
   "oficio",
+  "caracter",
   "success",
   "source",
   "works_with",
@@ -372,6 +383,59 @@ const Oficio = z
   )
   .strict();
 
+/** Un texto de una línea del carácter, con su tope y su motivo (también cuando no es un texto). */
+const LineaDe = (tope: number, motivo: string) => z.string({ error: motivo }).refine(esLinea(tope), motivo);
+
+/** Un miembro del equipo: los cuatro, siempre, y nada más. */
+const Miembro = z
+  .object(
+    {
+      id: z.string({ error: MOTIVOS_OFICIO.id }).refine(esKebab, MOTIVOS_OFICIO.id),
+      nombre: LineaDe(TOPES_CARACTER.nombre, MOTIVOS_CARACTER.nombre),
+      rol: LineaDe(TOPES_CARACTER.rol, MOTIVOS_CARACTER.rol),
+      caracter: LineaDe(TOPES_CARACTER.caracter, MOTIVOS_CARACTER.caracter),
+    },
+    { error: MOTIVOS_CARACTER.miembro }
+  )
+  .strict();
+
+/** El carácter de una plantilla: cómo se siente al abrirla (las listas y los topes, en `caracter.ts`). */
+const Caracter = z
+  .object(
+    {
+      letra: z.enum(LETRAS, { error: MOTIVOS_CARACTER.letra }).optional(),
+      densidad: z.enum(DENSIDADES, { error: MOTIVOS_CARACTER.densidad }).optional(),
+      movimiento: z.enum(MOVIMIENTOS, { error: MOTIVOS_CARACTER.movimiento }).optional(),
+      sonido: z
+        .object({ paleta: z.enum(PALETAS, { error: MOTIVOS_CARACTER.paleta }).nullable() }, { error: MOTIVOS_CARACTER.sonido })
+        .strict()
+        .optional(),
+      vocabulario: z
+        .record(z.string(), LineaDe(TOPES_CARACTER.palabra, MOTIVOS_CARACTER.palabra), { error: MOTIVOS_CARACTER.vocabulario })
+        .superRefine((v, ctx) => {
+          for (const p of Object.keys(v)) if (!esPalabra(p)) ctx.addIssue({ code: "custom", message: MOTIVOS_CARACTER.noPalabra(p) });
+        })
+        .optional(),
+      equipo: z
+        .array(Miembro, { error: MOTIVOS_CARACTER.equipo })
+        .superRefine((equipo, ctx) => {
+          if (equipo.length > TOPES_CARACTER.miembros) ctx.addIssue({ code: "custom", message: MOTIVOS_CARACTER.miembros });
+          const vistos = new Set<string>();
+          const dichos = new Set<string>();
+          for (const { id } of equipo) {
+            if (vistos.has(id) && !dichos.has(id)) {
+              ctx.addIssue({ code: "custom", message: MOTIVOS_CARACTER.repetido(id) });
+              dichos.add(id);
+            }
+            vistos.add(id);
+          }
+        })
+        .optional(),
+    },
+    { error: MOTIVOS_CARACTER.objeto }
+  )
+  .strict();
+
 /** El nombre lógico de lo que se lanza (`${ESME_PAQUETE}/bin/x` lanza «x»). */
 export const programaDe = (comando: string): string => comando.split(/[\\/]/).pop() || comando;
 
@@ -384,6 +448,7 @@ type Leido = Record<string, unknown> & {
   permissions: Permiso[];
   settings?: unknown;
   oficio?: z.infer<typeof Oficio>;
+  caracter?: z.infer<typeof Caracter>;
 };
 
 type Anota = (message: string, path?: (string | number)[]) => void;
@@ -496,6 +561,7 @@ function reglas(m: Leido, ctx: z.RefinementCtx): void {
   } else if (m.settings !== undefined) {
     issue("settings es de las plantillas: un paquete no crea proyectos", ["settings"]);
   }
+  if (m.caracter !== undefined && m.kind !== "template") issue(MOTIVOS_CARACTER.plantilla, ["caracter"]);
 
   const herramientas = new Set((c.tools ?? []).map((t) => t.id));
   for (const canal of c.channels ?? []) {
@@ -563,6 +629,7 @@ export const ManifiestoV2Schema = z
     permissions: z.array(PermisoSchema).default([]),
     settings: Ajustes.optional(),
     oficio: Oficio.optional(),
+    caracter: Caracter.optional(),
     success: z.object({ task: z.string().min(1), check: Ruta.optional() }).strict().optional(),
     source: z.object({ from: z.string().min(1), ref: z.string().min(1), commit: z.string().optional() }).strict().optional(),
     works_with: z.array(z.string()).optional(),

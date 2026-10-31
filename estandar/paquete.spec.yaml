@@ -1,6 +1,7 @@
 # **Spec abierta v1 — el paquete (module.yaml v2).** Referencia: `docs/PAQUETES.md`.
 # Lo implementan `core/paquetes/manifiesto.ts`, `core/paquetes/permisos.ts`,
-# `core/paquetes/semver.ts` y `core/paquetes/lock.ts`. La conformidad
+# `core/paquetes/semver.ts`, `core/paquetes/lock.ts`, `core/paquetes/oficio.ts`,
+# `core/paquetes/lienzo.ts` y `core/paquetes/caracter.ts`. La conformidad
 # (`scripts/estandar/conformidad-paquete.ts`) compara cada sección con el
 # código: el ejemplo tiene que valer, y los puntos, los alcances, los niveles,
 # los rangos y los hosts tienen que ser los mismos.
@@ -56,7 +57,13 @@
 #      topes (sección `oficio.lienzo`); y hasta 40 órdenes, cada una un
 #      comando de la plantilla o de un paquete que usa, con todos sus campos
 #      con tipo y sin huecos libres en su prompt. Lo que nombra de un paquete
-#      lo mira el resolver.
+#      lo mira el resolver;
+#  12. `caracter` es de las plantillas (cómo se siente al abrirla) y es
+#      cerrado (sección `caracter`): letra, densidad y movimiento de su lista;
+#      un sonido de la lista o ninguno; solo las palabras que la app sabe
+#      cambiar; y un equipo de hasta 12, cada miembro con su id, su nombre,
+#      su rol y su carácter, los cuatro y nada más. El color no: es de la
+#      piel de quien la usa.
 # Lo que se AVISA sin rechazar: una clave desconocida (arriba o dentro de una
 # entrada), un punto que esta versión no conoce, `net:fetch` con `*` (es toda
 # la red: que se diga a secas) y un MCP remoto por http sin cifrar.
@@ -122,6 +129,14 @@ manifiesto:
       - { id: "apuntes", nombre: "Apuntes", vista: "esme.memoria" }
       - { id: "esquemas", nombre: "Esquemas", vista: "esme.lienzo", lienzo: "lienzos/esquemas.canvas" }  # su lienzo de partida
     ordenes: ["tarjetas"]                 # hasta 40: comandos suyos, o <paquete de uses>/<comando>
+  caracter:                               # solo en plantillas: cómo se siente al abrirla (ver `caracter`)
+    letra: "editorial"                    # editorial | tecnica | mixta
+    densidad: "comoda"                    # compacta | comoda | amplia
+    movimiento: "vivo"                    # sobrio | vivo
+    sonido: { paleta: null }              # una de `caracter.paletas`, o null: sin sonido
+    vocabulario: { hoy: "Hoy toca", encargar: "Pedir a la tutora" }  # palabra → cómo se dice aquí
+    equipo:                               # hasta 12; los cuatro, siempre
+      - { id: "tutora", nombre: "Tutora", rol: "te pregunta y te corrige", caracter: "paciente, vuelve a lo que fallas" }
   success:                                # cómo se ve que la plantilla funciona
     task: "Prepara diez tarjetas del tema 1"
     check: "schemas/tarjetas.json"
@@ -361,3 +376,26 @@ oficio:
     rutas:                                # probadas con el código
       validas: ["mapa.canvas", "lienzos/mapa.canvas", "./lienzos/de-trabajo.canvas"]
       no_validas: ["mapa.json", "mapa.canvas.json", ".canvas", "lienzos/.canvas", "../mapa.canvas", "/mapa.canvas", "C:/mapa.canvas", "lienzos\\mapa.canvas"]
+
+# --- El carácter de una plantilla: cómo se siente al abrirla ---
+# Es de las plantillas y es cerrado, como el oficio: lo pinta una app que no
+# escribió quien hizo la plantilla. Todo es opcional: lo que falta, lo pone
+# la app (el carácter de Esme). Lleva:
+#   - `letra`, `densidad` y `movimiento`, de sus listas;
+#   - `sonido: { paleta }`: una de `paletas`, o null (sin sonido);
+#   - `vocabulario`: cómo se dicen en ese oficio las `palabras` que la app
+#     sabe cambiar, y ninguna otra;
+#   - `equipo`: hasta `topes.miembros` miembros, cada uno con `id`
+#     (kebab-case, sin repetir), `nombre`, `rol` y `caracter`, los cuatro y
+#     nada más. Un miembro no es por fuerza un agente con receta.
+# Cada texto va en una línea, sin espacios a los lados ni nada invisible, y
+# hasta su tope (`nombre`, `rol`, `caracter` o `palabra`). El color no es del
+# carácter: es de la piel de quien la usa, que además puede cambiarlo todo en
+# su propia capa (esa capa no viaja en el manifiesto).
+caracter:
+  letras: ["editorial", "tecnica", "mixta"]
+  densidades: ["compacta", "comoda", "amplia"]
+  movimientos: ["sobrio", "vivo"]
+  paletas: ["costura"]
+  palabras: ["hoy", "tarea", "tareas", "asunto", "asuntos", "equipo", "te-necesita", "en-marcha", "terminado", "quieto", "encargar", "memoria"]
+  topes: { miembros: 12, nombre: 32, rol: 60, caracter: 120, palabra: 32 }

@@ -29,9 +29,10 @@ describe("paquete.spec.yaml — la de verdad cuadra", () => {
     expect(fallos(spec())).toBe("");
   });
 
-  it("el ejemplo trae las veintiuna claves de arriba, el oficio también", () => {
-    expect(Object.keys(spec().manifiesto)).toHaveLength(21);
+  it("el ejemplo trae las veintidós claves de arriba, el oficio y el carácter también", () => {
+    expect(Object.keys(spec().manifiesto)).toHaveLength(22);
     expect(spec().manifiesto.oficio.secciones[0].id).toBe("hoy");
+    expect(spec().manifiesto.caracter.equipo[0].id).toBe("tutora");
   });
 });
 
@@ -198,6 +199,23 @@ describe("paquete.spec.yaml — y la comprobación ve cuando se separa", () => {
     expect(f).toContain("oficio.lienzo.topes: «propios» no es un tope del código");
   });
 
+  it("el carácter: una lista o un tope cambiado, o uno que falta", () => {
+    const s = spec();
+    s.caracter.letras.push("serif");
+    s.caracter.paletas = [];
+    delete s.caracter.palabras;
+    s.caracter.topes.rol = 32;
+    s.caracter.topes.color = 1;
+    delete s.caracter.topes.miembros;
+    const f = fallos(s);
+    expect(f).toContain("caracter.letras no cuadran");
+    expect(f).toContain("caracter.paletas no cuadran");
+    expect(f).toContain("caracter.palabras: falta en la spec");
+    expect(f).toContain("caracter.topes.rol: «32» en la spec, «60» en el código");
+    expect(f).toContain("caracter.topes: «color» no es un tope del código");
+    expect(f).toContain("caracter.topes.miembros: «undefined» en la spec, «12» en el código");
+  });
+
   it("una lista cerrada que falta en la spec también se dice (no se da por buena)", () => {
     const s = spec();
     delete s.oficio.estados;
@@ -215,7 +233,9 @@ describe("paquete.spec.yaml — y la comprobación ve cuando se separa", () => {
     const s = spec();
     delete s.hosts;
     delete s.puntos;
+    delete s.caracter;
     expect(() => fallos(s)).not.toThrow();
     expect(fallos(s)).toContain("hosts");
+    expect(fallos(s)).toContain("falta la sección «caracter»");
   });
 });

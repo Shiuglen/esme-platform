@@ -132,6 +132,19 @@ function detalle(punto: Punto, e: Record<string, unknown>): string | undefined {
   }
 }
 
+/** El carácter de una plantilla: su letra, su densidad, su movimiento y su sonido; su vocabulario; y su equipo. */
+function comoSeSiente(c: NonNullable<ManifiestoV2["caracter"]>): string[] {
+  const sonido = c.sonido === undefined ? undefined : c.sonido.paleta === null ? "sin sonido" : `sonido ${c.sonido.paleta}`;
+  const forma = [c.letra && `letra ${c.letra}`, c.densidad && `densidad ${c.densidad}`, c.movimiento && `movimiento ${c.movimiento}`, sonido];
+  const palabras = Object.entries(c.vocabulario ?? {}).map(([p, dice]) => `${p} → ${dice}`);
+  const lineas = [
+    ...(forma.some(Boolean) ? [`  ${forma.filter(Boolean).join(" · ")}`] : []),
+    ...(palabras.length ? [`  vocabulario: ${palabras.join(", ")}`] : []),
+    ...(c.equipo ?? []).map((x) => `  miembro ${x.id} · ${x.nombre} · ${x.rol} · ${x.caracter}`),
+  ];
+  return lineas.length ? ["Cómo se siente:", ...lineas] : ["Cómo se siente: como Esme"];
+}
+
 /** Qué es, qué aporta (punto, id y dónde corre), qué usa, qué pide y su nivel. */
 function describe(m: ManifiestoV2, version: 1 | 2 | null): string[] {
   const lineas = [
@@ -156,6 +169,7 @@ function describe(m: ManifiestoV2, version: 1 | 2 | null): string[] {
       ),
       `  órdenes: ${m.oficio.ordenes.join(", ") || "ninguna"}`
     );
+  if (m.caracter) lineas.push(...comoSeSiente(m.caracter));
   lineas.push(m.permissions.length ? "Qué pide:" : "Qué pide: nada", ...sangra(m.permissions.map(permisoEnTexto)));
   const n = nivelDe(m);
   lineas.push(`Aislamiento: nivel ${n} (${NIVELES[n]})`);

@@ -50,7 +50,7 @@ describe("paquete <carpeta> — qué aporta, qué pide y dónde corre", () => {
     expect(texto(s)).toMatch(/dist\/index\.js.*constru/);
   });
 
-  it("una plantilla con oficio: dice qué monta al abrirla (su piel, sus secciones y sus órdenes)", () => {
+  it("una plantilla con oficio y carácter: dice qué monta al abrirla (su piel, sus secciones y sus órdenes) y cómo se siente", () => {
     const d = join(temporal(), "despacho");
     escribePaquete(
       {
@@ -84,6 +84,14 @@ describe("paquete <carpeta> — qué aporta, qué pide y dónde corre", () => {
             ],
             ordenes: ["plazos"],
           },
+          caracter: {
+            letra: "editorial",
+            densidad: "amplia",
+            movimiento: "sobrio",
+            sonido: { paleta: null },
+            vocabulario: { hoy: "Hoy en el despacho", tarea: "asunto" },
+            equipo: [{ id: "pasante", nombre: "Pasante", rol: "busca jurisprudencia", caracter: "meticuloso" }],
+          },
         },
         ficheros: {},
       },
@@ -98,6 +106,14 @@ describe("paquete <carpeta> — qué aporta, qué pide y dónde corre", () => {
     expect(t).toContain("  sección expedientes · Expedientes · esme.tareas · etiqueta:expediente");
     expect(t).toContain("  órdenes: plazos");
     expect(t).toContain("«Plazos» · etiquetas: expediente, plazo");
+    expect(t).toContain(
+      [
+        "Cómo se siente:",
+        "  letra editorial · densidad amplia · movimiento sobrio · sin sonido",
+        "  vocabulario: hoy → Hoy en el despacho, tarea → asunto",
+        "  miembro pasante · Pasante · busca jurisprudencia · meticuloso",
+      ].join("\n")
+    );
   });
 
   it("una sección del Lienzo dice su lienzo de partida; si el lienzo no vale, code 1 y dónde", () => {

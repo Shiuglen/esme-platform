@@ -8,7 +8,8 @@
  *   - el ejemplo trae todas las claves y el código lo acepta, sin avisos;
  *   - los tipos, las licencias, los formatos, los puntos, los alcances, los
  *     niveles, las variables, las claves del candado y las listas y los
- *     topes del oficio son los del código (ni uno más, ni uno menos);
+ *     topes del oficio, del lienzo de partida y del carácter son los del
+ *     código (ni uno más, ni uno menos);
  *   - los rangos, los hosts y los filtros del oficio de la spec se PRUEBAN
  *     con el código: un host parecido (`evil-figma.com`) que la spec da por
  *     no cubierto y el código cubre es una puerta de atrás, y aquí se ve.
@@ -58,6 +59,7 @@ import {
   VISTA_LIENZO,
   esRutaLienzo,
 } from "../../core/paquetes/lienzo.ts";
+import { DENSIDADES, LETRAS, MOVIMIENTOS, PALABRAS, PALETAS, TOPES_CARACTER } from "../../core/paquetes/caracter.ts";
 import { ALCANCES, permiteHost } from "../../core/paquetes/permisos.ts";
 import { cumple, esRango } from "../../core/paquetes/semver.ts";
 import { CLAVES_ENTRADA_LOCK, CLAVES_LOCK, CLAVES_RAIZ_LOCK } from "../../core/paquetes/lock.ts";
@@ -260,5 +262,19 @@ export function compruebaPaquete(spec: Objeto, anota: (problema: string) => void
       for (const r of textos(rutas.no_validas) ?? [])
         if (esRutaLienzo(r)) anota(`oficio.lienzo.rutas: la spec no da por buena «${r}» y el código sí`);
     }
+  }
+
+  // el carácter: sus listas y sus topes
+  const caracter = objeto(seccion("caracter"));
+  if (caracter) {
+    mismaLista("caracter.letras", caracter.letras, LETRAS);
+    mismaLista("caracter.densidades", caracter.densidades, DENSIDADES);
+    mismaLista("caracter.movimientos", caracter.movimientos, MOVIMIENTOS);
+    mismaLista("caracter.paletas", caracter.paletas, PALETAS);
+    mismaLista("caracter.palabras", caracter.palabras, PALABRAS);
+    const topes = objeto(caracter.topes) ?? {};
+    for (const [k, v] of Object.entries(TOPES_CARACTER))
+      if (topes[k] !== v) anota(`caracter.topes.${k}: «${String(topes[k])}» en la spec, «${v}» en el código`);
+    for (const k of Object.keys(topes)) if (!(k in TOPES_CARACTER)) anota(`caracter.topes: «${k}» no es un tope del código`);
   }
 }
