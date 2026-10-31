@@ -29,7 +29,7 @@ class Sombra {
   formas: string[] = [];
 
   constructor(id: string) {
-    this.apunta({ tipo: "dueno", sesion: id, origen: "chat" });
+    this.apunta({ tipo: "dueno", sesion: id }); // sin `origen`: el chat es la propia Esme
   }
 
   private apunta(e: Evento) {
@@ -42,10 +42,9 @@ class Sombra {
     return leer(this.texto);
   }
 
+  /** Apunta un guardado tal cual: lo que hay que reproducir es su JSON (eso lo hace eventosDelGuardado). */
   guarda(h: Hilo): Evento[] {
-    // lo que guarda la app es su JSON: eso es lo que hay que reproducir
-    const guardado = JSON.parse(JSON.stringify(h)) as Hilo;
-    const eventos = eventosDelGuardado(this.lectura(), guardado);
+    const eventos = eventosDelGuardado(this.lectura(), h);
     for (const e of eventos) this.apunta(e);
     this.lineasPorGuardado.push(eventos.length);
     this.formas.push(eventos.map((e) => (e.tipo === "orden" ? e.que : e.tipo)).join(" "));
@@ -135,6 +134,54 @@ describe("a mano", () => {
     const s = new Sombra("c-mf3k2a-1b2c3d");
     const h = { ...hiloBase([{ role: "user", content: "x", adjuntos: ["a.png"] }, { role: "sistema", content: "aviso" }]), carpeta: "trabajo" };
     s.guarda(h);
+    expect(hiloDe(s.lectura())).toEqual(h);
+  });
+
+  it("se compara lo que guarda el JSON: un campo sin valor, un NaN o una fecha no lo confunden", () => {
+    const s = new Sombra("c-mf3k2a-1b2c3d");
+    const h = hiloBase([pregunta("a"), respuesta("A", { who: undefined, tokens: Number.NaN, cuando: new Date(1_761_350_400_000) })]);
+    s.guarda(h);
+    expect(hiloDe(s.lectura())).toEqual(JSON.parse(JSON.stringify(h)));
+    expect(s.guarda(h), "el mismo guardado otra vez").toEqual([]);
+    expect(s.guarda(JSON.parse(JSON.stringify(h)) as Hilo), "y su JSON es el mismo guardado").toEqual([]);
+  });
+
+  it("las claves en otro orden no son un cambio; un null en vez de nada, o una lista en vez de un objeto, sí", () => {
+    const s = new Sombra("c-mf3k2a-1b2c3d");
+    const h = hiloBase([pregunta("a"), respuesta("A", { ids: ["r1"], pasos: [{ id: "p1", nombre: "buscar" }] })]);
+    s.guarda(h);
+    const alReves = (t: TurnoHilo) => Object.fromEntries(Object.entries(t).reverse()) as TurnoHilo;
+    expect(s.guarda({ ...h, turnos: h.turnos.map(alReves) })).toEqual([]);
+    const conNull = hiloBase([pregunta("a"), respuesta("A", { ids: ["r1"], pasos: [{ id: "p1", nombre: "buscar" }], error: null })]);
+    expect(s.guarda(conNull).length).toBeGreaterThan(0);
+    expect(hiloDe(s.lectura())).toEqual(conNull);
+    const conObjeto = hiloBase([pregunta("a"), respuesta("A", { ids: { 0: "r1" }, pasos: [{ id: "p1", nombre: "buscar" }], error: null })]);
+    expect(s.guarda(conObjeto).length).toBeGreaterThan(0);
+    expect(hiloDe(s.lectura())).toEqual(conObjeto);
+    // y de vuelta, un cambio cada vez: del objeto a la lista, de null a un objeto vacío, de ahí a un texto vacío y
+    // otra vez, de un objeto a null, y de una clave «__proto__» (la de un JSON, no la del prototipo) a otra clave
+    const extras = [
+      { ids: ["r1"], error: null },
+      { ids: ["r1"], error: {} },
+      { ids: ["r1"], error: "" },
+      { ids: ["r1"], error: {} },
+      { ids: ["r1"], error: null },
+      { ids: ["r1"], error: null, meta: JSON.parse('{"__proto__": {}}') as unknown },
+      { ids: ["r1"], error: null, meta: { otra: {} } },
+    ];
+    for (const extra of extras) {
+      const h2 = hiloBase([pregunta("a"), respuesta("A", { ...extra, pasos: [{ id: "p1", nombre: "buscar" }] })]);
+      expect(s.guarda(h2).length, JSON.stringify(extra)).toBeGreaterThan(0);
+      expect(hiloDe(s.lectura())).toEqual(h2);
+    }
+  });
+
+  it("si al juzgar un turno también cambia otra cosa, no es un juicio: se rebobina", () => {
+    const s = new Sombra("c-mf3k2a-1b2c3d");
+    const t = [pregunta("a"), respuesta("A", { ids: ["x"] })];
+    s.guarda(hiloBase(t));
+    const h = hiloBase([t[0], { ...t[1], judged: true, content: "A, mejor dicho" }]);
+    expect(s.guarda(h).map((e) => (e.tipo === "orden" ? e.que : e.tipo))).toEqual(["rebobinar", "texto", "punto"]);
     expect(hiloDe(s.lectura())).toEqual(h);
   });
 

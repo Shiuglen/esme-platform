@@ -21,6 +21,8 @@
  * La comparación se cura sola: se compara con lo que el registro DICE (no con
  * el guardado anterior), y se repite hasta que reproducirlo da el Hilo nuevo.
  * Si eso no pasa, se dice: nunca se apunta un registro que no lo reproduce.
+ * Se compara lo que guarda un JSON (un campo sin valor no está; un NaN es
+ * null), y sin escribir ningún texto: comparar es recorrer una vez.
  *
  * Referencia: estandar/sesion.spec.yaml (chat), app/src/main/hilos/hilos.ts.
  */
@@ -146,22 +148,34 @@ function metaDe(h: Hilo): DatosChat {
   return meta;
 }
 
-/** El texto de un valor tal como lo guarda un JSON, con las claves en orden (para comparar). */
-function canonico(x: unknown): string {
-  return JSON.stringify(x, (_k, v: unknown) => {
-    if (v === null || typeof v !== "object" || Array.isArray(v)) return v;
-    const o = v as Record<string, unknown>;
-    return Object.fromEntries(Object.keys(o).sort().map((k) => [k, o[k]]));
-  });
-}
+/** Un valor tal como lo guarda un JSON (sin los campos sin valor, los NaN como null, las fechas como texto…). */
+const comoJSON = <T>(x: T): T => JSON.parse(JSON.stringify(x)) as T;
 
-const mismo = (a: unknown, b: unknown) => canonico(a) === canonico(b);
+/** Si dos valores leídos de un JSON son el mismo, con las claves en cualquier orden. */
+function igual(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (typeof a !== "object" || typeof b !== "object" || a === null || b === null) return false;
+  if (Array.isArray(a) || Array.isArray(b)) {
+    if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) if (!igual(a[i], b[i])) return false;
+    return true;
+  }
+  const x = a as Record<string, unknown>;
+  const y = b as Record<string, unknown>;
+  let claves = 0;
+  for (const k in x) {
+    if (!Object.hasOwn(y, k) || !igual(x[k], y[k])) return false;
+    claves++;
+  }
+  for (const _ in y) claves--;
+  return claves === 0;
+}
 
 function soloJuzgado(antes: TurnoHilo, ahora: TurnoHilo): boolean {
   if (antes.judged || ahora.judged !== true) return false;
   const { judged: _a, ...x } = antes;
   const { judged: _b, ...y } = ahora;
-  return mismo(x, y);
+  return igual(x, y);
 }
 
 /**
@@ -170,7 +184,9 @@ function soloJuzgado(antes: TurnoHilo, ahora: TurnoHilo): boolean {
  * Nunca lleva el `dueno`: en un registro nuevo lo apunta quien lo abre, con el
  * id del Hilo como `sesion` (y aquí se cuenta con él).
  */
-export function eventosDelGuardado(entrada: Pick<Lectura, "eventos" | "cadena">, nuevo: Hilo): Evento[] {
+export function eventosDelGuardado(entrada: Pick<Lectura, "eventos" | "cadena">, guardado: Hilo): Evento[] {
+  // lo que hay que reproducir es lo que guarda el JSON del Hilo
+  const nuevo = comoJSON(guardado);
   const salida: Evento[] = [];
   const trabajo: Linea[] = [...entrada.eventos];
   let siguiente = entrada.cadena.n;
@@ -182,19 +198,16 @@ export function eventosDelGuardado(entrada: Pick<Lectura, "eventos" | "cadena">,
     salida.push(e);
     trabajo.push({ ...e, n: siguiente++ } as Linea);
   };
-  const objetivo = canonico({ ...metaDe(nuevo), id: nuevo.id, turnos: nuevo.turnos });
-  const turnos = canonico(nuevo.turnos);
 
   // los turnos, hasta que el registro dice los mismos (al rebobinar se pierden los juicios de después: la vuelta siguiente los repone)
-  for (let vuelta = 0; ; vuelta++) {
-    const v = vistaDe(trabajo);
-    if (canonico(v.turnos) === turnos) break;
+  let v = vistaDe(trabajo);
+  for (let vuelta = 0; !igual(v.turnos, nuevo.turnos); vuelta++) {
     if (vuelta === 4) throw new Error(`La conversación «${nuevo.id}» no se pudo apuntar: su registro no da los mismos turnos.`);
     const viejos = v.turnos;
     const comunes = Math.min(viejos.length, nuevo.turnos.length);
     let cambio = -1;
     for (let k = 0; k < comunes; k++) {
-      if (mismo(viejos[k], nuevo.turnos[k])) continue;
+      if (igual(viejos[k], nuevo.turnos[k])) continue;
       if (soloJuzgado(viejos[k], nuevo.turnos[k])) {
         anota({ tipo: "orden", que: "juzgar", turno: k });
         continue;
@@ -210,11 +223,13 @@ export function eventosDelGuardado(entrada: Pick<Lectura, "eventos" | "cadena">,
     } else {
       for (const t of nuevo.turnos.slice(viejos.length)) anota(eventoDeTurno(t));
     }
+    v = vistaDe(trabajo);
   }
   // y lo demás, al final
-  const meta = vistaDe(trabajo).meta;
-  if (meta === null || !mismo(meta, metaDe(nuevo))) anota({ tipo: "punto", chat: metaDe(nuevo) });
-  const fin = vistaDe(trabajo).hilo;
-  if (!fin || canonico(fin) !== objetivo) throw new Error(`La conversación «${nuevo.id}» no se pudo apuntar: su registro no da el mismo Hilo.`);
+  if (v.meta === null || !igual(v.meta, metaDe(nuevo))) {
+    anota({ tipo: "punto", chat: metaDe(nuevo) });
+    v = vistaDe(trabajo);
+  }
+  if (!v.hilo || !igual(v.hilo, nuevo)) throw new Error(`La conversación «${nuevo.id}» no se pudo apuntar: su registro no da el mismo Hilo.`);
   return salida;
 }
