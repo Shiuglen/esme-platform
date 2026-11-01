@@ -187,7 +187,7 @@ npm run verificar        # la tienda se verifica: índice y artefactos, byte a b
 Hay puerta de entrada: **tres comandos** y el módulo nace ya juzgado.
 
 ```bash
-npm run crear:modulo -- --id esme.tu.mi-modulo --nombre "Mi módulo"
+npm run crear:modulo -- --id esme.tu.mi-modulo --nombre "Mi módulo" --autor "Tu nombre"
 npm run verificar:modulo -- modulos/mi-modulo
 ```
 

@@ -12,7 +12,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { platform } from "node:os";
-import { puntos, motorDe, renderPuntos, renderArbolPuntos, TOPE_MB, type Punto } from "../core/motores/puntos.ts";
+import { puntos, motorDe, renderPuntos, renderArbolPuntos, lecturasDePs, TOPE_MB, type Punto } from "../core/motores/puntos.ts";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -89,14 +89,30 @@ describe("la medida", () => {
 
 describe("la familia", () => {
   it("cada punto trae su papa MEDIDO (el ppid del sistema, no una invención)", async () => {
-    // el propio proceso de la prueba: su papa en la medida tiene que cuadrar
-    // con lo que /proc self/stat dice (misma fuente, misma verdad)
+    // el propio proceso de la prueba: su papa en la medida tiene que ser el
+    // que el sistema le dio (process.ppid lo pregunta al sistema en Linux y
+    // en macOS por igual; /proc solo existe en Linux)
     const lista = puntos({ pids: [process.pid] });
     expect(lista.length).toBe(1);
-    const papaMedido = lista[0].papa;
-    const self = readFileSync(`/proc/${process.pid}/stat`, "utf8");
-    const campos = self.slice(self.lastIndexOf(")") + 2).split(" ");
-    expect(papaMedido).toBe(Number(campos[1]));
+    expect(lista[0].papa).toBe(process.ppid);
+  });
+
+  it("en macOS, ps también dice quién engendró a quién (el ppid, columna a columna)", () => {
+    // la salida de `ps -Ao pid=,ppid=,pcpu=,rss=,lstart=,comm=`: la fecha
+    // tiene espacios dentro, y el programa también puede tenerlos
+    const crudo = [
+      "  501     1   0.0  10240 Sat Nov  1 09:17:09 2026     /usr/sbin/cfprefsd",
+      "77412   501  12.5 307200 Sat Nov  1 09:20:00 2026     /Applications/Visual Studio Code.app/Contents/MacOS/Electron",
+      "",
+    ].join("\n");
+    const lecturas = lecturasDePs(crudo);
+    expect(lecturas.map((l) => [l.pid, l.papa])).toEqual([
+      [501, 1],
+      [77412, 501],
+    ]);
+    expect(lecturas[1].proceso).toBe("Electron");
+    expect(lecturas[1].memoria_mb).toBe(300);
+    expect(lecturas[1].cpu_pct).toBe(12.5);
   });
 
   it("el árbol conecta cada punto con su papa (y lo que nació fuera, raíz)", () => {

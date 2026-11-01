@@ -5,7 +5,7 @@
 > promete: que cualquiera pueda construir encima.
 
 ```bash
-npm run crear:modulo -- --id esme.tu.mi-modulo --nombre "Mi módulo"
+npm run crear:modulo -- --id esme.tu.mi-modulo --nombre "Mi módulo" --autor "Tu nombre"
 npm run verificar:modulo -- modulos/mi-modulo
 # y una PR en tienda/ con el paquete que sale en salida/
 ```
@@ -14,6 +14,10 @@ Lo primero **nace Juzgado**: el constructor no te deja un module.yaml en
 blanco, te deja un módulo entero (manifiesto, código, prueba) y lo pasa por el
 verificador, que lo construye, lo mide de verdad y lo juzga. Si el juez lo
 echa, te lo dice ahí mismo, con el motivo — no tres días después en la tienda.
+
+`--autor` es quien firma el módulo, con 3 caracteres o más. Si no lo pones,
+sale del id (`esme.<autor>.…`); y si ahí es más corto, el constructor te lo
+pide antes de crear nada.
 
 ---
 

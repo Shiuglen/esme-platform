@@ -106,7 +106,7 @@ export function motorDe(proceso: string): string | null {
 }
 
 /** Lo que el sistema dice de un proceso (plataforma a plataforma). */
-interface Lectura {
+export interface Lectura {
   proceso: string;
   pid: number;
   /** El ppid: quien lo engendró (el sistema lo dice; si no, null). */
@@ -220,25 +220,39 @@ function dormir(ms: number): void {
 function leeMac(): Lectura[] {
   let crudo = "";
   try {
-    crudo = execFileSync("ps", ["-Ao", "pid=,pcpu=,rss=,lstart=,comm="], {
+    crudo = execFileSync("ps", ["-Ao", "pid=,ppid=,pcpu=,rss=,lstart=,comm="], {
       encoding: "utf8",
       maxBuffer: 8 * 1024 * 1024,
+      // los números y la fecha, siempre en el mismo formato: con el idioma
+      // de la persona, «12,5» o «sáb» no casarían con las columnas
+      env: { ...process.env, LC_ALL: "C" },
     });
   } catch {
     return [];
   }
+  return lecturasDePs(crudo);
+}
+
+/**
+ * Lo que dice `ps -Ao pid=,ppid=,pcpu=,rss=,lstart=,comm=`, proceso a proceso.
+ * La fecha (`lstart`) ocupa 24 caracteres con espacios dentro, y el programa
+ * va el último porque también puede tenerlos.
+ */
+export function lecturasDePs(crudo: string): Lectura[] {
   const salida: Lectura[] = [];
   for (const linea of crudo.split("\n")) {
-    const m = linea.match(/^\s*(\d+)\s+([\d.]+)\s+(\d+)\s+(.{24})\s+(.*)$/);
+    const m = linea.match(/^\s*(\d+)\s+(\d+)\s+([\d.]+)\s+(\d+)\s+(.{24})\s+(.*)$/);
     if (!m) continue;
+    const programa = m[6].trim();
     salida.push({
-      proceso: m[5].trim().split("/").pop() ?? m[5].trim(),
+      proceso: programa.split("/").pop() ?? programa,
       pid: Number(m[1]),
-      papa: null,
+      // el ppid: quien lo engendró, como en Linux (0 es «nadie»)
+      papa: Number(m[2]) || null,
       estado: "vivo",
-      memoria_mb: Number(m[3]) / 1024,
-      cpu_pct: Number(m[2]),
-      desde: Date.parse(m[4]) || null,
+      memoria_mb: Number(m[4]) / 1024,
+      cpu_pct: Number(m[3]),
+      desde: Date.parse(m[5]) || null,
     });
   }
   return salida;
