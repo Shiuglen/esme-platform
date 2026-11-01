@@ -98,7 +98,9 @@ jobs:
       - run: npm ci
       # la spec de motores y el código tienen que contar lo mismo, y cada
       # módulo tiene que poder ser alojado por ALGO (un módulo que ningún
-      # motor puede alojar es un módulo que no sirve)
+      # motor puede alojar es un módulo que no sirve). spec:lint mira la
+      # entrada de cada módulo: sin construirlos, falta su dist/
+      - run: npm run build:modulos
       - name: la spec de motores cuadra con el código
         run: npm run spec:lint
       - name: cada módulo puede ser alojado por algún motor
