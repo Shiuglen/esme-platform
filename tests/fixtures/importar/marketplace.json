@@ -1,0 +1,11 @@
+{
+  "name": "mercado-de-prueba",
+  "owner": { "name": "Ana Prueba" },
+  "plugins": [
+    { "name": "estudio-claude", "source": "./plugin-claude", "description": "El plugin de estudio de prueba." },
+    {
+      "name": "remoto",
+      "source": { "source": "github", "repo": "ana-prueba/remoto", "sha": "0123456789abcdef0123456789abcdef01234567" }
+    }
+  ]
+}

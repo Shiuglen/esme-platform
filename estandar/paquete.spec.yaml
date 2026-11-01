@@ -1,0 +1,242 @@
+# **Spec abierta v1 — el paquete (module.yaml v2).** Referencia: `docs/PAQUETES.md`.
+# Lo implementan `core/paquetes/manifiesto.ts`, `core/paquetes/permisos.ts`,
+# `core/paquetes/semver.ts` y `core/paquetes/lock.ts`. La conformidad
+# (`scripts/estandar/conformidad-paquete.ts`) compara cada sección con el
+# código: el ejemplo tiene que valer, y los puntos, los alcances, los niveles,
+# los rangos y los hosts tienen que ser los mismos.
+#
+# Por qué esta spec es v1 si el manifiesto es v2: el `schema_version` de
+# arriba es el de ESTA spec (la regla 0 de la casa). El del manifiesto va
+# dentro, en `manifiesto.schema_version: 2`. La v1 del manifiesto sigue en
+# `module-manifest.spec.yaml`, y sigue valiendo tal cual.
+#
+# **Cambios:** como todas: la spec y su código en el mismo PR
+# (estandar/README.md).
+#
+# Lo que es un paquete, en tres verbos:
+#   - APORTA: sus contribuciones, en doce puntos cerrados (`puntos`);
+#   - USA: otros paquetes, cada uno fijado por su huella (`uses`);
+#   - PIDE: sus permisos, con alcance (`alcances`).
+# Una PLANTILLA (`kind: template`) es un paquete solo de datos: junta otros
+# paquetes y unos ajustes en una forma de trabajar lista para usar.
+#
+# Las reglas (cada una con su mensaje en el código):
+#   1. una plantilla no trae código: ni `tools`, ni `views`, ni `memory`.
+#      Si hace falta, va en un paquete, y la plantilla lo usa con `uses`;
+#   2. `settings` es de las plantillas: un paquete no crea proyectos;
+#   3. un paquete aporta algo: o `contributes` o `uses`, no ninguno;
+#   4. NO hay hooks libres (`contributes.hooks` se rechaza): un hook corre
+#      código en cada paso sin pasar por los permisos. Lo que haría, lo hace
+#      una herramienta o una rutina;
+#   5. lo que lanzas o con quien hablas, lo pides: `tools[].mcp.url` exige un
+#      `net:fetch` que cubra su host; `tools[].mcp.command`,
+#      `engines[].binaries` y el `comando` de un agente `format: comando`
+#      exigen un `proc:spawn` que cubra el programa, que va por su nombre
+#      (`npx`), nunca por su ruta (tampoco una del paquete). Una URL no lleva
+#      usuario ni contraseña;
+#   6. cada `uses` lleva id, rango y huella (`sha256` del árbol). El rango no
+#      elige: comprueba que la huella fijada es de una versión que se quería;
+#   7. las rutas son del paquete: relativas, con `/`, sin `..`, sin `\`, sin
+#      letra de unidad y sin caracteres de control;
+#   8. un id no se repite dentro de su punto, y lo que se nombra existe:
+#      `channels[].tool` es una herramienta del paquete y `commands[].task`
+#      una tarea del paquete;
+#   9. una skill es local (`path`) o remota (`remote`, fijada a su commit y
+#      a su huella), nunca las dos ni ninguna. Una herramienta es código del
+#      paquete (`entry` con `runtime`) o un servidor MCP (`mcp`), nunca las dos;
+#  10. lo de la v1 arriba del todo en un v2 (`category`, `entry`, `runtime`,
+#      `dependencies`, `sideEffects`, `engines`) se rechaza con el sitio donde
+#      va ahora: un v2 a medio migrar no se acepta en silencio.
+# Lo que se AVISA sin rechazar: una clave desconocida (arriba o dentro de una
+# entrada), un punto que esta versión no conoce, `net:fetch` con `*` (es toda
+# la red: que se diga a secas) y un MCP remoto por http sin cifrar.
+
+schema_version: 1
+
+# --- El manifiesto: un ejemplo que vale, con todas sus claves ---
+# (es una plantilla; un paquete sería igual sin `settings`, y podría traer
+# código en `tools`, `views` o `memory`)
+manifiesto:
+  schema_version: 2
+  id: "esme.jin.estudiar"                 # esme.<autor>.<slug>, como en la v1
+  version: "1.0.0"                        # semver estricto
+  name: "Esme para estudiar"
+  kind: "template"                        # package | template
+  description: "Una forma de estudiar lista para usar: tutor, repaso diario y tarjetas."
+  author: "jin"
+  license: "MIT"                          # ver `licencias`
+  keywords: ["estudio", "repaso", "tarjetas"]  # para buscar (como en plugin.json o en npm)
+  homepage: "https://github.com/jin/estudiar"  # donde leer más: una URL http(s)
+  uses:                                   # id + rango + huella; los tres
+    - id: "esme.casa.piel-estudio"
+      version: "^1.0"
+      sha256: "6b1d0e4f2f8a7c3e9d5b0a1c4e7f2a8b3c6d9e0f1a4b7c2d5e8f0a3b6c9d2e5f"
+    - id: "esme.ana.tarjetas"
+      version: "^0.4"
+      sha256: "0f9e8d7c6b5a49382716f5e4d3c2b1a09f8e7d6c5b4a39281706f5e4d3c2b1a0"
+  contributes:                            # ver `puntos`
+    agents:
+      - id: "tutor"
+        recipe: "agentes/tutor.yaml"
+        format: "receta"                  # receta | claude-md | comando
+    tasks:
+      - id: "tarjetas"
+        title: "Prepara tarjetas"
+        prompt: "Prepara diez tarjetas del tema que te diga."
+        inputs:
+          - key: "tema"
+            description: "el tema de las tarjetas"
+            required: true
+    routines:
+      - id: "repaso"
+        when: "cada día 20:00"
+        agent: "tutor"
+        task: "Pregúntame diez tarjetas"
+    commands:
+      - id: "tarjetas"
+        title: "Tarjetas nuevas"
+        task: "tarjetas"                  # una tarea de ESTE paquete
+  permissions:                            # forma corta (sin límite) o larga (con su alcance)
+    - kind: "net:fetch"
+      hosts: ["ankiweb.net"]
+  settings:                               # solo en plantillas
+    rumbo: "Aprobar el examen de enero"   # texto
+    budget_usd_per_day: 0.5               # número, 0 o más
+  success:                                # cómo se ve que la plantilla funciona
+    task: "Prepara diez tarjetas del tema 1"
+    check: "schemas/tarjetas.json"
+  source:                                 # de dónde viene, si se importó
+    from: "github:jin/estudiar"
+    ref: "v1.0.0"
+    commit: "4c2a9e1f7b3d8c6a0e5f2b9d4a7c1e8f3b6d0a2c"
+  works_with: ["claude-code", "opencode"] # los motores con los que trabaja (vacío: cualquiera)
+  decision_criteria:                      # como en la v1
+    - when: "user_studying"
+      weight: 0.8
+      tags: ["estudio", "repaso"]
+  benchmarks:                             # como en la v1
+    recall_delta: 0.01
+    report: "bench.json"
+  signatures:                             # como en la v1 (relleno al publicar)
+    ed25519: "MCowBQYDK2VwAyEA…base64…"
+    signed_by: "jin"
+    signed_at: "2026-10-25T12:00:00Z"
+
+# --- Paquete o plantilla ---
+tipos: ["package", "template"]
+
+# --- Las licencias: las de la v1 y las que el juez de skills ya acepta ---
+licencias: ["MIT", "Apache-2.0", "ESME-CL", "BSD-2-Clause", "BSD-3-Clause", "ISC", "Unlicense"]
+
+# --- La receta de un agente: la del kit, la de Claude Code o una línea de comandos ---
+# `comando`: la receta es un JSON con `comando` (p. ej. `opencode -p "{tarea}"`);
+# el programa que lanza tiene que estar en `proc:spawn`.
+formatos_agente: ["receta", "claude-md", "comando"]
+
+# --- Los doce puntos: de qué están hechos, dónde corren y qué claves llevan ---
+# naturaleza: datos | código | código aislado
+# corre: ventana (la UI) | sesión (cuando trabajas) | siempre (sin sesión) | mente (la memoria)
+# Notas por punto:
+#   skills.remote: { repo: dueño/nombre, commit: 40 hex, path, sha256: 64 hex }
+#   skills.scripts: true si la skill trae scripts (sube el nivel a 3)
+#   tools.mcp: { command, args?, env_keys? } (local) o { url, headers? } (remoto)
+#   engines.binaries: programas por su nombre, nunca por su ruta
+puntos:
+  themes:   { naturaleza: "datos",          corre: "ventana", claves: ["id", "file"] }
+  skills:   { naturaleza: "datos",          corre: "sesión",  claves: ["id", "path", "remote", "scripts"] }
+  tools:    { naturaleza: "código",         corre: "sesión",  claves: ["id", "entry", "runtime", "mcp"] }
+  views:    { naturaleza: "código aislado", corre: "ventana", claves: ["id", "entry", "title"] }
+  agents:   { naturaleza: "datos",          corre: "sesión",  claves: ["id", "recipe", "format"] }
+  teams:    { naturaleza: "datos",          corre: "sesión",  claves: ["id", "file"] }
+  tasks:    { naturaleza: "datos",          corre: "sesión",  claves: ["id", "title", "prompt", "steps", "roles", "category", "icon", "inputs"] }
+  routines: { naturaleza: "datos",          corre: "siempre", claves: ["id", "when", "task", "agent"] }
+  channels: { naturaleza: "datos",          corre: "siempre", claves: ["id", "tool"] }
+  memory:   { naturaleza: "código",         corre: "mente",   claves: ["id", "entry", "runtime"] }
+  engines:  { naturaleza: "datos",          corre: "sesión",  claves: ["id", "name", "binaries", "args", "install", "repo", "login", "compliance", "verified"] }
+  commands: { naturaleza: "datos",          corre: "ventana", claves: ["id", "title", "task"] }
+
+# --- Los permisos con alcance: qué límite admite cada capacidad ---
+# Forma corta: la capacidad sola (`net:fetch`), sin límite.
+# Forma larga: `{ kind: net:fetch, hosts: [api.x.com, "*.x.com"] }`, con límite.
+# Una capacidad sin alcance posible va siempre en su forma corta, y una larga
+# sin ninguna lista se rechaza (es la corta escrita de otra manera).
+# Los alcances se comparan por piezas, nunca por texto: ver `hosts`.
+alcances:
+  "mind:read": []
+  "mind:write": []
+  "ipc:emit": []
+  "fs:project": ["paths"]                 # relativas al proyecto; `**` es todo
+  "net:fetch": ["hosts"]                  # a.com, *.a.com (sus subdominios, no a.com) o *
+  "ui:render": []
+  "proc:spawn": ["programs"]              # por su nombre lógico (npx), nunca por su ruta
+
+# --- Los hosts: qué cubre un patrón y qué no (la conformidad los prueba) ---
+# [patrón, host]. Un host se compara en minúsculas y sin su punto final; un
+# puerto, un esquema o una ruta no son un host.
+hosts:
+  cubre:
+    - ["*.figma.com", "mcp.figma.com"]
+    - ["*.figma.com", "a.b.figma.com"]
+    - ["ankiweb.net", "ankiweb.net"]
+    - ["ankiweb.net", "AnkiWeb.NET."]
+    - ["*", "cualquier.cosa.com"]
+  no_cubre:
+    - ["*.figma.com", "figma.com"]
+    - ["*.figma.com", "evil-figma.com"]
+    - ["*.figma.com", "figma.com.evil.net"]
+    - ["*.figma.com", "mcp.figma.com.evil.net"]
+    - ["ankiweb.net", "api.ankiweb.net"]
+    - ["ankiweb.net", "ankiweb.net:8080"]
+    - ["ankiweb.net", "https://ankiweb.net"]
+
+# --- Los rangos de un `uses`: lo justo ---
+# Fuera: prereleases, `||`, rangos con espacios y comparadores sueltos.
+rangos:
+  validos: ["*", "1", "1.2", "1.2.3", "=1.2.3", "^1", "^1.2", "^0.4", "~1.2.3", ">=1.2"]
+  no_validos: ["", "latest", "^", "1.x", ">1", "<2", "1 || 2", "^1.0.0-beta", " ^1.0"]
+  ejemplos:                               # [versión, rango, ¿cumple?]
+    - ["1.4.2", "^1.0", true]
+    - ["2.0.0", "^1.0", false]
+    - ["0.4.9", "^0.4", true]
+    - ["0.5.0", "^0.4", false]
+    - ["0.0.4", "^0.0.3", false]
+    - ["1.2.9", "~1.2.3", true]
+    - ["1.3.0", "~1.2.3", false]
+    - ["1.2.7", "1.2", true]
+    - ["1.2.4", "1.2.3", false]
+    - ["3.0.0", ">=1.2", true]
+
+# --- Los niveles de aislamiento: dónde tiene que correr lo que trae ---
+# El de un paquete es el más alto de sus puntos: datos 0; WASM 1;
+# JavaScript en la cápsula (y una vista, en la suya) 2; un proceso del
+# sistema (Python, un MCP local, un motor con sus binarios, un agente de
+# línea de comandos, una skill con scripts) 3. El 4 no lo pide un paquete:
+# lo elige quien ejecuta (p. ej. en la nube).
+niveles:
+  0: "datos"
+  1: "WASM"
+  2: "cápsula"
+  3: "caja del sistema"
+  4: "microVM"
+
+# --- Lo que Esme sustituye en `mcp.command`, `mcp.args` y el entorno ---
+# (como `${CLAUDE_PLUGIN_ROOT}` y `${CLAUDE_PLUGIN_DATA}` en Claude Code),
+# y también en lo que lee el modelo: el SKILL.md de una skill, la receta de
+# un agente y el prompt de una tarea. Así un plugin importado sigue
+# encontrando sus ficheros (`${CLAUDE_PLUGIN_ROOT}` pasa a `${ESME_PAQUETE}`).
+variables:
+  ESME_PAQUETE: "la carpeta donde está instalado el paquete"
+  ESME_DATOS: "la carpeta de sus datos, que sobrevive a las actualizaciones"
+
+# --- El candado: lo que se resolvió y lo que la persona consintió ---
+# Un JSON con dos espacios, los paquetes ordenados por id. Si al volver a
+# resolver hay un paquete nuevo, una huella cambiada (aunque pida los mismos
+# permisos) o un permiso nuevo, se vuelve a pedir permiso. La raíz (la
+# plantilla) es uno más: su huella y sus propios permisos también cuentan,
+# así que quitar un paquete, que no pide nada por sí mismo, se pregunta una
+# vez (la plantilla que lo quita es otra). Un candado roto o que no está
+# equivale a «nada consentido».
+lock:
+  claves: ["lock_version", "raiz", "paquetes", "permisos"]
+  claves_raiz: ["id", "version", "sha256", "permisos"]
+  claves_paquete: ["id", "version", "sha256", "permisos"]

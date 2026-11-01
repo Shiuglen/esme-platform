@@ -98,6 +98,8 @@
     "publicar:modulo": "tsx scripts/publicar-modulo.ts",
     "firma:index": "tsx scripts/firmar-index.ts",
     "mind": "tsx scripts/mind-cli.ts",
+    "paquete": "tsx scripts/paquete.ts",
+    "paquetes:fixtures": "tsx scripts/paquetes/fixtures-app.ts",
     "panel": "tsx scripts/panel.ts",
     "bench": "tsx scripts/bench.ts",
     "verificar": "tsx scripts/verificar.ts",

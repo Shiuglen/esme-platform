@@ -1,0 +1,9 @@
+{
+  "name": "estudio-claude",
+  "displayName": "Estudio",
+  "version": "1.2.0",
+  "description": "Un plugin de prueba para estudiar: repasar, resumir y revisar. Sintético.",
+  "author": { "name": "Ana Prueba", "email": "ana@example.com" },
+  "keywords": ["estudio", "prueba"],
+  "homepage": "https://example.com/estudio"
+}

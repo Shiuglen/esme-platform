@@ -1,0 +1,26 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.ana-prueba/notas",
+  "title": "Notas",
+  "description": "Un servidor MCP de notas, sintético, para las pruebas.",
+  "version": "1.0.0",
+  "websiteUrl": "https://notas.example.com",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://notas.example.com/mcp",
+      "headers": [
+        { "name": "X-API-Key", "description": "Tu llave de Notas", "isRequired": true, "isSecret": true }
+      ]
+    }
+  ],
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@ana-prueba/notas-mcp",
+      "version": "1.0.0",
+      "transport": { "type": "stdio" },
+      "environmentVariables": [{ "name": "NOTAS_TOKEN", "description": "Tu llave de Notas", "isRequired": true, "isSecret": true }]
+    }
+  ]
+}

@@ -47,6 +47,7 @@ import { entradaDe } from "../../tienda/publica.ts";
 import { esProducto, type Producto, type TipoProducto } from "../../tienda/catalogo.ts";
 import { declaraClave, firmarIndex } from "../../tienda/firma.ts";
 import { generateKeyPairSync } from "node:crypto";
+import { compruebaPaquete } from "./conformidad-paquete.ts";
 
 /** Un fallo de conformidad. */
 export interface FalloConformidad {
@@ -501,6 +502,10 @@ export function compruebaConformidad(): FalloConformidad[] {
       anota("esfuerzo.spec.yaml", `la ficha de «${String(ficha.motor)}/${String(ficha.modelo ?? "*")}» sin fuente o sin verificado`);
     }
   }
+
+  // 15. el paquete (module.yaml v2): el ejemplo vale, y los puntos, los
+  // alcances, los niveles, los rangos y los hosts son los del código
+  compruebaPaquete(leeSpec("paquete.spec.yaml"), (problema) => anota("paquete.spec.yaml", problema));
 
   return fallos;
 }

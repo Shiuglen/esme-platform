@@ -16,6 +16,8 @@ import { juzgaPielDeModulo } from "../tienda/piel.ts";
 import { juzgaAgenteDeModulo } from "../tienda/agente.ts";
 import { compruebaConformidad } from "./estandar/conformidad.ts";
 import { EXCEPCIONES_ALCANCE, huerfanosDelNucleo } from "./estandar/alcance.ts";
+import { leePaqueteDeCarpeta } from "../tienda/paquete-disco.ts";
+import { nivelDe as aislamientoDe, NIVELES } from "../core/paquetes/manifiesto.ts";
 
 const raiz = resolve(import.meta.dirname, "..");
 const dir = join(raiz, "modulos");
@@ -46,19 +48,46 @@ for (const d of archivos) {
     console.log(`· ${d}: no es módulo (sin module.yaml)`);
     continue;
   }
-  const r = validaModuloFile(ruta, { exigirBenchmarks: true });
   // el nivel lo decide DÓNDE vive el módulo, no lo que dice su manifiesto
   const nivel = nivelDe(`modulos/${d}/`);
-  if (nivel === "mit") {
-    const manifiesto = yaml.load(readFileSync(ruta, "utf8")) as { license?: string };
-    if (manifiesto?.license !== "MIT") {
-      fallos++;
-      console.error(`✗ ${d}: vive en el núcleo (MIT) pero declara '${String(manifiesto?.license)}'`);
-    }
+  type Cabecera = { license?: string; schema_version?: unknown } | null;
+  let manifiesto: Cabecera = null;
+  try {
+    manifiesto = yaml.load(readFileSync(ruta, "utf8")) as Cabecera;
+  } catch {
+    // un YAML roto lo dice el dictamen de abajo, con su motivo
   }
+  if (nivel === "mit" && manifiesto && manifiesto.license !== "MIT") {
+    fallos++;
+    console.error(`✗ ${d}: vive en el núcleo (MIT) pero declara '${String(manifiesto.license)}'`);
+  }
+  // un module.yaml v2 (el paquete) se dictamina como paquete, con las
+  // mismas reglas del índice que la v1
+  if (manifiesto?.schema_version === 2) {
+    const p = leePaqueteDeCarpeta(join(dir, d), { exigirBenchmarks: true });
+    if (p.ok) {
+      const n = aislamientoDe(p.paquete!);
+      console.log(`✓ ${d}: ${p.id} v${p.paquete!.version} (${nivel}, paquete v2, nivel ${n}: ${NIVELES[n]})`);
+      for (const a of p.avisos) console.log(`  ⚠ ${a}`);
+    } else {
+      fallos++;
+      console.error(`✗ ${d} (${p.id})`);
+      for (const e of p.errores) console.error(`  ✗ ${e}`);
+    }
+    continue;
+  }
+  const r = validaModuloFile(ruta, { exigirBenchmarks: true });
   if (r.ok) {
     console.log(`✓ ${d}: ${r.id} v${r.manifest?.version} (${nivel})`);
     for (const a of r.avisos) console.log(`  ⚠ ${a}`);
+    // y la v1, vista como paquete: una sola contribución, los mismos ficheros
+    const v2 = leePaqueteDeCarpeta(join(dir, d));
+    if (v2.ok) console.log("  ✓ también como paquete v2");
+    else {
+      fallos++;
+      console.error(`✗ ${d}: como paquete v2 no vale`);
+      for (const e of v2.errores) console.error(`  ✗ ${e}`);
+    }
     // el guard de la identidad: un módulo de tema trae una piel, y la piel
     // tiene que ser válida (y se tiene que LEER). La estética es el
     // producto: no es skinneable, y el juez está antes de la puerta.
@@ -119,8 +148,16 @@ for (const m of motores) {
 for (const d of archivos) {
   const ruta = join(dir, d, "module.yaml");
   if (!existsSync(ruta)) continue;
-  const manifiesto = yaml.load(readFileSync(ruta, "utf8")) as { engines?: string[] } | null;
-  for (const e of manifiesto?.engines ?? []) {
+  type Motores = { schema_version?: unknown; engines?: string[]; works_with?: string[] } | null;
+  let manifiesto: Motores = null;
+  try {
+    manifiesto = yaml.load(readFileSync(ruta, "utf8")) as Motores;
+  } catch {
+    continue; // ya dicho arriba
+  }
+  // en la v2, los motores con los que trabaja van en works_with
+  const declarados = manifiesto?.schema_version === 2 ? manifiesto.works_with : manifiesto?.engines;
+  for (const e of declarados ?? []) {
     if (!idsMotores.has(e)) {
       fallos++;
       console.error(`✗ ${d}: declara el motor «${e}», que no está en la spec de motores`);
