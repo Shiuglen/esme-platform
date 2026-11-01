@@ -1,7 +1,7 @@
 /**
  * crear-modulo — la línea de comandos del constructor.
  *   npm run crear:modulo -- --id esme.tu.slug --nombre "Mi módulo" \
- *        [--categoria tool] [--permisos mind:read,mind:write] [--dir <ruta>]
+ *        [--autor "Tu nombre"] [--categoria tool] [--permisos mind:read,mind:write] [--dir <ruta>]
  *
  * Por qué esto es tan poco: el constructor vive en `tienda/crea.ts`, porque
  * la puerta de entrada de la era es PUBLICABLE (un tercero que instala el kit
@@ -13,7 +13,7 @@
 import { CATEGORIES, type Category } from "../core/ipc/module-schema.ts";
 import { CAPABILITIES, type Capability } from "../core/extension-host/capability.ts";
 import { raizDelPaquete } from "../core/paquete.ts";
-import { creaModulo, type OpcionesCrear } from "../tienda/crea.ts";
+import { creaModulo, problemaDeAutor, problemaDeId, type OpcionesCrear } from "../tienda/crea.ts";
 import { verificaModulo, renderVerificacion } from "../tienda/verifica.ts";
 
 export { creaModulo };
@@ -33,8 +33,15 @@ if (import.meta.url === new URL(`file://${process.argv[1]}`).href) {
   const nombre = arg("--nombre") ?? arg("--name") ?? "";
   if (!id || !nombre) {
     console.error(
-      "uso: npm run crear:modulo -- --id esme.tu.slug --nombre \"Mi módulo\" [--categoria tool] [--permisos mind:read,mind:write] [--dir <ruta>]"
+      "uso: npm run crear:modulo -- --id esme.tu.slug --nombre \"Mi módulo\" [--autor \"Tu nombre\"] [--categoria tool] [--permisos mind:read,mind:write] [--dir <ruta>]"
     );
+    process.exit(2);
+  }
+  // el id y el autor, antes de escribir nada (y dicho en una línea, sin traza)
+  const autor = arg("--autor") ?? undefined;
+  const problema = problemaDeId(id) ?? problemaDeAutor({ id, autor });
+  if (problema) {
+    console.error(problema);
     process.exit(2);
   }
   const cat = arg("--categoria");
@@ -61,6 +68,7 @@ if (import.meta.url === new URL(`file://${process.argv[1]}`).href) {
     categoria: (cat as Category) ?? "tool",
     ...(argPermisos ? { permisos: permisos as Capability[] } : {}),
     dir: arg("--dir") ?? undefined,
+    ...(autor ? { autor } : {}),
   };
 
   const { dir, creado } = await creaModulo(opcion, raizKit);

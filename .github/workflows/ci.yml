@@ -65,7 +65,7 @@ jobs:
       # PR — antes de que lo descubra quien publica.
       - name: el módulo de cualquiera nace y entra
         run: |
-          npm run crear:modulo -- --id esme.ci.puerta --nombre "Puerta de la CI" --dir /tmp/puerta-ci
+          npm run crear:modulo -- --id esme.ci.puerta --nombre "Puerta de la CI" --autor "La CI de Esme" --dir /tmp/puerta-ci
           npm run verificar:modulo -- /tmp/puerta-ci
       - name: la puerta se cierra cuando tiene que cerrarse
         run: npx vitest run tests/entrada.test.ts
@@ -98,7 +98,9 @@ jobs:
       - run: npm ci
       # la spec de motores y el código tienen que contar lo mismo, y cada
       # módulo tiene que poder ser alojado por ALGO (un módulo que ningún
-      # motor puede alojar es un módulo que no sirve)
+      # motor puede alojar es un módulo que no sirve). spec:lint mira la
+      # entrada de cada módulo: sin construirlos, falta su dist/
+      - run: npm run build:modulos
       - name: la spec de motores cuadra con el código
         run: npm run spec:lint
       - name: cada módulo puede ser alojado por algún motor

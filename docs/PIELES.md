@@ -54,7 +54,7 @@ código: una piel que fuera código podría hacer cualquier cosa, y entonces
 Un tema es un módulo de categoría `theme` que trae su piel en `piel.json`:
 
 ```bash
-npm run crear:modulo -- --id esme.tu.mi-tema --nombre "Mi tema" --categoria theme
+npm run crear:modulo -- --id esme.tu.mi-tema --nombre "Mi tema" --autor "Tu nombre" --categoria theme
 ```
 
 El constructor te deja la piel de la casa para que la cambies, y el verificador

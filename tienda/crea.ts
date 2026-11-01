@@ -1,7 +1,7 @@
 /**
  * EL CONSTRUCTOR — el módulo de cualquiera, en un comando.
  *   npm run crear:modulo -- --id esme.tu.slug --nombre "Mi módulo" \
- *        [--categoria tool] [--permisos mind:read,mind:write] [--dir <ruta>]
+ *        [--autor "Tu nombre"] [--categoria tool] [--permisos mind:read,mind:write] [--dir <ruta>]
  *
  * Qué es esto: el principio de la era. Si Esme es una plataforma abierta, la
  * primera vez que alguien llega tiene que poder hacer algo que FUNCIONE sin
@@ -28,7 +28,7 @@
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve, join } from "node:path";
-import { CATEGORIES, type Category } from "../core/ipc/module-schema.ts";
+import { CATEGORIES, ManifestSchema, type Category } from "../core/ipc/module-schema.ts";
 import { CAPABILITIES, type Capability } from "../core/extension-host/capability.ts";
 import { raizDelPaquete } from "../core/paquete.ts";
 import { verificaModulo, renderVerificacion } from "./verifica.ts";
@@ -87,6 +87,26 @@ export function problemaDeId(id: string): string | null {
   return null;
 }
 
+/** Quién firma el módulo: el que se dice (`--autor`) o, si no, el del id. */
+export const autorDe = (o: Pick<OpcionesCrear, "id" | "autor">): string =>
+  o.autor ?? o.id.split(".")[1] ?? "anonimo";
+
+/**
+ * Dice por qué el autor no vale, o `null` si vale. La regla es la del
+ * manifiesto (core/ipc/module-schema.ts), no una copia: el constructor no
+ * puede dejar un módulo que su propio juez echa. Y el id puede traer un autor
+ * más corto de lo que la Tienda pide (`esme.tu.mi-modulo`, `esme.ci.puerta`).
+ */
+export function problemaDeAutor(o: Pick<OpcionesCrear, "id" | "autor">): string | null {
+  const regla = ManifestSchema.shape.author;
+  const autor = autorDe(o);
+  if (regla.safeParse(autor).success) return null;
+  const minimo = regla.minLength ?? 1;
+  return o.autor === undefined
+    ? `el autor sale del id («${autor}») y la Tienda pide ${minimo} caracteres o más: añade --autor "Tu nombre"`
+    : `el autor («${autor}») tiene que tener ${minimo} caracteres o más`;
+}
+
 /** El manifiesto del módulo nuevo, en YAML (el formato que la spec fija). */
 export function manifiestoDe(o: OpcionesCrear): string {
   // los permisos por defecto según lo que el módulo hace: un módulo de
@@ -113,7 +133,7 @@ name: "${o.nombre}"
 version: "0.1.0"
 category: "${o.categoria ?? "tool"}"
 description: "${descripcion}"
-author: "${o.autor ?? o.id.split(".")[1] ?? "anonimo"}"
+author: ${JSON.stringify(autorDe(o))}
 license: "MIT"
 entry: "dist/index.js"
 runtime: "nodejs"
@@ -433,7 +453,8 @@ export async function creaModulo(
   o: OpcionesCrear,
   raizKit: string
 ): Promise<{ dir: string; creado: boolean; veredicto: string | null }> {
-  const problema = problemaDeId(o.id);
+  // antes de escribir nada: un módulo que nace roto no se crea
+  const problema = problemaDeId(o.id) ?? problemaDeAutor(o);
   if (problema) throw new Error(problema);
   const dir = resolve(o.dir ?? join(raizKit, "modulos", slugDe(o.id)));
   if (existsSync(dir)) {
