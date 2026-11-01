@@ -75,6 +75,7 @@
     "esfuerzo": "tsx scripts/esfuerzo.ts",
     "talamo": "tsx scripts/talamo.ts",
     "turno": "tsx scripts/turno.ts",
+    "sesion": "tsx scripts/sesion.ts",
     "arena": "tsx scripts/arena.ts",
     "equipo": "tsx scripts/equipo.ts",
     "bot:check": "tsx scripts/bot-check.ts",
