@@ -65,7 +65,7 @@ jobs:
       # PR — antes de que lo descubra quien publica.
       - name: el módulo de cualquiera nace y entra
         run: |
-          npm run crear:modulo -- --id esme.ci.puerta --nombre "Puerta de la CI" --dir /tmp/puerta-ci
+          npm run crear:modulo -- --id esme.ci.puerta --nombre "Puerta de la CI" --autor "La CI de Esme" --dir /tmp/puerta-ci
           npm run verificar:modulo -- /tmp/puerta-ci
       - name: la puerta se cierra cuando tiene que cerrarse
         run: npx vitest run tests/entrada.test.ts

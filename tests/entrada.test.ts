@@ -11,7 +11,9 @@
  *
  * Referencia: docs/ENTRADA.md, core/bench/ciclo.ts, core/modulos/veredicto.ts.
  */
-import { mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync } from "node:fs";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
@@ -78,6 +80,57 @@ describe("nacer con todo puesto", () => {
     await expect(
       creaModulo({ id: "no-es-un-id", nombre: "X", dir: join(casa(), "x") }, raizKit)
     ).rejects.toThrow(/esme\.<autor>\.<slug>/);
+  });
+});
+
+describe("el autor del módulo", () => {
+  // la Tienda pide un autor de 3 caracteres o más, y el id puede traerlo
+  // más corto (esme.tu.mi-modulo, esme.ci.puerta): el constructor no puede
+  // dejar un módulo que su propio juez echa
+
+  it("si el id lo trae corto, pide --autor y no crea nada", async () => {
+    const dir = join(casa(), "puerta");
+    await expect(
+      creaModulo({ id: "esme.ci.puerta", nombre: "Puerta", dir }, raizKit)
+    ).rejects.toThrow(/--autor/);
+    expect(existsSync(dir)).toBe(false);
+  });
+
+  it("con --autor, lo firma quien lo dice y el manifiesto vale", async () => {
+    const dir = join(casa(), "puerta");
+    const { creado } = await creaModulo(
+      { id: "esme.ci.puerta", nombre: "Puerta", dir, autor: "La CI de Esme" },
+      raizKit
+    );
+    expect(creado).toBe(true);
+    const dictamen = leeManifiesto(dir, { exigirEntrada: false });
+    expect(dictamen.errores).toEqual([]);
+    expect(dictamen.manifest?.author).toBe("La CI de Esme");
+  });
+
+  it("un autor con comillas no rompe el manifiesto", async () => {
+    const dir = join(casa(), "comillas");
+    await creaModulo(
+      { id: "esme.ana.notas", nombre: "Notas", dir, autor: 'Ana "la de las notas"' },
+      raizKit
+    );
+    const dictamen = leeManifiesto(dir, { exigirEntrada: false });
+    expect(dictamen.errores).toEqual([]);
+    expect(dictamen.manifest?.author).toBe('Ana "la de las notas"');
+  });
+
+  it("la terminal lo dice en una línea, sin traza, y no crea nada", async () => {
+    const dir = join(casa(), "puerta");
+    const tsx = join(raizKit, "node_modules", ".bin", "tsx");
+    const guion = join(raizKit, "scripts", "crear-modulo.ts");
+    const r = await promisify(execFile)(tsx, [guion, "--id", "esme.ci.puerta", "--nombre", "Puerta", "--dir", dir]).then(
+      () => ({ codigo: 0, salida: "" }),
+      (e: { code?: number; stderr: string }) => ({ codigo: e.code, salida: e.stderr })
+    );
+    expect(r.codigo).toBe(2);
+    expect(r.salida).toContain("--autor");
+    expect(r.salida).not.toMatch(/^\s+at /m);
+    expect(existsSync(dir)).toBe(false);
   });
 });
 
