@@ -38,6 +38,7 @@ import {
   MOTIVOS_PERMISO,
   esHost,
   esPrograma,
+  limpia,
   permiteHost,
   permitePrograma,
   problemasDeAlcance,
@@ -45,6 +46,22 @@ import {
   type Permiso,
 } from "./permisos.ts";
 import { esRango, esVersion } from "./semver.ts";
+import {
+  MOTIVOS_OFICIO,
+  PRIMERA,
+  TIPOS_ENTRADA,
+  TOPES,
+  VISTAS,
+  VISTAS_CON_FILTRO,
+  esFiltro,
+  esKebab,
+  esTextoCorto,
+  esVista,
+  problemasDeCampo,
+  problemasDeOrden,
+  referencia,
+} from "./oficio.ts";
+import { VISTA_LIENZO, esRutaLienzo, problemasDelLienzo } from "./lienzo.ts";
 
 /** De qué está hecho lo que aporta un punto. */
 export type Naturaleza = "datos" | "código" | "código aislado";
@@ -130,6 +147,7 @@ export const CLAVES_PAQUETE = [
   "contributes",
   "permissions",
   "settings",
+  "oficio",
   "success",
   "source",
   "works_with",
@@ -194,14 +212,20 @@ const McpLocal = z
 
 const McpRemoto = z.object({ url: Url, headers: z.array(Cabecera).optional() }).strict();
 
+/** Un campo de una tarea. Con `type`, se puede pedir con un formulario (lo que exige una orden del oficio). */
 const EntradaTarea = z
   .object({
     key: z.string().min(1),
     description: z.string().optional(),
     required: z.boolean().optional(),
     default: z.string().optional(),
+    type: z.enum(TIPOS_ENTRADA, { error: MOTIVOS_OFICIO.tipo }).optional(),
+    options: z.array(z.string()).optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((c, ctx) => {
+    for (const x of problemasDeCampo(c)) ctx.addIssue({ code: "custom", path: x.camino, message: x.mensaje });
+  });
 
 /** La forma de una entrada de cada punto (los campos de más se avisan, no se rechazan). */
 const ENTRADAS = {
@@ -291,14 +315,127 @@ const Ajustes = z.record(z.string(), z.union([z.string(), z.number(), z.boolean(
     ctx.addIssue({ code: "custom", path: ["budget_usd_per_day"], message: "un número de dólares, 0 o más" });
 });
 
+/** Un id de la plantilla (`burofax`), o `<paquete>/<id>` de uno que usa (`esme.ana.cartas/carta`). */
+const esReferencia = (r: string): boolean => {
+  const { paquete, id } = referencia(r);
+  return ID_ENTRADA.test(id) && (paquete === undefined || ID.test(paquete));
+};
+
+const Seccion = z
+  .object({
+    id: z.string().refine(esKebab, MOTIVOS_OFICIO.id),
+    nombre: z.string().refine(esTextoCorto, MOTIVOS_OFICIO.nombre),
+    vista: z.string().refine(esVista, MOTIVOS_OFICIO.vista).optional(),
+    filtro: z.string().refine(esFiltro, MOTIVOS_OFICIO.filtro).optional(),
+    lienzo: z.string().refine(esRutaLienzo, MOTIVOS_OFICIO.lienzo).optional(),
+  })
+  .strict();
+
+/** El oficio de una plantilla: su piel, sus secciones y sus órdenes (las listas y los topes, en `oficio.ts`). */
+const Oficio = z
+  .object(
+    {
+      piel: z.string().refine(esReferencia, MOTIVOS_OFICIO.piel).optional(),
+      secciones: z
+        .array(Seccion, { error: MOTIVOS_OFICIO.secciones })
+        .max(TOPES.secciones, `como mucho ${TOPES.secciones} secciones`),
+      ordenes: z
+        .array(z.string().refine(esReferencia, MOTIVOS_OFICIO.orden))
+        .max(TOPES.ordenes, `como mucho ${TOPES.ordenes} órdenes`)
+        .default([]),
+    },
+    { error: MOTIVOS_OFICIO.objeto }
+  )
+  .strict();
+
 /** El nombre lógico de lo que se lanza (`${ESME_PAQUETE}/bin/x` lanza «x»). */
 export const programaDe = (comando: string): string => comando.split(/[\\/]/).pop() || comando;
 
 type Entradas = { [P in Punto]?: Array<z.infer<(typeof ENTRADAS)[P]>> };
 
+type Leido = Record<string, unknown> & {
+  kind: string;
+  uses: z.infer<typeof Uso>[];
+  contributes: Entradas & Record<string, unknown>;
+  permissions: Permiso[];
+  settings?: unknown;
+  oficio?: z.infer<typeof Oficio>;
+};
+
+type Anota = (message: string, path?: (string | number)[]) => void;
+
+/**
+ * Lo que el oficio cruza con el resto de la plantilla: «hoy» la primera y tal
+ * cual, cada otra sección con su vista (un filtro solo si lista tareas, y un
+ * lienzo de partida solo si es el Lienzo), ids sin repetir, y lo que nombra
+ * existe: un tema o un comando suyo, o un paquete de `uses`. Lo que hay
+ * DENTRO de ese paquete lo mira el resolver; lo que hay dentro del lienzo, al
+ * mirar los ficheros (`compruebaFicheros`).
+ */
+function reglasDelOficio(m: Leido, issue: Anota): void {
+  const o = m.oficio;
+  if (!o) return;
+  if (m.kind !== "template") issue(MOTIVOS_OFICIO.plantilla, ["oficio"]);
+
+  const secciones = ["oficio", "secciones"];
+  if (o.secciones[0]?.id !== PRIMERA) issue(`la primera es «${PRIMERA}», y no falta nunca`, secciones);
+  const ids = new Set<string>();
+  o.secciones.forEach((s, i) => {
+    if (ids.has(s.id)) issue(`el id «${s.id}» está repetido`, secciones);
+    ids.add(s.id);
+    if (s.id === PRIMERA) {
+      // esté donde esté: si no es la primera, ya se ha dicho arriba
+      if (s.vista !== undefined || s.filtro !== undefined || s.lienzo !== undefined)
+        issue(`«${PRIMERA}» va tal cual, sin vista, filtro ni lienzo: es tu día entero`, [...secciones, i]);
+      return;
+    }
+    if (s.vista === undefined) return issue(`le falta la vista (una de: ${VISTAS.join(", ")})`, [...secciones, i]);
+    if (!esVista(s.vista)) return; // ya dicho en su forma
+    if (s.filtro !== undefined && !(VISTAS_CON_FILTRO as readonly string[]).includes(s.vista))
+      issue(`${s.vista} no lista tareas: un filtro va con ${VISTAS_CON_FILTRO.join(" o con ")}`, [...secciones, i]);
+    if (s.lienzo !== undefined && s.vista !== VISTA_LIENZO)
+      issue(`${s.vista} no es un lienzo: un lienzo de partida va con ${VISTA_LIENZO}`, [...secciones, i]);
+  });
+
+  const usa = new Set(m.uses.map((u) => u.id));
+  if (o.piel !== undefined && esReferencia(o.piel)) {
+    const piel = referencia(o.piel);
+    if (piel.paquete !== undefined) {
+      if (!usa.has(piel.paquete))
+        issue(`«${piel.paquete}» no está en uses: la piel de un paquete es de uno que la plantilla usa`, ["oficio", "piel"]);
+    } else if (!(m.contributes.themes ?? []).some((t) => t.id === piel.id))
+      issue(`el tema «${piel.id}» no está en esta plantilla`, ["oficio", "piel"]);
+  }
+
+  const comandos = new Map((m.contributes.commands ?? []).map((c) => [c.id, c]));
+  const tareas = new Map((m.contributes.tasks ?? []).map((t) => [t.id, t]));
+  const ordenes = new Set<string>();
+  for (const orden of o.ordenes) {
+    if (ordenes.has(orden)) {
+      issue(`«${orden}» está dos veces`, ["oficio", "ordenes"]);
+      continue;
+    }
+    ordenes.add(orden);
+    if (!esReferencia(orden)) continue; // ya dicho en su forma
+    const ref = referencia(orden);
+    if (ref.paquete !== undefined) {
+      if (!usa.has(ref.paquete))
+        issue(`«${ref.paquete}» no está en uses: una orden de un paquete es de uno que la plantilla usa`, ["oficio", "ordenes"]);
+      continue;
+    }
+    const comando = comandos.get(ref.id);
+    if (!comando) {
+      issue(`el comando «${ref.id}» no está en esta plantilla`, ["oficio", "ordenes"]);
+      continue;
+    }
+    const tarea = tareas.get(comando.task); // si no está, ya se ha dicho (regla 8)
+    for (const x of tarea ? problemasDeOrden(tarea) : []) issue(`«${orden}» no vale como orden: ${x}`, ["oficio", "ordenes"]);
+  }
+}
+
 /** Las reglas que cruzan campos: las que la forma sola no ve. */
-function reglas(m: Record<string, unknown> & { kind: string; uses: z.infer<typeof Uso>[]; contributes: Entradas & Record<string, unknown>; permissions: Permiso[]; settings?: unknown }, ctx: z.RefinementCtx): void {
-  const issue = (message: string, path: (string | number)[] = []) => ctx.addIssue({ code: "custom", message, path });
+function reglas(m: Leido, ctx: z.RefinementCtx): void {
+  const issue: Anota = (message, path = []) => ctx.addIssue({ code: "custom", message, path });
 
   for (const [clave, donde] of Object.entries(CLAVES_V1)) {
     if (clave in m) issue(`«${clave}» es de la v1: ${donde}`, [clave]);
@@ -380,6 +517,8 @@ function reglas(m: Record<string, unknown> & { kind: string; uses: z.infer<typeo
   for (const e of c.engines ?? []) {
     for (const b of e.binaries ?? []) if (!permitePrograma(m.permissions, b)) pideLanzar(`engines.${e.id}`, b);
   }
+
+  reglasDelOficio(m, issue);
 }
 
 /** Schema del module.yaml v2 (especificación en estandar/paquete.spec.yaml). */
@@ -399,6 +538,7 @@ export const ManifiestoV2Schema = z
     contributes: Contribuciones.default({}),
     permissions: z.array(PermisoSchema).default([]),
     settings: Ajustes.optional(),
+    oficio: Oficio.optional(),
     success: z.object({ task: z.string().min(1), check: Ruta.optional() }).strict().optional(),
     source: z.object({ from: z.string().min(1), ref: z.string().min(1), commit: z.string().optional() }).strict().optional(),
     works_with: z.array(z.string()).optional(),
@@ -474,7 +614,12 @@ function mensajes(issues: readonly Issue[], base: PropertyKey[] = []): string[] 
       salida.push(...mensajes(rama, camino));
       continue;
     }
-    salida.push(camino.length ? `${camino.map(String).join(".")}: ${i.message}` : i.message);
+    // una clave de más donde la forma es cerrada (un uses, un permiso, el oficio): se rechaza, y se dice cuál
+    const mensaje =
+      i.code === "unrecognized_keys"
+        ? `${i.keys.length > 1 ? "claves desconocidas" : "clave desconocida"} ${i.keys.map((k) => `«${k}»`).join(", ")}`
+        : i.message;
+    salida.push(camino.length ? `${camino.map(String).join(".")}: ${mensaje}` : mensaje);
   }
   return salida;
 }
@@ -593,16 +738,9 @@ export function leePaquete(raw: unknown): LecturaPaquete {
   };
 }
 
-/** Una ruta del paquete, limpia: sin `./` ni barras de más (`.` es la raíz, ""). */
-const limpia = (r: string): string =>
-  r
-    .split("/")
-    .filter((s) => s !== "" && s !== ".")
-    .join("/");
-
 /** Un fichero que el manifiesto nombra. `codigo`: existe tras construir el paquete. */
 export interface RutaDePaquete {
-  punto: Punto | "success";
+  punto: Punto | "success" | "oficio";
   id: string;
   ruta: string;
   codigo: boolean;
@@ -622,6 +760,9 @@ export function rutasDe(m: ManifiestoV2): RutaDePaquete[] {
   for (const e of c.teams ?? []) pon("teams", e.id, e.file);
   for (const x of c.memory ?? []) pon("memory", x.id, x.entry, true);
   if (m.success?.check) pon("success", "check", m.success.check);
+  m.oficio?.secciones.forEach((s, i) => {
+    if (s.lienzo !== undefined) pon("oficio", `secciones.${i}.lienzo`, s.lienzo);
+  });
   return rutas;
 }
 
@@ -653,12 +794,15 @@ export function nivelDe(m: ManifiestoV2): Nivel {
  */
 export type LeeRuta = (ruta: string) => string | null | { error: string };
 
+/** Los problemas de un lienzo de partida que se dicen; del resto, cuántos más hay. */
+const PROBLEMAS_POR_LIENZO = 10;
+
 /**
  * Lo que el manifiesto promete y los ficheros tienen que cumplir: cada ruta
  * existe (el código, si se exige: `exigirEntrada: false` es para dictaminar
  * antes de construir, y solo perdona que falte: el que ya está no puede
- * salirse del paquete) y un agente de línea de comandos pide el binario que
- * lanza.
+ * salirse del paquete), un agente de línea de comandos pide el binario que
+ * lanza, y el lienzo de partida de una sección vale (`lienzo.ts`).
  */
 export function compruebaFicheros(m: ManifiestoV2, leer: LeeRuta, opts: { exigirEntrada?: boolean } = {}): string[] {
   const errores: string[] = [];
@@ -697,6 +841,29 @@ export function compruebaFicheros(m: ManifiestoV2, leer: LeeRuta, opts: { exigir
     if (!permitePrograma(m.permissions, programa))
       errores.push(`agents.${a.id}: lanza «${programa}» y no lo pide (permissions: proc:spawn con programs: [${programa}])`);
   }
+  // el lienzo de partida: JSON Canvas 1.0, cerrado y con lo que nombra dentro del paquete; cada fichero, una vez
+  const vistos = new Map<string, true | null | { error: string }>();
+  const hay = (ruta: string): true | null | { error: string } => {
+    if (!vistos.has(ruta)) {
+      const t = leer(ruta);
+      vistos.set(ruta, typeof t === "string" ? true : t);
+    }
+    return vistos.get(ruta)!;
+  };
+  const mirados = new Set<string>();
+  m.oficio?.secciones.forEach((s, i) => {
+    if (s.lienzo === undefined) return;
+    const ruta = limpia(s.lienzo);
+    if (mirados.has(ruta)) return;
+    mirados.add(ruta);
+    const texto = leer(ruta);
+    if (typeof texto !== "string") return; // ya dicho arriba
+    const problemas = problemasDelLienzo(texto, hay);
+    const sitio = `oficio.secciones.${i}.lienzo: en «${ruta}», `;
+    errores.push(...problemas.slice(0, PROBLEMAS_POR_LIENZO).map((p) => sitio + p));
+    const mas = problemas.length - PROBLEMAS_POR_LIENZO;
+    if (mas > 0) errores.push(`${sitio}y ${mas} ${mas === 1 ? "problema más" : "problemas más"}`);
+  });
   return errores;
 }
 

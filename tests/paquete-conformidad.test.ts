@@ -29,8 +29,9 @@ describe("paquete.spec.yaml — la de verdad cuadra", () => {
     expect(fallos(spec())).toBe("");
   });
 
-  it("el ejemplo trae las veinte claves de arriba", () => {
-    expect(Object.keys(spec().manifiesto)).toHaveLength(20);
+  it("el ejemplo trae las veintiuna claves de arriba, el oficio también", () => {
+    expect(Object.keys(spec().manifiesto)).toHaveLength(21);
+    expect(spec().manifiesto.oficio.secciones[0].id).toBe("hoy");
   });
 });
 
@@ -120,6 +121,94 @@ describe("paquete.spec.yaml — y la comprobación ve cuando se separa", () => {
     const f = fallos(s);
     expect(f).toContain("raiz");
     expect(f).toContain("firma");
+  });
+
+  it("el oficio: una vista de más, otra de reserva, un estado o un tipo de menos", () => {
+    const s = spec();
+    s.oficio.vistas.push("esme.calendario");
+    s.oficio.vistas_con_filtro.push("esme.memoria");
+    s.oficio.vista_de_reserva = "esme.hoy";
+    s.oficio.estados.pop();
+    s.oficio.tipos_de_entrada = ["text", "number"];
+    s.oficio.primera = "tareas";
+    const f = fallos(s);
+    expect(f).toContain("esme.calendario");
+    expect(f).toContain("oficio.vistas_con_filtro");
+    expect(f).toContain("oficio.vista_de_reserva");
+    expect(f).toContain("oficio.estados");
+    expect(f).toContain("oficio.tipos_de_entrada");
+    expect(f).toContain("oficio.primera");
+  });
+
+  it("el oficio: un tope cambiado, o uno que falta", () => {
+    const s = spec();
+    s.oficio.topes.secciones = 20;
+    delete s.oficio.topes.campos;
+    const f = fallos(s);
+    expect(f).toContain("oficio.topes.secciones");
+    expect(f).toContain("oficio.topes.campos");
+  });
+
+  it("el oficio: un filtro que la spec da por bueno y el código no (o al revés)", () => {
+    const s = spec();
+    s.oficio.filtros.validos.push("estado:te-necesita && etiqueta:x");
+    s.oficio.filtros.no_validos.push("etiqueta:escrito");
+    const f = fallos(s);
+    expect(f).toContain("estado:te-necesita && etiqueta:x");
+    expect(f).toContain("etiqueta:escrito");
+  });
+
+  it("el lienzo de partida: una lista o un tope cambiado, y una ruta que la spec da por buena y el código no (o al revés)", () => {
+    const s = spec();
+    s.oficio.lienzo.vista = "esme.mesa";
+    s.oficio.lienzo.tipos.push("video");
+    s.oficio.lienzo.formatos_fichero.push("html");
+    s.oficio.lienzo.dominios_locales.pop();
+    s.oficio.lienzo.topes.piezas = 500;
+    delete s.oficio.lienzo.topes.url;
+    s.oficio.lienzo.rutas.validas.push("mapa.json");
+    s.oficio.lienzo.rutas.no_validas.push("lienzos/mapa.canvas");
+    const f = fallos(s);
+    expect(f).toContain("oficio.lienzo.vista");
+    expect(f).toContain("video");
+    expect(f).toContain("html");
+    expect(f).toContain("oficio.lienzo.dominios_locales");
+    expect(f).toContain("oficio.lienzo.topes.piezas");
+    expect(f).toContain("oficio.lienzo.topes.url");
+    expect(f).toContain("mapa.json");
+    expect(f).toContain("lienzos/mapa.canvas");
+  });
+
+  it("el lienzo de partida: lo propio de Esme, lo que apunta al Taller y los tipos de Esme, como en el código", () => {
+    const s = spec();
+    s.oficio.lienzo.propias.pieza.push("esme:peso");
+    s.oficio.lienzo.propias.conexion.pop();
+    s.oficio.lienzo.del_taller = [];
+    s.oficio.lienzo.tipos_esme.piezas.text.push("dibujo");
+    s.oficio.lienzo.tipos_esme.piezas.video = ["clip"];
+    s.oficio.lienzo.tipos_esme.conexiones.push("enlace");
+    s.oficio.lienzo.topes.propios = 8;
+    const f = fallos(s);
+    expect(f).toContain("oficio.lienzo.propias.pieza");
+    expect(f).toContain("oficio.lienzo.propias.conexion");
+    expect(f).toContain("oficio.lienzo.del_taller");
+    expect(f).toContain("oficio.lienzo.tipos_esme.piezas.text");
+    expect(f).toContain("oficio.lienzo.tipos_esme.piezas: «video» no es una clase de pieza");
+    expect(f).toContain("oficio.lienzo.tipos_esme.conexiones");
+    expect(f).toContain("oficio.lienzo.topes: «propios» no es un tope del código");
+  });
+
+  it("una lista cerrada que falta en la spec también se dice (no se da por buena)", () => {
+    const s = spec();
+    delete s.oficio.estados;
+    delete s.oficio.lienzo.lados;
+    delete s.oficio.lienzo.propias;
+    delete s.lock.claves;
+    const f = fallos(s);
+    expect(f).toContain("oficio.estados: falta en la spec");
+    expect(f).toContain("oficio.lienzo.lados: falta en la spec");
+    expect(f).toContain("oficio.lienzo.propias.pieza: falta en la spec");
+    expect(f).toContain("lock.claves: falta en la spec");
   });
 
   it("una spec sin una sección entera lo dice, no se rompe", () => {

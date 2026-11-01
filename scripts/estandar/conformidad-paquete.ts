@@ -7,11 +7,11 @@
  *
  *   - el ejemplo trae todas las claves y el código lo acepta, sin avisos;
  *   - los tipos, las licencias, los formatos, los puntos, los alcances, los
- *     niveles, las variables y las claves del candado son los del código
- *     (ni uno más, ni uno menos);
- *   - los rangos y los hosts de la spec se PRUEBAN con el código: un host
- *     parecido (`evil-figma.com`) que la spec da por no cubierto y el
- *     código cubre es una puerta de atrás, y aquí se ve.
+ *     niveles, las variables, las claves del candado y las listas y los
+ *     topes del oficio son los del código (ni uno más, ni uno menos);
+ *   - los rangos, los hosts y los filtros del oficio de la spec se PRUEBAN
+ *     con el código: un host parecido (`evil-figma.com`) que la spec da por
+ *     no cubierto y el código cubre es una puerta de atrás, y aquí se ve.
  *
  * Recibe la spec ya leída (y no la lee ella) para que la prueba pueda darle
  * una spec separada a propósito y ver que lo dice.
@@ -30,6 +30,34 @@ import {
   leePaquete,
   type Punto,
 } from "../../core/paquetes/manifiesto.ts";
+import {
+  ESTADOS,
+  PRIMERA,
+  TIPOS_ENTRADA,
+  TOPES,
+  VISTAS,
+  VISTAS_CON_FILTRO,
+  VISTA_DE_RESERVA,
+  esFiltro,
+} from "../../core/paquetes/oficio.ts";
+import {
+  DOMINIOS_LOCALES,
+  EXTENSION_LIENZO,
+  EXTREMOS,
+  FONDOS,
+  FORMATOS_FICHERO,
+  FORMATOS_FONDO,
+  LADOS,
+  PREFIJO_PROPIO,
+  PROPIAS_CONEXION,
+  PROPIAS_DEL_TALLER,
+  PROPIAS_PIEZA,
+  TIPOS_ESME,
+  TIPOS_PIEZA,
+  TOPES_LIENZO,
+  VISTA_LIENZO,
+  esRutaLienzo,
+} from "../../core/paquetes/lienzo.ts";
 import { ALCANCES, permiteHost } from "../../core/paquetes/permisos.ts";
 import { cumple, esRango } from "../../core/paquetes/semver.ts";
 import { CLAVES_ENTRADA_LOCK, CLAVES_LOCK, CLAVES_RAIZ_LOCK } from "../../core/paquetes/lock.ts";
@@ -56,7 +84,7 @@ export function compruebaPaquete(spec: Objeto, anota: (problema: string) => void
   const mismaLista = (que: string, deSpec: unknown, codigo: readonly string[], orden = true): void => {
     const l = textos(deSpec);
     if (!l) {
-      if (deSpec !== undefined) anota(`${que}: no es una lista`);
+      anota(deSpec === undefined ? `${que}: falta en la spec` : `${que}: no es una lista`);
       return;
     }
     const a = orden ? l : [...l].sort();
@@ -174,5 +202,63 @@ export function compruebaPaquete(spec: Objeto, anota: (problema: string) => void
     mismaLista("lock.claves", lock.claves, CLAVES_LOCK);
     mismaLista("lock.claves_raiz", lock.claves_raiz, CLAVES_RAIZ_LOCK);
     mismaLista("lock.claves_paquete", lock.claves_paquete, CLAVES_ENTRADA_LOCK);
+  }
+
+  // el oficio: sus listas y sus topes, y los filtros que la spec da por buenos (y por malos), probados con el código
+  const oficio = objeto(seccion("oficio"));
+  if (oficio) {
+    const mismo = (que: string, deSpec: unknown, codigo: string | number): void => {
+      if (deSpec !== codigo) anota(`oficio.${que}: «${String(deSpec)}» en la spec, «${codigo}» en el código`);
+    };
+    mismo("primera", oficio.primera, PRIMERA);
+    mismaLista("oficio.vistas", oficio.vistas, VISTAS);
+    mismaLista("oficio.vistas_con_filtro", oficio.vistas_con_filtro, VISTAS_CON_FILTRO);
+    mismo("vista_de_reserva", oficio.vista_de_reserva, VISTA_DE_RESERVA);
+    mismaLista("oficio.estados", oficio.estados, ESTADOS);
+    mismaLista("oficio.tipos_de_entrada", oficio.tipos_de_entrada, TIPOS_ENTRADA);
+    const topes = objeto(oficio.topes) ?? {};
+    for (const [k, v] of Object.entries(TOPES)) mismo(`topes.${k}`, topes[k], v);
+    for (const k of Object.keys(topes)) if (!(k in TOPES)) anota(`oficio.topes: «${k}» no es un tope del código`);
+    const filtros = objeto(oficio.filtros) ?? {};
+    for (const f of textos(filtros.validos) ?? []) if (!esFiltro(f)) anota(`oficio.filtros: la spec da por bueno «${f}» y el código no`);
+    for (const f of textos(filtros.no_validos) ?? [])
+      if (esFiltro(f)) anota(`oficio.filtros: la spec no da por bueno «${f}» y el código sí`);
+
+    // el lienzo de partida: sus listas y sus topes, y las rutas que la spec da por buenas (y por malas), probadas con el código
+    const lienzo = objeto(oficio.lienzo);
+    if (!lienzo) anota("oficio.lienzo: falta en la spec");
+    else {
+      mismo("lienzo.vista", lienzo.vista, VISTA_LIENZO);
+      mismo("lienzo.extension", lienzo.extension, EXTENSION_LIENZO);
+      mismo("lienzo.prefijo_propio", lienzo.prefijo_propio, PREFIJO_PROPIO);
+      mismaLista("oficio.lienzo.tipos", lienzo.tipos, TIPOS_PIEZA);
+      mismaLista("oficio.lienzo.lados", lienzo.lados, LADOS);
+      mismaLista("oficio.lienzo.extremos", lienzo.extremos, EXTREMOS);
+      mismaLista("oficio.lienzo.fondos", lienzo.fondos, FONDOS);
+      mismaLista("oficio.lienzo.formatos_fichero", lienzo.formatos_fichero, FORMATOS_FICHERO);
+      mismaLista("oficio.lienzo.formatos_fondo", lienzo.formatos_fondo, FORMATOS_FONDO);
+      mismaLista("oficio.lienzo.dominios_locales", lienzo.dominios_locales, DOMINIOS_LOCALES);
+      // lo propio de Esme: una lista cerrada en cada pieza y cada conexión, lo que no va, y los tipos de Esme por clase
+      const propias = objeto(lienzo.propias) ?? {};
+      mismaLista("oficio.lienzo.propias.pieza", propias.pieza, PROPIAS_PIEZA);
+      mismaLista("oficio.lienzo.propias.conexion", propias.conexion, PROPIAS_CONEXION);
+      mismaLista("oficio.lienzo.del_taller", lienzo.del_taller, PROPIAS_DEL_TALLER);
+      const tiposEsme = objeto(lienzo.tipos_esme) ?? {};
+      const deLasPiezas = objeto(tiposEsme.piezas) ?? {};
+      for (const clase of TIPOS_PIEZA)
+        mismaLista(`oficio.lienzo.tipos_esme.piezas.${clase}`, deLasPiezas[clase], TIPOS_ESME.piezas[clase]);
+      for (const clase of Object.keys(deLasPiezas))
+        if (!(TIPOS_PIEZA as readonly string[]).includes(clase))
+          anota(`oficio.lienzo.tipos_esme.piezas: «${clase}» no es una clase de pieza`);
+      mismaLista("oficio.lienzo.tipos_esme.conexiones", tiposEsme.conexiones, TIPOS_ESME.conexiones);
+      const topesLienzo = objeto(lienzo.topes) ?? {};
+      for (const [k, v] of Object.entries(TOPES_LIENZO)) mismo(`lienzo.topes.${k}`, topesLienzo[k], v);
+      for (const k of Object.keys(topesLienzo)) if (!(k in TOPES_LIENZO)) anota(`oficio.lienzo.topes: «${k}» no es un tope del código`);
+      const rutas = objeto(lienzo.rutas) ?? {};
+      for (const r of textos(rutas.validas) ?? [])
+        if (!esRutaLienzo(r)) anota(`oficio.lienzo.rutas: la spec da por buena «${r}» y el código no`);
+      for (const r of textos(rutas.no_validas) ?? [])
+        if (esRutaLienzo(r)) anota(`oficio.lienzo.rutas: la spec no da por buena «${r}» y el código sí`);
+    }
   }
 }
