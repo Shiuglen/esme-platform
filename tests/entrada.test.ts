@@ -121,9 +121,12 @@ describe("el autor del módulo", () => {
 
   it("la terminal lo dice en una línea, sin traza, y no crea nada", async () => {
     const dir = join(casa(), "puerta");
-    const tsx = join(raizKit, "node_modules", ".bin", "tsx");
+    // tsx por su cli.mjs y con este mismo node: node_modules/.bin/tsx es un
+    // guion de shell, y en Windows execFile no lo encuentra
+    const tsx = join(raizKit, "node_modules", "tsx", "dist", "cli.mjs");
     const guion = join(raizKit, "scripts", "crear-modulo.ts");
-    const r = await promisify(execFile)(tsx, [guion, "--id", "esme.ci.puerta", "--nombre", "Puerta", "--dir", dir]).then(
+    const args = [tsx, guion, "--id", "esme.ci.puerta", "--nombre", "Puerta", "--dir", dir];
+    const r = await promisify(execFile)(process.execPath, args).then(
       () => ({ codigo: 0, salida: "" }),
       (e: { code?: number; stderr: string }) => ({ codigo: e.code, salida: e.stderr })
     );
