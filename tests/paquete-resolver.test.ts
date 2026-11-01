@@ -294,6 +294,19 @@ describe("cambiosDesde — cuándo se vuelve a pedir permiso", () => {
     expect(cambiosDesde(ahora, ahora).pideConsentimiento).toBe(false);
   });
 
+  it("una plantilla que tu sí no fijaba (su candado no tenía su huella) y ahora sí: se vuelve a preguntar, y se nombra", () => {
+    const D = conocido("esme.t.d", "1.0.0", huella("d"));
+    const sinFijar = resuelve(plantilla("esme.t.r", [uso(D)]), [D]).lock!;
+    const fijada = resuelve(plantilla("esme.t.r", [uso(D)]), [D], { sha256Raiz: huella("2") }).lock!;
+    const c = cambiosDesde(sinFijar, fijada);
+    expect(c.huellas).toEqual([{ id: "esme.t.r", antes: null, despues: huella("2") }]);
+    expect(c.pideConsentimiento).toBe(true);
+    // al revés no hay nada nuevo que consentir (el candado nuevo fija menos);
+    // y la primera vez todo es nuevo: no se nombra una huella de antes que no hubo
+    expect(cambiosDesde(fijada, sinFijar).pideConsentimiento).toBe(false);
+    expect(cambiosDesde(null, fijada).huellas).toEqual([]);
+  });
+
   it("un permiso nuevo de la plantilla se pide, aunque un paquete suyo ya lo tuviera", () => {
     const curl = { kind: "proc:spawn", programs: ["curl"] };
     const D = conocido("esme.t.d", "1.0.0", huella("d"), { permissions: [curl] });

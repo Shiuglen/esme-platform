@@ -62,7 +62,8 @@ export interface Lock {
 export interface CambiosLock {
   nuevos: string[];
   quitados: string[];
-  huellas: { id: string; antes: string; despues: string }[];
+  /** Las huellas que cambiaron. `antes: null`: la plantilla, que tu sí de antes no fijaba (su candado no tenía su huella). */
+  huellas: { id: string; antes: string | null; despues: string }[];
   permisosNuevos: Permiso[];
   pideConsentimiento: boolean;
 }
@@ -126,10 +127,13 @@ export function cambiosDesde(antes: Lock | null, ahora: Lock): CambiosLock {
 
   const nuevos = ahora.paquetes.filter((p) => !previos.has(p.id)).map((p) => p.id).sort();
   const quitados = [...previos.keys()].filter((id) => !actuales.has(id)).sort();
+  // La plantilla también: si cambió de huella, o si tu sí de antes no la
+  // fijaba (no tenía su huella) y ahora sí, porque entonces no sabías qué
+  // aceptabas. La primera vez todo es nuevo: no hay huella de antes que nombrar.
   const [raizAntes, raizAhora] = [base?.raiz.sha256, ahora.raiz.sha256];
-  const huellas = [
-    ...(raizAntes !== undefined && raizAhora !== undefined && raizAntes !== raizAhora
-      ? [{ id: ahora.raiz.id, antes: raizAntes, despues: raizAhora }]
+  const huellas: CambiosLock["huellas"] = [
+    ...(base !== null && raizAhora !== undefined && raizAntes !== raizAhora
+      ? [{ id: ahora.raiz.id, antes: raizAntes ?? null, despues: raizAhora }]
       : []),
     ...[...ahora.paquetes].sort(porId).flatMap((p) => {
       const prev = previos.get(p.id);

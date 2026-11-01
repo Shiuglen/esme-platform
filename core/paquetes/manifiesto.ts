@@ -62,6 +62,17 @@ import {
   referencia,
 } from "./oficio.ts";
 import { VISTA_LIENZO, esRutaLienzo, problemasDelLienzo } from "./lienzo.ts";
+import {
+  DENSIDADES,
+  LETRAS,
+  MOTIVOS_CARACTER,
+  MOVIMIENTOS,
+  PALETAS,
+  TOPES_CARACTER,
+  esLinea,
+  esPalabra,
+} from "./caracter.ts";
+import { MOTIVOS_RECUERDOS, TIPOS_RECUERDO, TOPES_RECUERDOS, esTextoDeRecuerdo, mismoTexto } from "./recuerdos.ts";
 
 /** De qué está hecho lo que aporta un punto. */
 export type Naturaleza = "datos" | "código" | "código aislado";
@@ -82,7 +93,7 @@ export const PUNTOS = {
   tasks: {
     naturaleza: "datos",
     corre: "sesión",
-    claves: ["id", "title", "prompt", "steps", "roles", "category", "icon", "inputs"],
+    claves: ["id", "title", "prompt", "steps", "roles", "category", "icon", "inputs", "tags"],
   },
   routines: { naturaleza: "datos", corre: "siempre", claves: ["id", "when", "task", "agent"] },
   channels: { naturaleza: "datos", corre: "siempre", claves: ["id", "tool"] },
@@ -148,6 +159,8 @@ export const CLAVES_PAQUETE = [
   "permissions",
   "settings",
   "oficio",
+  "caracter",
+  "recuerdos",
   "success",
   "source",
   "works_with",
@@ -227,6 +240,29 @@ const EntradaTarea = z
     for (const x of problemasDeCampo(c)) ctx.addIssue({ code: "custom", path: x.camino, message: x.mensaje });
   });
 
+/**
+ * Las etiquetas de una tarea: las que busca el filtro `etiqueta:` de una
+ * sección. Kebab-case, como mucho `TOPES.etiquetas` y ninguna dos veces.
+ */
+const Etiquetas = z
+  .array(z.string({ error: MOTIVOS_OFICIO.etiqueta }).refine(esKebab, MOTIVOS_OFICIO.etiqueta), {
+    error: "una lista de etiquetas",
+  })
+  .superRefine((etiquetas, ctx) => {
+    // aquí y no con .max(): .max() también mira el largo de un texto que no es una lista
+    if (etiquetas.length > TOPES.etiquetas)
+      ctx.addIssue({ code: "custom", message: `como mucho ${TOPES.etiquetas} etiquetas` });
+    const vistas = new Set<string>();
+    const dichas = new Set<string>();
+    for (const e of etiquetas) {
+      if (vistas.has(e) && !dichas.has(e)) {
+        ctx.addIssue({ code: "custom", message: `la etiqueta «${e}» está dos veces` });
+        dichas.add(e);
+      }
+      vistas.add(e);
+    }
+  });
+
 /** La forma de una entrada de cada punto (los campos de más se avisan, no se rechazan). */
 const ENTRADAS = {
   themes: z.object({ id: IdEntrada, file: Ruta }).passthrough(),
@@ -252,6 +288,7 @@ const ENTRADAS = {
       category: z.string().optional(),
       icon: z.string().optional(),
       inputs: z.array(EntradaTarea).optional(),
+      tags: Etiquetas.optional(),
     })
     .passthrough(),
   routines: z
@@ -348,6 +385,96 @@ const Oficio = z
   )
   .strict();
 
+/** Un texto de una línea del carácter, con su tope y su motivo (también cuando no es un texto). */
+const LineaDe = (tope: number, motivo: string) => z.string({ error: motivo }).refine(esLinea(tope), motivo);
+
+/** Un miembro del equipo: los cuatro, siempre, y nada más. */
+const Miembro = z
+  .object(
+    {
+      id: z.string({ error: MOTIVOS_OFICIO.id }).refine(esKebab, MOTIVOS_OFICIO.id),
+      nombre: LineaDe(TOPES_CARACTER.nombre, MOTIVOS_CARACTER.nombre),
+      rol: LineaDe(TOPES_CARACTER.rol, MOTIVOS_CARACTER.rol),
+      caracter: LineaDe(TOPES_CARACTER.caracter, MOTIVOS_CARACTER.caracter),
+    },
+    { error: MOTIVOS_CARACTER.miembro }
+  )
+  .strict();
+
+/** El carácter de una plantilla: cómo se siente al abrirla (las listas y los topes, en `caracter.ts`). */
+const Caracter = z
+  .object(
+    {
+      letra: z.enum(LETRAS, { error: MOTIVOS_CARACTER.letra }).optional(),
+      densidad: z.enum(DENSIDADES, { error: MOTIVOS_CARACTER.densidad }).optional(),
+      movimiento: z.enum(MOVIMIENTOS, { error: MOTIVOS_CARACTER.movimiento }).optional(),
+      sonido: z
+        .object({ paleta: z.enum(PALETAS, { error: MOTIVOS_CARACTER.paleta }).nullable() }, { error: MOTIVOS_CARACTER.sonido })
+        .strict()
+        .optional(),
+      vocabulario: z
+        .record(z.string(), LineaDe(TOPES_CARACTER.palabra, MOTIVOS_CARACTER.palabra), { error: MOTIVOS_CARACTER.vocabulario })
+        .superRefine((v, ctx) => {
+          for (const p of Object.keys(v)) if (!esPalabra(p)) ctx.addIssue({ code: "custom", message: MOTIVOS_CARACTER.noPalabra(p) });
+        })
+        .optional(),
+      equipo: z
+        .array(Miembro, { error: MOTIVOS_CARACTER.equipo })
+        .superRefine((equipo, ctx) => {
+          if (equipo.length > TOPES_CARACTER.miembros) ctx.addIssue({ code: "custom", message: MOTIVOS_CARACTER.miembros });
+          const vistos = new Set<string>();
+          const dichos = new Set<string>();
+          for (const { id } of equipo) {
+            if (vistos.has(id) && !dichos.has(id)) {
+              ctx.addIssue({ code: "custom", message: MOTIVOS_CARACTER.repetido(id) });
+              dichos.add(id);
+            }
+            vistos.add(id);
+          }
+        })
+        .optional(),
+    },
+    { error: MOTIVOS_CARACTER.objeto }
+  )
+  .strict();
+
+/**
+ * Un recuerdo de partida: su id, su texto de una línea y su tipo. La
+ * procedencia no: la pone el kit desde el candado (`recuerdos.ts`).
+ */
+const Recuerdo = z
+  .object(
+    {
+      id: z.string({ error: MOTIVOS_OFICIO.id }).refine(esKebab, MOTIVOS_OFICIO.id),
+      texto: z.string({ error: MOTIVOS_RECUERDOS.texto }).refine(esTextoDeRecuerdo, MOTIVOS_RECUERDOS.texto),
+      tipo: z.enum(TIPOS_RECUERDO, { error: MOTIVOS_RECUERDOS.tipo }).default("nota"),
+      procedencia: z.never({ error: MOTIVOS_RECUERDOS.procedencia }).optional(),
+    },
+    { error: MOTIVOS_RECUERDOS.recuerdo }
+  )
+  .strict();
+
+/** Los recuerdos de partida de una plantilla: con tope, y sin repetir ni un id ni lo que dicen. */
+const Recuerdos = z.array(Recuerdo, { error: MOTIVOS_RECUERDOS.lista }).superRefine((recuerdos, ctx) => {
+  const dice = (message: string) => ctx.addIssue({ code: "custom", message });
+  if (recuerdos.length > TOPES_RECUERDOS.recuerdos) dice(MOTIVOS_RECUERDOS.muchos);
+  const ids = new Set<string>();
+  const repetidos = new Set<string>();
+  const textos = new Map<string, string>();
+  for (const r of recuerdos) {
+    if (ids.has(r.id)) {
+      if (!repetidos.has(r.id)) dice(MOTIVOS_RECUERDOS.repetido(r.id));
+      repetidos.add(r.id);
+      continue;
+    }
+    ids.add(r.id);
+    const t = mismoTexto(r.texto);
+    const otro = textos.get(t);
+    if (otro !== undefined) dice(MOTIVOS_RECUERDOS.mismoTexto(r.id, otro));
+    else textos.set(t, r.id);
+  }
+});
+
 /** El nombre lógico de lo que se lanza (`${ESME_PAQUETE}/bin/x` lanza «x»). */
 export const programaDe = (comando: string): string => comando.split(/[\\/]/).pop() || comando;
 
@@ -360,6 +487,8 @@ type Leido = Record<string, unknown> & {
   permissions: Permiso[];
   settings?: unknown;
   oficio?: z.infer<typeof Oficio>;
+  caracter?: z.infer<typeof Caracter>;
+  recuerdos?: z.infer<typeof Recuerdos>;
 };
 
 type Anota = (message: string, path?: (string | number)[]) => void;
@@ -472,6 +601,8 @@ function reglas(m: Leido, ctx: z.RefinementCtx): void {
   } else if (m.settings !== undefined) {
     issue("settings es de las plantillas: un paquete no crea proyectos", ["settings"]);
   }
+  if (m.caracter !== undefined && m.kind !== "template") issue(MOTIVOS_CARACTER.plantilla, ["caracter"]);
+  if (m.recuerdos !== undefined && m.kind !== "template") issue(MOTIVOS_RECUERDOS.plantilla, ["recuerdos"]);
 
   const herramientas = new Set((c.tools ?? []).map((t) => t.id));
   for (const canal of c.channels ?? []) {
@@ -539,6 +670,8 @@ export const ManifiestoV2Schema = z
     permissions: z.array(PermisoSchema).default([]),
     settings: Ajustes.optional(),
     oficio: Oficio.optional(),
+    caracter: Caracter.optional(),
+    recuerdos: Recuerdos.optional(),
     success: z.object({ task: z.string().min(1), check: Ruta.optional() }).strict().optional(),
     source: z.object({ from: z.string().min(1), ref: z.string().min(1), commit: z.string().optional() }).strict().optional(),
     works_with: z.array(z.string()).optional(),

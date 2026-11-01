@@ -50,9 +50,9 @@ permissions:
     hosts: ["ankiweb.net"]
 ```
 
-Las claves van en inglés, como en la v1 (salvo las del `oficio` de una
-plantilla, §5, que van como las nombró el diseño de la interfaz); los
-mensajes, en castellano. La licencia es una de las que deja la spec (MIT,
+Las claves van en inglés, como en la v1 (salvo las del `oficio`, el
+`caracter` y los `recuerdos` de una plantilla, §5, que van como las nombró
+el diseño de la interfaz); los mensajes, en castellano. La licencia es una de las que deja la spec (MIT,
 Apache-2.0, ESME-CL, BSD-2-Clause, BSD-3-Clause, ISC o Unlicense).
 
 **La v1 sigue valiendo tal cual.** `core/ipc/module-schema.ts` la lee como
@@ -80,7 +80,7 @@ corre: en la **ventana** (la interfaz), en la **sesión** (cuando trabajas),
 | `views` | una vista propia, en su cápsula | código aislado | ventana |
 | `agents` | un agente: receta del kit, `claude-md` o `comando` (una línea de comandos) | datos | sesión |
 | `teams` | un equipo de agentes | datos | sesión |
-| `tasks` | un encargo listo para lanzar, con sus `inputs` (`{{clave}}` en el prompt; con `type`, se piden con un formulario) | datos | sesión |
+| `tasks` | un encargo listo para lanzar, con sus `inputs` (`{{clave}}` en el prompt; con `type`, se piden con un formulario) y sus etiquetas (`tags`) | datos | sesión |
 | `routines` | lo que corre solo, a su hora (`when`) | datos | siempre |
 | `channels` | por dónde llega trabajo (una herramienta del paquete) | datos | siempre |
 | `memory` | código de la mente | código | mente |
@@ -89,6 +89,11 @@ corre: en la **ventana** (la interfaz), en la **sesión** (cuando trabajas),
 
 Lo que se nombra existe: `channels[].tool` es una herramienta del paquete y
 `commands[].task`, una tarea suya. Un id no se repite dentro de su punto.
+
+Las etiquetas de una tarea (`tags`) son las que busca el filtro `etiqueta:`
+de una sección del oficio: en kebab-case (hasta 32 caracteres), como mucho
+8 y ninguna dos veces. Una tarea con `tags: [escrito]` sale en la sección
+de los escritos.
 
 ## 3. Lo que pide: permisos con alcance
 
@@ -139,8 +144,9 @@ Una **plantilla** (`kind: template`) es un paquete solo de datos que junta
 otros paquetes y unos ajustes en una forma de trabajar lista para usar
 («Esme para estudiar»). No trae código (ni `tools`, ni `views`, ni `memory`):
 si hace falta, va en un paquete, y la plantilla lo usa. Sus `settings` (el
-rumbo, el presupuesto por día) son solo de las plantillas, y `success` dice
-cómo se ve que funciona.
+rumbo, el presupuesto por día), su `oficio` (lo que monta al abrirla), su
+`caracter` (cómo se siente) y sus `recuerdos` (lo que deja en tu mente) son
+solo de las plantillas, y `success` dice cómo se ve que funciona.
 
 Cada `uses` lleva **id, rango y huella**: el `sha256` del árbol del paquete
 (el mismo que firma un veredicto, `tienda/empaque.ts`). La huella elige; el
@@ -168,7 +174,9 @@ Al volver a resolver se compara, y **se vuelve a pedir permiso** si hay:
 
 La plantilla es uno más: el candado guarda su huella y sus propios permisos,
 y si cambian, se pregunta (una plantilla también trae skills, tareas y
-agentes: lo que se le dice al modelo). Quitar un paquete no pide nada por sí
+agentes: lo que se le dice al modelo). Si tu sí de antes no la fijaba (un
+candado sin su huella) y ahora sí, también se pregunta: no sabías qué
+aceptabas. Quitar un paquete no pide nada por sí
 mismo, porque lo que se va ya no puede nada; pero la plantilla que lo quita
 es otra, así que se pregunta una vez. Un candado roto, ajeno (de
 otra plantilla) o que no está equivale a «nada consentido»: equivocarse aquí
@@ -206,9 +214,9 @@ hizo la plantilla, y abrir más tarde no rompe ninguna plantilla; cerrar, sí.
   `esme.tareas`. Los ids van en kebab-case y no se repiten; los nombres, sin
   espacios a los lados ni nada invisible.
 - **Filtros:** `estado:` con `te-necesita`, `en-marcha`, `terminado` o
-  `quieto`, o `etiqueta:` con una en kebab-case; y solo en una vista que
-  lista tareas (`esme.hoy` o `esme.tareas`). Nada de expresiones: ni `&&`,
-  ni `||`, ni otras claves.
+  `quieto`, o `etiqueta:` con una en kebab-case (la de los `tags` de una
+  tarea); y solo en una vista que lista tareas (`esme.hoy` o
+  `esme.tareas`). Nada de expresiones: ni `&&`, ni `||`, ni otras claves.
 - **Órdenes:** un comando de la plantilla, o de un paquete que usa
   (`<paquete>/<comando>`), y su tarea se lanza con un formulario: cada
   campo dice su `type` (`text`, `number` o `choice`, este con sus
@@ -274,6 +282,86 @@ Lo que no vale se dice con su sitio dentro del lienzo:
 `oficio.secciones.3.lienzo: en «lienzos/esquemas.canvas», nodes.2.file:
 «docs/tema-1.md» no está en el paquete`. Si son muchos, los diez primeros y
 cuántos más hay.
+
+### El carácter: cómo se siente al abrirla
+
+El oficio dice qué monta una plantilla; su `caracter`, cómo se siente lo
+que monta. Una plantilla lo transforma todo, no solo el color: la letra, la
+densidad, el movimiento, el sonido, cómo se llaman las cosas en ese oficio
+y quién hace qué.
+
+```yaml
+caracter:
+  letra: "editorial"          # editorial | tecnica | mixta
+  densidad: "amplia"          # compacta | comoda | amplia
+  movimiento: "sobrio"        # sobrio | vivo
+  sonido: { paleta: null }    # costura, o null: sin sonido
+  vocabulario: { hoy: "Hoy en el despacho", tarea: "asunto", tareas: "asuntos" }
+  equipo:
+    - { id: "pasante", nombre: "Pasante", rol: "busca jurisprudencia", caracter: "meticuloso, cita siempre la fuente" }
+    - { id: "redactora", nombre: "Redactora", rol: "prepara escritos", caracter: "formal, cuida el tono y los plazos" }
+```
+
+Es de las plantillas y es cerrado, por lo mismo que el oficio: lo pinta una
+app que no escribió quien hizo la plantilla. Todo es opcional, y lo que
+falta lo pone la app (el carácter de Esme).
+
+- **Letra, densidad y movimiento**, de sus listas; el **sonido**, una paleta
+  de la lista (hoy, `costura`) o `null`, que es no sonar.
+- **Vocabulario:** solo las palabras que la app sabe cambiar (`hoy`,
+  `tarea`, `tareas`, `asunto`, `asuntos`, `equipo`, `te-necesita`,
+  `en-marcha`, `terminado`, `quieto`, `encargar` y `memoria`), cada una de 1
+  a 32 caracteres.
+- **Equipo:** hasta 12 miembros, cada uno con su `id` (en kebab-case, sin
+  repetir), su `nombre` (hasta 32), su `rol` (hasta 60) y su `caracter`
+  (hasta 120): los cuatro y nada más. Un miembro no es por fuerza un agente
+  con receta; si un día lo es, se dirá cómo se une con él sin romper nada.
+- Cada texto va en una línea, sin espacios a los lados ni nada invisible.
+- **El color no es del carácter:** es de la piel de quien la usa. Y quien
+  la usa puede cambiarlo todo en su propia capa, que no viaja en el
+  manifiesto.
+
+### Los recuerdos de partida: lo que deja en tu mente
+
+Una plantilla de auditoría sabe que solo se audita con permiso firmado; una
+de despacho, que los plazos se cuentan en días hábiles. Eso no es una tarea
+ni un ajuste: es algo que tu mente tiene que saber desde el primer día. Por
+eso una plantilla puede traer unos pocos `recuerdos`:
+
+```yaml
+recuerdos:
+  - { id: "alcance", texto: "Solo se audita con permiso firmado y dentro de su alcance.", tipo: "decision" }
+  - { id: "informes", texto: "Prefiero informes cortos, con la prueba de cada hallazgo." }
+```
+
+Como mucho 20, cada uno con su `id` (en kebab-case, sin repetir), su
+`texto` (de 1 a 280 caracteres, en una línea, sin espacios a los lados ni
+nada invisible) y, si se quiere, su `tipo`: `nota` (si falta), `decision` o
+`preferencia`, los de `remember` en la mente (`note`, `decision` y
+`preference`). Dos que dicen lo mismo, aunque cambien las mayúsculas, son
+uno de más.
+
+Escriben en tu mente, y lo que hay en tu mente condiciona lo que hace el
+modelo. Por eso van con más cuidado que nada:
+
+- **Son de las plantillas:** un paquete no escribe en tu mente al instalarse.
+- **La procedencia no la escribe la plantilla:** la pone el kit, desde el
+  candado que aceptaste (la plantilla, su versión y su huella), y una
+  plantilla que trae `procedencia` se rechaza. Cada recuerdo se conoce por
+  `<plantilla>/<id>`, para cambiarlo o quitarlo.
+- **Entran con tu sí:** la app los enseña antes de que aceptes el candado
+  (como `npm run paquete -- resolver`, §8) y los escribe después, con
+  `recuerdosDePartida(plantilla, candado)` (`core/paquetes/recuerdos.ts`).
+- **Sin la huella de la plantilla en el candado no se escriben:** tu sí
+  tiene que fijar lo que se escribe. Con ella, cualquier cambio de la
+  plantilla, también en sus recuerdos, vuelve a preguntar.
+  `recuerdosDePartida` lanza si el candado es de otra plantilla, de otra
+  versión o no tiene su huella.
+- **Se van con la plantilla, salvo lo que hiciste tuyo:** los que siguen
+  como llegaron se actualizan con ella (con tu sí) y se van con ella, al
+  quitarla o cuando una versión nueva ya no los trae. Una versión nueva
+  nunca pisa lo que cambiaste o quitaste: lo que cambiaste se queda como lo
+  dejaste, y lo que quitaste no vuelve.
 
 ## 6. Lo de casa, como paquetes: los adaptadores
 
@@ -376,7 +464,8 @@ npm run paquete -- resolver <plantilla> --en <carpeta de paquetes> [--lock <ruta
 ```
 
 **`<carpeta>`** dice qué aporta (punto, id y dónde corre), qué usa, qué pide
-y su nivel. Es el dictamen antes de construir: el código que aún no está se
+y su nivel; y de una plantilla, qué monta al abrirla, cómo se siente y qué
+deja en tu mente al aceptarla. Es el dictamen antes de construir: el código que aún no está se
 avisa (sin él no se instala), y el que ya está no puede salirse del paquete,
 ni por un enlace.
 
@@ -400,8 +489,10 @@ plugin en `<salida>/<su id>`.
 
 **`resolver`** resuelve la plantilla con los paquetes de `--en` (uno por
 subcarpeta), dice cuántos son, qué piden entre todos, hasta qué nivel hace
-falta y qué es nuevo desde el candado. **El candado solo se escribe con
-`--aceptar`**, que es el sí de la persona. Va, si no se dice otro sitio, al
+falta y qué es nuevo desde el candado; y, si pide permiso, lo que la
+plantilla deja en tu mente al aceptarla (sus recuerdos, tal cual se
+escriben). **El candado solo se escribe con `--aceptar`**, que es el sí de
+la persona. Va, si no se dice otro sitio, al
 lado de la plantilla (`<plantilla>.lock.json`): dentro cambiaría la huella
 de su árbol.
 

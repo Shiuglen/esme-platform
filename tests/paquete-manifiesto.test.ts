@@ -231,6 +231,39 @@ describe("el manifiesto v2 — lo que lanza y con quién habla, sin trampas", ()
   });
 });
 
+describe("las etiquetas de una tarea (tags) — las que busca el filtro etiqueta: de una sección", () => {
+  const conTags = (tags: unknown) => base({ contributes: { tasks: [{ id: "t", title: "Una tarea", prompt: "Haz algo útil.", tags }] } });
+
+  it("una tarea lleva hasta 8 etiquetas en kebab-case, sin avisos", () => {
+    const r = leePaquete(conTags(["expediente", "por-revisar", "a1", "b", "c", "d", "e", "f"]));
+    expect(r.errores).toEqual([]);
+    expect(r.avisos).toEqual([]);
+    expect(r.paquete?.contributes.tasks?.[0]?.tags).toEqual(["expediente", "por-revisar", "a1", "b", "c", "d", "e", "f"]);
+    expect(PUNTOS.tasks.claves).toContain("tags");
+  });
+
+  it("una etiqueta es kebab-case de hasta 32 caracteres, como la del filtro", () => {
+    const motivo = "una etiqueta en kebab-case, de hasta 32: minúsculas y cifras, con guiones sueltos (la que busca el filtro etiqueta: de una sección)";
+    for (const mala of ["Expediente", "por revisar", "por_revisar", "-a", "a--b", "", "a".repeat(33), "etiqueta:x", "año"])
+      expect(leePaquete(conTags(["ok", mala])).errores, mala).toEqual([`contributes.tasks.0.tags.1: ${motivo}`]);
+    expect(leePaquete(conTags(["a".repeat(32)])).ok).toBe(true);
+  });
+
+  it("como mucho 8, y ninguna repetida", () => {
+    expect(leePaquete(conTags(["a", "b", "c", "d", "e", "f", "g", "h", "i"])).errores).toEqual([
+      "contributes.tasks.0.tags: como mucho 8 etiquetas",
+    ]);
+    expect(leePaquete(conTags(["escrito", "plazo", "escrito"])).errores).toEqual([
+      "contributes.tasks.0.tags: la etiqueta «escrito» está dos veces",
+    ]);
+  });
+
+  it("tags es una lista de etiquetas", () => {
+    expect(leePaquete(conTags("expediente")).errores).toEqual(["contributes.tasks.0.tags: una lista de etiquetas"]);
+    expect(leePaquete(conTags([7])).errores).toEqual(["contributes.tasks.0.tags.0: una etiqueta en kebab-case, de hasta 32: minúsculas y cifras, con guiones sueltos (la que busca el filtro etiqueta: de una sección)"]);
+  });
+});
+
 describe("el manifiesto v2 — lo que se avisa, sin rechazar", () => {
   it("una clave desconocida, arriba o dentro de una entrada", () => {
     expect(avisos(base({ foo: 1 }))).toContain("clave desconocida «foo»");

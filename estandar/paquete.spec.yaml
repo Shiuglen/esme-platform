@@ -1,6 +1,7 @@
 # **Spec abierta v1 — el paquete (module.yaml v2).** Referencia: `docs/PAQUETES.md`.
 # Lo implementan `core/paquetes/manifiesto.ts`, `core/paquetes/permisos.ts`,
-# `core/paquetes/semver.ts` y `core/paquetes/lock.ts`. La conformidad
+# `core/paquetes/semver.ts`, `core/paquetes/lock.ts`, `core/paquetes/oficio.ts`,
+# `core/paquetes/lienzo.ts`, `core/paquetes/caracter.ts` y `core/paquetes/recuerdos.ts`. La conformidad
 # (`scripts/estandar/conformidad-paquete.ts`) compara cada sección con el
 # código: el ejemplo tiene que valer, y los puntos, los alcances, los niveles,
 # los rangos y los hosts tienen que ser los mismos.
@@ -56,7 +57,18 @@
 #      topes (sección `oficio.lienzo`); y hasta 40 órdenes, cada una un
 #      comando de la plantilla o de un paquete que usa, con todos sus campos
 #      con tipo y sin huecos libres en su prompt. Lo que nombra de un paquete
-#      lo mira el resolver.
+#      lo mira el resolver;
+#  12. `caracter` es de las plantillas (cómo se siente al abrirla) y es
+#      cerrado (sección `caracter`): letra, densidad y movimiento de su lista;
+#      un sonido de la lista o ninguno; solo las palabras que la app sabe
+#      cambiar; y un equipo de hasta 12, cada miembro con su id, su nombre,
+#      su rol y su carácter, los cuatro y nada más. El color no: es de la
+#      piel de quien la usa;
+#  13. `recuerdos` es de las plantillas (un paquete no escribe en tu mente
+#      al instalarse) y es cerrado (sección `recuerdos`): hasta 20, cada uno
+#      con su id, su texto de una línea y su tipo de la lista, sin repetir
+#      ni un id ni lo que dicen. La procedencia no la escribe la plantilla:
+#      la pone el kit desde el candado que la persona aceptó.
 # Lo que se AVISA sin rechazar: una clave desconocida (arriba o dentro de una
 # entrada), un punto que esta versión no conoce, `net:fetch` con `*` (es toda
 # la red: que se diga a secas) y un MCP remoto por http sin cifrar.
@@ -93,6 +105,7 @@ manifiesto:
       - id: "tarjetas"
         title: "Prepara tarjetas"
         prompt: "Prepara diez tarjetas de {{tema}}."  # cada campo, en el prompt como {{clave}}
+        tags: ["tarjetas", "repaso"]      # hasta 8, en kebab-case: las que busca el filtro etiqueta:
         inputs:
           - key: "tema"
             description: "el tema de las tarjetas"
@@ -121,6 +134,18 @@ manifiesto:
       - { id: "apuntes", nombre: "Apuntes", vista: "esme.memoria" }
       - { id: "esquemas", nombre: "Esquemas", vista: "esme.lienzo", lienzo: "lienzos/esquemas.canvas" }  # su lienzo de partida
     ordenes: ["tarjetas"]                 # hasta 40: comandos suyos, o <paquete de uses>/<comando>
+  caracter:                               # solo en plantillas: cómo se siente al abrirla (ver `caracter`)
+    letra: "editorial"                    # editorial | tecnica | mixta
+    densidad: "comoda"                    # compacta | comoda | amplia
+    movimiento: "vivo"                    # sobrio | vivo
+    sonido: { paleta: null }              # una de `caracter.paletas`, o null: sin sonido
+    vocabulario: { hoy: "Hoy toca", encargar: "Pedir a la tutora" }  # palabra → cómo se dice aquí
+    equipo:                               # hasta 12; los cuatro, siempre
+      - { id: "tutora", nombre: "Tutora", rol: "te pregunta y te corrige", caracter: "paciente, vuelve a lo que fallas" }
+  recuerdos:                              # solo en plantillas: lo que deja en tu mente al aceptarla (ver `recuerdos`)
+    - id: "tarjetas-cortas"
+      texto: "Prefiero repasar con tarjetas cortas, de una idea cada una."
+      tipo: "preferencia"                 # nota | decision | preferencia (si falta, nota)
   success:                                # cómo se ve que la plantilla funciona
     task: "Prepara diez tarjetas del tema 1"
     check: "schemas/tarjetas.json"
@@ -160,6 +185,9 @@ formatos_agente: ["receta", "claude-md", "comando"]
 #   skills.scripts: true si la skill trae scripts (sube el nivel a 3)
 #   tools.mcp: { command, args?, env_keys? } (local) o { url, headers? } (remoto)
 #   engines.binaries: programas por su nombre, nunca por su ruta
+#   tasks.tags: sus etiquetas, las que busca el filtro `etiqueta:` de una
+#     sección: en kebab-case (hasta `oficio.topes.largo` caracteres), como
+#     mucho `oficio.topes.etiquetas` y ninguna dos veces
 puntos:
   themes:   { naturaleza: "datos",          corre: "ventana", claves: ["id", "file"] }
   skills:   { naturaleza: "datos",          corre: "sesión",  claves: ["id", "path", "remote", "scripts"] }
@@ -167,7 +195,7 @@ puntos:
   views:    { naturaleza: "código aislado", corre: "ventana", claves: ["id", "entry", "title"] }
   agents:   { naturaleza: "datos",          corre: "sesión",  claves: ["id", "recipe", "format"] }
   teams:    { naturaleza: "datos",          corre: "sesión",  claves: ["id", "file"] }
-  tasks:    { naturaleza: "datos",          corre: "sesión",  claves: ["id", "title", "prompt", "steps", "roles", "category", "icon", "inputs"] }
+  tasks:    { naturaleza: "datos",          corre: "sesión",  claves: ["id", "title", "prompt", "steps", "roles", "category", "icon", "inputs", "tags"] }
   routines: { naturaleza: "datos",          corre: "siempre", claves: ["id", "when", "task", "agent"] }
   channels: { naturaleza: "datos",          corre: "siempre", claves: ["id", "tool"] }
   memory:   { naturaleza: "código",         corre: "mente",   claves: ["id", "entry", "runtime"] }
@@ -253,8 +281,9 @@ variables:
 # permisos) o un permiso nuevo, se vuelve a pedir permiso. La raíz (la
 # plantilla) es uno más: su huella y sus propios permisos también cuentan,
 # así que quitar un paquete, que no pide nada por sí mismo, se pregunta una
-# vez (la plantilla que lo quita es otra). Un candado roto o que no está
-# equivale a «nada consentido».
+# vez (la plantilla que lo quita es otra). Y si el candado de antes no tenía
+# la huella de la plantilla y el nuevo sí, también: aquel sí no la fijaba.
+# Un candado roto o que no está equivale a «nada consentido».
 lock:
   claves: ["lock_version", "raiz", "paquetes", "permisos"]
   claves_raiz: ["id", "version", "sha256", "permisos"]
@@ -283,7 +312,8 @@ lock:
 # expresiones, y solo va en una vista de `vistas_con_filtro` (las que listan
 # tareas). La app que no tenga la vista que se nombra enseña la de reserva.
 # Topes: `largo` es el de un id, un nombre, una etiqueta, una option o la
-# clave de un campo; `opciones`, las de un choice; `campos`, los de una orden.
+# clave de un campo; `opciones`, las de un choice; `campos`, los de una orden;
+# `etiquetas`, las de una tarea (`tasks[].tags`, las que busca un filtro).
 # Un campo con tipo vale en cualquier tarea: su default, uno de su tipo (un
 # número como `7`, `-2` o `2.5`; en un choice, una de sus options).
 oficio:
@@ -293,7 +323,7 @@ oficio:
   vista_de_reserva: "esme.tareas"
   estados: ["te-necesita", "en-marcha", "terminado", "quieto"]
   tipos_de_entrada: ["text", "number", "choice"]
-  topes: { secciones: 12, ordenes: 40, largo: 32, opciones: 20, campos: 10 }
+  topes: { secciones: 12, ordenes: 40, largo: 32, opciones: 20, campos: 10, etiquetas: 8 }
   filtros:                                # probados con el código
     validos: ["estado:te-necesita", "estado:en-marcha", "estado:terminado", "estado:quieto", "etiqueta:repaso", "etiqueta:por-revisar"]
     no_validos: ["repaso", "estado:inventado", "estado:", "etiqueta:", "etiqueta:Repaso", "etiqueta:a:b", "etiqueta:*", "estado:quieto && etiqueta:x", "prioridad:alta"]
@@ -356,3 +386,53 @@ oficio:
     rutas:                                # probadas con el código
       validas: ["mapa.canvas", "lienzos/mapa.canvas", "./lienzos/de-trabajo.canvas"]
       no_validas: ["mapa.json", "mapa.canvas.json", ".canvas", "lienzos/.canvas", "../mapa.canvas", "/mapa.canvas", "C:/mapa.canvas", "lienzos\\mapa.canvas"]
+
+# --- El carácter de una plantilla: cómo se siente al abrirla ---
+# Es de las plantillas y es cerrado, como el oficio: lo pinta una app que no
+# escribió quien hizo la plantilla. Todo es opcional: lo que falta, lo pone
+# la app (el carácter de Esme). Lleva:
+#   - `letra`, `densidad` y `movimiento`, de sus listas;
+#   - `sonido: { paleta }`: una de `paletas`, o null (sin sonido);
+#   - `vocabulario`: cómo se dicen en ese oficio las `palabras` que la app
+#     sabe cambiar, y ninguna otra;
+#   - `equipo`: hasta `topes.miembros` miembros, cada uno con `id`
+#     (kebab-case, sin repetir), `nombre`, `rol` y `caracter`, los cuatro y
+#     nada más. Un miembro no es por fuerza un agente con receta.
+# Cada texto va en una línea, sin espacios a los lados ni nada invisible, y
+# hasta su tope (`nombre`, `rol`, `caracter` o `palabra`). El color no es del
+# carácter: es de la piel de quien la usa, que además puede cambiarlo todo en
+# su propia capa (esa capa no viaja en el manifiesto).
+caracter:
+  letras: ["editorial", "tecnica", "mixta"]
+  densidades: ["compacta", "comoda", "amplia"]
+  movimientos: ["sobrio", "vivo"]
+  paletas: ["costura"]
+  palabras: ["hoy", "tarea", "tareas", "asunto", "asuntos", "equipo", "te-necesita", "en-marcha", "terminado", "quieto", "encargar", "memoria"]
+  topes: { miembros: 12, nombre: 32, rol: 60, caracter: 120, palabra: 32 }
+
+# --- Los recuerdos de partida de una plantilla: lo que deja en tu mente ---
+# Lo que el oficio de una plantilla ya sabe (solo se audita con permiso
+# firmado; los plazos se cuentan en días hábiles). Hasta `topes.recuerdos`,
+# cada uno con `id` (kebab-case, sin repetir), `texto` (una línea de 1 a
+# `topes.texto` caracteres, sin espacios a los lados ni nada invisible; dos
+# que dicen lo mismo, salvo las mayúsculas, no valen) y `tipo` (de `tipos`;
+# si falta, nota), que en la mente es el de `en_la_mente` (`remember`).
+# Escriben en tu mente, y lo que hay en tu mente condiciona lo que hace el
+# modelo. Por eso:
+#   - son de las plantillas: un paquete no escribe en tu mente al instalarse;
+#   - la procedencia no la escribe la plantilla (`procedencia` se rechaza):
+#     la pone el kit desde el candado que la persona aceptó (la plantilla,
+#     su versión y su huella), y cada recuerdo se conoce por
+#     `<plantilla>/<id>`, para cambiarlo o quitarlo;
+#   - entran con el sí de la persona al aceptar el candado (la app los
+#     enseña antes);
+#   - sin la huella de la plantilla en el candado no se escriben: el sí
+#     tiene que fijar lo que se escribe. Con ella, cualquier cambio de la
+#     plantilla, también en sus recuerdos, vuelve a preguntar;
+#   - se van con la plantilla (al quitarla, o cuando una versión nueva ya no
+#     los trae), salvo lo que la persona hizo suyo: una versión nueva nunca
+#     pisa lo que ella cambió o quitó.
+recuerdos:
+  tipos: ["nota", "decision", "preferencia"]
+  en_la_mente: { nota: "note", decision: "decision", preferencia: "preference" }
+  topes: { recuerdos: 20, texto: 280 }

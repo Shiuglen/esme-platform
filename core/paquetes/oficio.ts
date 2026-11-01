@@ -44,8 +44,11 @@ export type TipoEntrada = (typeof TIPOS_ENTRADA)[number];
 /** La sección que no falta nunca, y va la primera: tu día. */
 export const PRIMERA = "hoy";
 
-/** Los topes: secciones, órdenes, caracteres de un id o un nombre, options de un choice y campos de una orden. */
-export const TOPES = { secciones: 12, ordenes: 40, largo: 32, opciones: 20, campos: 10 } as const;
+/**
+ * Los topes: secciones, órdenes, caracteres de un id, un nombre o una
+ * etiqueta, options de un choice, campos de una orden y etiquetas de una tarea.
+ */
+export const TOPES = { secciones: 12, ordenes: 40, largo: 32, opciones: 20, campos: 10, etiquetas: 8 } as const;
 
 /** «a, b o c». */
 export const oLista = (xs: readonly string[]): string => (xs.length > 1 ? `${xs.slice(0, -1).join(", ")} o ${xs[xs.length - 1]}` : xs.join(""));
@@ -62,6 +65,7 @@ export const MOTIVOS_OFICIO = {
   piel: "una piel es un tema de la plantilla («sobria») o de un paquete que usa («esme.casa.piel-sobria/sobria»)",
   tipo: `type es ${oLista(TIPOS_ENTRADA)}`,
   lienzo: "un lienzo de partida es un fichero .canvas del paquete (JSON Canvas 1.0): ruta relativa, con «/», y que no sale con «..»",
+  etiqueta: `una etiqueta en kebab-case, de hasta ${TOPES.largo}: minúsculas y cifras, con guiones sueltos (la que busca el filtro etiqueta: de una sección)`,
 } as const;
 
 const KEBAB = /^[a-z0-9]+(-[a-z0-9]+)*$/;
