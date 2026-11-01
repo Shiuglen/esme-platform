@@ -102,7 +102,7 @@ a firmarlo (si cambian sus bytes, su firma deja de valer).
 | `npm run verificar` | la tienda se verifica: índice y artefactos, byte a byte |
 | `npm run build:ejemplo` | construye los módulos de ejemplo (los flags son uno solo) |
 | `npm run build:modulos` | construye TODOS los módulos, incluidos los que llegan de fuera |
-| `npm run crear:modulo -- --id esme.tu.mi-modulo --nombre "Mi módulo"` | la puerta de entrada: nace un módulo entero y juzgado |
+| `npm run crear:modulo -- --id esme.tu.mi-modulo --nombre "Mi módulo" --autor "Tu nombre"` | la puerta de entrada: nace un módulo entero y juzgado |
 | `npm run verificar:modulo -- <carpeta>` | lo construye, lo mide de verdad y lo juzga |
 | `npm run publicar:modulo -- <carpeta>` | lo publica en el índice firmado (vuelve a juzgarlo antes) |
 | `npm run puntos` | el estado de tu PC, medido: un punto por agente, con su RAM |

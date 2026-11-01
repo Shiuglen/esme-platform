@@ -1,0 +1,805 @@
+{
+  "fuente": {
+    "repo": "Shiuglen/esme",
+    "commit": "bdb809f8c56aced6d211fc8c2cfa71c9b974ac4c",
+    "fichero": "app/src/main/tienda/productos.json"
+  },
+  "datos": [
+    {
+      "id": "neon-tokio",
+      "tipo": "piel",
+      "nombre": "Neón Tokio",
+      "autor": "Esme",
+      "descripcion": "Lluvia de neón en Tokio: magenta y cian, letra de máquina y un saludo con interferencia.",
+      "etiquetas": [
+        "neón",
+        "cyberpunk",
+        "noche",
+        "magenta"
+      ],
+      "version": 1,
+      "contenido": {
+        "version": 1,
+        "nombre": "Neón Tokio",
+        "color": {
+          "tipo": "libre",
+          "noche": {
+            "fondo": "#0a0612",
+            "superficie": "#140b22",
+            "texto": "#f5eaff",
+            "acento": "#ff3fd2"
+          },
+          "dia": {
+            "fondo": "#fbf5ff",
+            "superficie": "#ffffff",
+            "texto": "#1a0d26",
+            "acento": "#b0129a"
+          }
+        },
+        "letra": {
+          "titulos": "grotesk",
+          "texto": "mono",
+          "escala": 0.98
+        },
+        "forma": {
+          "radio": 0.4,
+          "sombra": "honda"
+        },
+        "densidad": "comoda",
+        "movimiento": "vivo",
+        "caracter": "lanzado",
+        "fondo": "liso",
+        "navegacion": "riel",
+        "portada": "mando",
+        "escena": "hiperespacio",
+        "presencia": "orbe",
+        "piezas": {
+          "superficie": "neon",
+          "saludo": "glitch",
+          "pulsar": "chispas",
+          "sonido": "completo",
+          "trabajo": "electrico"
+        }
+      }
+    },
+    {
+      "id": "arcilla",
+      "tipo": "piel",
+      "nombre": "Arcilla",
+      "autor": "Esme",
+      "descripcion": "Suave como la arcilla: formas abombadas, pastel y una cara amable que te acompaña.",
+      "etiquetas": [
+        "suave",
+        "pastel",
+        "amable",
+        "clay"
+      ],
+      "version": 1,
+      "contenido": {
+        "version": 1,
+        "nombre": "Arcilla",
+        "color": {
+          "tipo": "libre",
+          "noche": {
+            "fondo": "#1c1820",
+            "superficie": "#26212c",
+            "texto": "#f3eef7",
+            "acento": "#c9a7ff"
+          },
+          "dia": {
+            "fondo": "#f4eef8",
+            "superficie": "#fbf8fd",
+            "texto": "#2a2230",
+            "acento": "#6b3fb3"
+          }
+        },
+        "letra": {
+          "titulos": "sora",
+          "texto": "manrope",
+          "escala": 1.02
+        },
+        "forma": {
+          "radio": 2.2,
+          "sombra": "suave"
+        },
+        "densidad": "amplia",
+        "movimiento": "vivo",
+        "caracter": "elastico",
+        "fondo": "liso",
+        "navegacion": "leyenda",
+        "portada": "mando",
+        "escena": "aurora-suave",
+        "presencia": "cara",
+        "piezas": {
+          "superficie": "clay",
+          "saludo": "enfoque",
+          "pulsar": "chispas",
+          "sonido": "avisos",
+          "trabajo": "brillo"
+        }
+      }
+    },
+    {
+      "id": "brutalista",
+      "tipo": "piel",
+      "nombre": "Brutalista",
+      "autor": "Esme",
+      "descripcion": "Negro, amarillo y sombras duras. Sin adornos: la estructura es la estética.",
+      "etiquetas": [
+        "brutalismo",
+        "contraste",
+        "amarillo"
+      ],
+      "version": 1,
+      "contenido": {
+        "version": 1,
+        "nombre": "Brutalista",
+        "color": {
+          "tipo": "libre",
+          "noche": {
+            "fondo": "#0d0d0d",
+            "superficie": "#161616",
+            "texto": "#f2f2f2",
+            "acento": "#ffe14d"
+          },
+          "dia": {
+            "fondo": "#fffbe6",
+            "superficie": "#ffffff",
+            "texto": "#111111",
+            "acento": "#8a6d00"
+          }
+        },
+        "letra": {
+          "titulos": "grotesk",
+          "texto": "grotesk",
+          "escala": 1
+        },
+        "forma": {
+          "radio": 0.2,
+          "sombra": "plana"
+        },
+        "densidad": "compacta",
+        "movimiento": "sutil",
+        "caracter": "preciso",
+        "fondo": "liso",
+        "navegacion": "leyenda",
+        "portada": "mando",
+        "escena": "persianas",
+        "presencia": "orbe",
+        "piezas": {
+          "superficie": "brutal",
+          "saludo": "fijo",
+          "pulsar": "nada",
+          "sonido": "completo",
+          "trabajo": "estrella"
+        }
+      }
+    },
+    {
+      "id": "oceano",
+      "tipo": "piel",
+      "nombre": "Océano",
+      "autor": "Esme",
+      "descripcion": "Profundidad marina: azules de abismo, seda que ondula y un orbe que respira contigo.",
+      "etiquetas": [
+        "azul",
+        "calma",
+        "agua"
+      ],
+      "version": 1,
+      "contenido": {
+        "version": 1,
+        "nombre": "Océano",
+        "color": {
+          "tipo": "libre",
+          "noche": {
+            "fondo": "#04121a",
+            "superficie": "#0a1d28",
+            "texto": "#e6f6fb",
+            "acento": "#3fd0e8"
+          },
+          "dia": {
+            "fondo": "#eef8fb",
+            "superficie": "#ffffff",
+            "texto": "#06202b",
+            "acento": "#0a6f86"
+          }
+        },
+        "letra": {
+          "titulos": "instrument",
+          "texto": "instrument",
+          "escala": 1
+        },
+        "forma": {
+          "radio": 1.2,
+          "sombra": "suave"
+        },
+        "densidad": "comoda",
+        "movimiento": "vivo",
+        "caracter": "pesado",
+        "fondo": "liso",
+        "navegacion": "muelle",
+        "portada": "mando",
+        "escena": "seda",
+        "presencia": "orbe-voz",
+        "piezas": {
+          "superficie": "vidrio",
+          "saludo": "brillo",
+          "pulsar": "nada",
+          "sonido": "avisos",
+          "trabajo": "brillo"
+        }
+      }
+    },
+    {
+      "id": "boreal",
+      "tipo": "piel",
+      "nombre": "Aurora boreal",
+      "autor": "Esme",
+      "descripcion": "La aurora boreal sobre cristal esmerilado: verdes y violetas que se mueven despacio.",
+      "etiquetas": [
+        "aurora",
+        "verde",
+        "cristal"
+      ],
+      "version": 1,
+      "contenido": {
+        "version": 1,
+        "nombre": "Aurora boreal",
+        "color": {
+          "tipo": "libre",
+          "noche": {
+            "fondo": "#06100f",
+            "superficie": "#0d1a18",
+            "texto": "#e8fbf5",
+            "acento": "#5cf0b8"
+          },
+          "dia": {
+            "fondo": "#effbf6",
+            "superficie": "#ffffff",
+            "texto": "#08221b",
+            "acento": "#0d7a55"
+          }
+        },
+        "letra": {
+          "titulos": "funnel",
+          "texto": "funnel",
+          "escala": 1
+        },
+        "forma": {
+          "radio": 1.4,
+          "sombra": "honda"
+        },
+        "densidad": "comoda",
+        "movimiento": "vivo",
+        "caracter": "magnetico",
+        "fondo": "liso",
+        "navegacion": "leyenda",
+        "portada": "mando",
+        "escena": "aurora",
+        "presencia": "orbe",
+        "piezas": {
+          "superficie": "esmerilado",
+          "saludo": "degradado",
+          "pulsar": "chispas",
+          "sonido": "avisos",
+          "trabajo": "electrico"
+        }
+      }
+    },
+    {
+      "id": "sakura",
+      "tipo": "piel",
+      "nombre": "Sakura",
+      "autor": "Esme",
+      "descripcion": "Primavera en papel: rosa cerezo, serif para leer y pétalos de luz flotando.",
+      "etiquetas": [
+        "rosa",
+        "editorial",
+        "primavera"
+      ],
+      "version": 1,
+      "contenido": {
+        "version": 1,
+        "nombre": "Sakura",
+        "color": {
+          "tipo": "libre",
+          "noche": {
+            "fondo": "#170d12",
+            "superficie": "#21141a",
+            "texto": "#fbeef3",
+            "acento": "#ff8fb8"
+          },
+          "dia": {
+            "fondo": "#fdf3f6",
+            "superficie": "#fffafc",
+            "texto": "#2b1018",
+            "acento": "#b0285c"
+          }
+        },
+        "letra": {
+          "titulos": "newsreader",
+          "texto": "instrument",
+          "escala": 1.04
+        },
+        "forma": {
+          "radio": 0.8,
+          "sombra": "suave"
+        },
+        "densidad": "amplia",
+        "movimiento": "vivo",
+        "caracter": "elastico",
+        "fondo": "liso",
+        "navegacion": "leyenda",
+        "portada": "mando",
+        "escena": "particulas",
+        "presencia": "orbe",
+        "piezas": {
+          "superficie": "papel",
+          "saludo": "enfoque",
+          "pulsar": "chispas",
+          "sonido": "avisos",
+          "trabajo": "brillo"
+        }
+      }
+    },
+    {
+      "id": "cine",
+      "tipo": "piel",
+      "nombre": "Cine",
+      "autor": "Esme",
+      "descripcion": "Gran pantalla: oro sobre negro, Bodoni para los títulos y un velo de luz de proyector.",
+      "etiquetas": [
+        "lujo",
+        "oro",
+        "cine"
+      ],
+      "version": 1,
+      "contenido": {
+        "version": 1,
+        "nombre": "Cine",
+        "color": {
+          "tipo": "libre",
+          "noche": {
+            "fondo": "#0c0a07",
+            "superficie": "#16120c",
+            "texto": "#f6efe2",
+            "acento": "#e8c26e"
+          },
+          "dia": {
+            "fondo": "#fbf6ec",
+            "superficie": "#fffdf8",
+            "texto": "#1f1a12",
+            "acento": "#7d5d17"
+          }
+        },
+        "letra": {
+          "titulos": "bodoni",
+          "texto": "instrument",
+          "escala": 1.03
+        },
+        "forma": {
+          "radio": 0.5,
+          "sombra": "honda"
+        },
+        "densidad": "comoda",
+        "movimiento": "vivo",
+        "caracter": "pesado",
+        "fondo": "liso",
+        "navegacion": "muelle",
+        "portada": "mando",
+        "escena": "rayos",
+        "presencia": "orbe",
+        "piezas": {
+          "superficie": "vidrio",
+          "saludo": "descifrar",
+          "pulsar": "nada",
+          "sonido": "avisos",
+          "trabajo": "estrella"
+        }
+      }
+    },
+    {
+      "id": "matrix",
+      "tipo": "piel",
+      "nombre": "Matriz",
+      "autor": "Esme",
+      "descripcion": "Dentro de la máquina: verde fósforo, todo en monoespaciada y el saludo que se descifra.",
+      "etiquetas": [
+        "hacker",
+        "verde",
+        "terminal"
+      ],
+      "version": 1,
+      "contenido": {
+        "version": 1,
+        "nombre": "Matriz",
+        "color": {
+          "tipo": "libre",
+          "noche": {
+            "fondo": "#020803",
+            "superficie": "#071209",
+            "texto": "#d9fbe0",
+            "acento": "#3cff7a"
+          },
+          "dia": {
+            "fondo": "#f2fbf3",
+            "superficie": "#ffffff",
+            "texto": "#06200d",
+            "acento": "#11752f"
+          }
+        },
+        "letra": {
+          "titulos": "mono",
+          "texto": "mono",
+          "escala": 0.96
+        },
+        "forma": {
+          "radio": 0.1,
+          "sombra": "plana"
+        },
+        "densidad": "compacta",
+        "movimiento": "vivo",
+        "caracter": "preciso",
+        "fondo": "aurora",
+        "navegacion": "riel",
+        "portada": "mando",
+        "escena": "lineas",
+        "presencia": "orbe",
+        "piezas": {
+          "superficie": "neon",
+          "saludo": "descifrar",
+          "pulsar": "nada",
+          "sonido": "completo",
+          "trabajo": "electrico"
+        }
+      }
+    },
+    {
+      "id": "lava",
+      "tipo": "piel",
+      "nombre": "Lava",
+      "autor": "Esme",
+      "descripcion": "Calor volcánico: naranjas de plasma, formas redondas y movimiento con inercia.",
+      "etiquetas": [
+        "naranja",
+        "energía",
+        "cálido"
+      ],
+      "version": 1,
+      "contenido": {
+        "version": 1,
+        "nombre": "Lava",
+        "color": {
+          "tipo": "libre",
+          "noche": {
+            "fondo": "#120804",
+            "superficie": "#1e0f08",
+            "texto": "#fff1e8",
+            "acento": "#ff7a2f"
+          },
+          "dia": {
+            "fondo": "#fff4ed",
+            "superficie": "#ffffff",
+            "texto": "#2a1308",
+            "acento": "#b0420a"
+          }
+        },
+        "letra": {
+          "titulos": "sora",
+          "texto": "dmsans",
+          "escala": 1
+        },
+        "forma": {
+          "radio": 1.6,
+          "sombra": "honda"
+        },
+        "densidad": "comoda",
+        "movimiento": "vivo",
+        "caracter": "lanzado",
+        "fondo": "liso",
+        "navegacion": "muelle",
+        "portada": "mando",
+        "escena": "plasma",
+        "presencia": "orbe",
+        "piezas": {
+          "superficie": "vidrio",
+          "saludo": "degradado",
+          "pulsar": "chispas",
+          "sonido": "avisos",
+          "trabajo": "electrico"
+        }
+      }
+    },
+    {
+      "id": "cosmos",
+      "tipo": "piel",
+      "nombre": "Cosmos",
+      "autor": "Esme",
+      "descripcion": "El espacio profundo: estrellas que derivan, violeta de nebulosa y el orbe de voz flotando.",
+      "etiquetas": [
+        "espacio",
+        "violeta",
+        "galaxia"
+      ],
+      "version": 1,
+      "contenido": {
+        "version": 1,
+        "nombre": "Cosmos",
+        "color": {
+          "tipo": "libre",
+          "noche": {
+            "fondo": "#05040d",
+            "superficie": "#0d0b1d",
+            "texto": "#efedff",
+            "acento": "#9b8cff"
+          },
+          "dia": {
+            "fondo": "#f4f3ff",
+            "superficie": "#ffffff",
+            "texto": "#14112b",
+            "acento": "#4c3db8"
+          }
+        },
+        "letra": {
+          "titulos": "geist",
+          "texto": "geist",
+          "escala": 1
+        },
+        "forma": {
+          "radio": 1.1,
+          "sombra": "suave"
+        },
+        "densidad": "comoda",
+        "movimiento": "vivo",
+        "caracter": "magnetico",
+        "fondo": "aurora",
+        "navegacion": "muelle",
+        "portada": "mando",
+        "escena": "galaxia",
+        "presencia": "orbe-voz",
+        "piezas": {
+          "superficie": "esmerilado",
+          "saludo": "enfoque",
+          "pulsar": "chispas",
+          "sonido": "avisos",
+          "trabajo": "estrella"
+        }
+      }
+    },
+    {
+      "id": "minimal",
+      "tipo": "piel",
+      "nombre": "Mínimo",
+      "autor": "Esme",
+      "descripcion": "Nada que sobre: papel, Inter, grises exactos y ningún movimiento. Para concentrarse.",
+      "etiquetas": [
+        "minimalismo",
+        "foco",
+        "sobrio"
+      ],
+      "version": 1,
+      "contenido": {
+        "version": 1,
+        "nombre": "Mínimo",
+        "color": {
+          "tipo": "libre",
+          "noche": {
+            "fondo": "#0f0f10",
+            "superficie": "#17171a",
+            "texto": "#ececee",
+            "acento": "#a5a5ad"
+          },
+          "dia": {
+            "fondo": "#f7f7f8",
+            "superficie": "#ffffff",
+            "texto": "#141416",
+            "acento": "#55555d"
+          }
+        },
+        "letra": {
+          "titulos": "inter",
+          "texto": "inter",
+          "escala": 0.98
+        },
+        "forma": {
+          "radio": 0.6,
+          "sombra": "plana"
+        },
+        "densidad": "compacta",
+        "movimiento": "nada",
+        "caracter": "preciso",
+        "fondo": "liso",
+        "navegacion": "leyenda",
+        "portada": "mando",
+        "escena": "ninguna",
+        "presencia": "ninguna",
+        "piezas": {
+          "superficie": "papel",
+          "saludo": "fijo",
+          "pulsar": "nada",
+          "sonido": "nada",
+          "trabajo": "nada"
+        }
+      }
+    },
+    {
+      "id": "prisma",
+      "tipo": "piel",
+      "nombre": "Prisma",
+      "autor": "Esme",
+      "descripcion": "Luz partida en colores: iridiscencia detrás, vidrio líquido delante y un brillo que lo recorre todo.",
+      "etiquetas": [
+        "iridiscente",
+        "arcoíris",
+        "vidrio"
+      ],
+      "version": 1,
+      "contenido": {
+        "version": 1,
+        "nombre": "Prisma",
+        "color": {
+          "tipo": "libre",
+          "noche": {
+            "fondo": "#08080c",
+            "superficie": "#121219",
+            "texto": "#f2f3fa",
+            "acento": "#7fd4ff"
+          },
+          "dia": {
+            "fondo": "#f5f7fc",
+            "superficie": "#ffffff",
+            "texto": "#10131d",
+            "acento": "#1d5f9e"
+          }
+        },
+        "letra": {
+          "titulos": "manrope",
+          "texto": "manrope",
+          "escala": 1
+        },
+        "forma": {
+          "radio": 1.4,
+          "sombra": "suave"
+        },
+        "densidad": "comoda",
+        "movimiento": "vivo",
+        "caracter": "elastico",
+        "fondo": "liso",
+        "navegacion": "muelle",
+        "portada": "mando",
+        "escena": "iridiscencia",
+        "presencia": "orbe",
+        "piezas": {
+          "superficie": "vidrio",
+          "saludo": "brillo",
+          "pulsar": "chispas",
+          "sonido": "completo",
+          "trabajo": "electrico"
+        }
+      }
+    },
+    {
+      "id": "opencode",
+      "tipo": "agente",
+      "nombre": "OpenCode",
+      "autor": "SST",
+      "descripcion": "El agente de terminal que lee el repo, edita ficheros y corre pruebas. El más versatile para construir.",
+      "etiquetas": [
+        "código",
+        "terminal",
+        "general"
+      ],
+      "version": 1,
+      "contenido": {
+        "comando": "opencode -p \"{tarea}\"",
+        "herramientas": [
+          "node",
+          "git"
+        ],
+        "ejemplo": "«Arregla el test que falla y deja la suite en verde»"
+      }
+    },
+    {
+      "id": "claude-acp",
+      "tipo": "agente",
+      "nombre": "Claude Code",
+      "autor": "Anthropic",
+      "descripcion": "El agente de Anthropic para la terminal: lee, edita y explica. Fuerte con refactors grandes.",
+      "etiquetas": [
+        "código",
+        "terminal",
+        "refactor"
+      ],
+      "version": 1,
+      "contenido": {
+        "comando": "claude -p \"{tarea}\"",
+        "herramientas": [
+          "node",
+          "git"
+        ],
+        "ejemplo": "«Mueve este módulo a la arquitectura nueva y deja los tests»"
+      }
+    },
+    {
+      "id": "codex-acp",
+      "tipo": "agente",
+      "nombre": "Codex",
+      "autor": "OpenAI",
+      "descripcion": "El agente de OpenAI para la terminal. Preciso con los cambios mecánicos y con el formato.",
+      "etiquetas": [
+        "código",
+        "terminal",
+        "mecánico"
+      ],
+      "version": 1,
+      "contenido": {
+        "comando": "codex exec \"{tarea}\"",
+        "herramientas": [
+          "node",
+          "git"
+        ],
+        "ejemplo": "«Renombra estas funciones y actualiza las llamadas»"
+      }
+    },
+    {
+      "id": "gemini",
+      "tipo": "agente",
+      "nombre": "Gemini CLI",
+      "autor": "Google",
+      "descripcion": "El agente de Google para la terminal. Contexto enorme: bueno para leer repos enteros.",
+      "etiquetas": [
+        "código",
+        "terminal",
+        "contexto"
+      ],
+      "version": 1,
+      "contenido": {
+        "comando": "gemini -p \"{tarea}\"",
+        "herramientas": [
+          "node",
+          "git"
+        ],
+        "ejemplo": "«Explora este repo y dime dónde vive la lógica de permisos»"
+      }
+    },
+    {
+      "id": "qwen-code",
+      "tipo": "agente",
+      "nombre": "Qwen Code",
+      "autor": "Alibaba",
+      "descripcion": "El agente de Alibaba para la terminal. Multi-modelo: puede razonar o apurar.",
+      "etiquetas": [
+        "código",
+        "terminal",
+        "multimodelo"
+      ],
+      "version": 1,
+      "contenido": {
+        "comando": "qwen -p \"{tarea}\"",
+        "herramientas": [
+          "node",
+          "git"
+        ],
+        "ejemplo": "«Escribe los tests que le faltan a este módulo»"
+      }
+    },
+    {
+      "id": "esme-cerebro",
+      "tipo": "agente",
+      "nombre": "El Cerebro",
+      "autor": "Esme",
+      "descripcion": "No es un agente de código: es la memoria. Conoce lo que happened y sabe lo que tú no dijiste.",
+      "etiquetas": [
+        "memoria",
+        "contexto"
+      ],
+      "version": 1,
+      "contenido": {
+        "comando": "esme cerebro \"{tarea}\"",
+        "herramientas": [],
+        "ejemplo": "«¿Qué decidimos la semana pasada sobre la Tienda?»"
+      }
+    }
+  ]
+}

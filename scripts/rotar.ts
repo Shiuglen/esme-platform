@@ -11,11 +11,6 @@ import { createPublicKey } from "node:crypto";
 
 const raiz = resolve(import.meta.dirname, "..");
 const rutaPem = join(raiz, ".keys", "index-dev.pem");
-if (!existsSync(rutaPem)) {
-  console.error("no hay clave que rotar (.keys/index-dev.pem)");
-  process.exit(1);
-}
-
 // Esta ceremonia es IRREVERSIBLE: la privada vieja se reescribe y el certificado
 // entra en el ledger para siempre. Por eso el motivo se exige (una llave no
 // muere sin decir por qué) y los args que parecen flags se rechazan — no se
@@ -34,6 +29,13 @@ const motivo = process.argv.slice(2)[0];
 if (!motivo) {
   console.error(`falta el motivo (rotación es un evento del ledger: queda por escrito):\n  npm run rotar "por qué muere la llave"`);
   process.exit(2);
+}
+
+// La llave se busca DESPUÉS de leer los argumentos: un uso equivocado se dice
+// igual en un clon recién hecho, sin llave, que en la máquina de quien publica.
+if (!existsSync(rutaPem)) {
+  console.error("no hay clave que rotar (.keys/index-dev.pem)");
+  process.exit(1);
 }
 
 const privVieja = readFileSync(rutaPem, "utf8");

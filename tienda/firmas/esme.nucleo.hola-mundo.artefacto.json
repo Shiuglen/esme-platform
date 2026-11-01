@@ -1,14 +1,14 @@
 {
   "modulo": "esme.nucleo.hola-mundo",
   "version": "0.1.0",
-  "tar": "00ee6987b38946bd423c6cd88356503cb27c6cbcccbecc46b248a01d6d1ecfc6",
-  "bytes": 2483,
-  "firmado_en": "2026-10-21",
+  "tar": "001ee16bef4595f1884c1f9d646ad7cc09dae1edbe18d7687b76d793766c2955",
+  "bytes": 2467,
+  "firmado_en": "2026-11-01",
   "firma": {
     "algorithm": "ed25519-sha512",
-    "signature": "X8ZhvC+dPeJaJ0LCLXndpsM45lf1ICtOrm0egLt0irsKQp1IrJRVJmAGUiF14jwd7j2I1PgY2Ue+kHq0Ft+5AQ==",
-    "signed_at": "2026-10-21T07:07:42.058Z",
-    "signed_by": "adaaf79999a7296f",
-    "hash": "AO5ph7OJRr1CPGzYg1ZQPLJ8bLzMvsxGskigHW0ez8Y="
+    "signature": "uRIEQRUNLawbBtEQx5Vb+5q5YiLHQXPn8rgrWXY3EKuek0o5GSv48Dlh5GMqMrAG672odFmUcBGKJiGPhkQABA==",
+    "signed_at": "2026-11-01T20:08:38.861Z",
+    "signed_by": "76b0d2152bf7c3d9",
+    "hash": "AB7ha+9FlfGITB+dZGrXzAna4e2+GNdoe3bXk3ZsKVU="
   }
 }

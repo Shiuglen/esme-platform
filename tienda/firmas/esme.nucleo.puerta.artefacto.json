@@ -1,14 +1,14 @@
 {
   "modulo": "esme.nucleo.puerta",
   "version": "0.1.0",
-  "tar": "6d27878594d6ea017a4a5b52556d90f802363c2f5f942e51fbfe434ff425775c",
-  "bytes": 2390,
-  "firmado_en": "2026-10-21",
+  "tar": "1bb53b4eab52d615dc5cd67043027f26d59cdfa07658ab0b946c70745c2df8a9",
+  "bytes": 2368,
+  "firmado_en": "2026-11-01",
   "firma": {
     "algorithm": "ed25519-sha512",
-    "signature": "Y/UMA7vVhTFP73mB0ajpOG+piQ12lYtahFkJZQzQFBCjF/SOBgli6qIUJkZtYpfCF6Ytu7R5KSF3JxmR6t6oDw==",
-    "signed_at": "2026-10-21T07:07:42.059Z",
-    "signed_by": "adaaf79999a7296f",
-    "hash": "bSeHhZTW6gF6SltSVW2Q+AI2PC9flC5R+/5DT/Qld1w="
+    "signature": "dazfQSNurD86Ot/npbW1hDs8iY35WPAgBD4anxS4wQHa6cY/yVlwYHNKACZhBjSYBb5NS9TXPVICxlq5lWLoCw==",
+    "signed_at": "2026-11-01T20:08:38.862Z",
+    "signed_by": "76b0d2152bf7c3d9",
+    "hash": "G7U7TqtS1hXcXNZwQwJ/JtWc36B2WKsLlGxwdFwt+Kk="
   }
 }

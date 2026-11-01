@@ -1,0 +1,438 @@
+# **Spec abierta v1 — el paquete (module.yaml v2).** Referencia: `docs/PAQUETES.md`.
+# Lo implementan `core/paquetes/manifiesto.ts`, `core/paquetes/permisos.ts`,
+# `core/paquetes/semver.ts`, `core/paquetes/lock.ts`, `core/paquetes/oficio.ts`,
+# `core/paquetes/lienzo.ts`, `core/paquetes/caracter.ts` y `core/paquetes/recuerdos.ts`. La conformidad
+# (`scripts/estandar/conformidad-paquete.ts`) compara cada sección con el
+# código: el ejemplo tiene que valer, y los puntos, los alcances, los niveles,
+# los rangos y los hosts tienen que ser los mismos.
+#
+# Por qué esta spec es v1 si el manifiesto es v2: el `schema_version` de
+# arriba es el de ESTA spec (la regla 0 de la casa). El del manifiesto va
+# dentro, en `manifiesto.schema_version: 2`. La v1 del manifiesto sigue en
+# `module-manifest.spec.yaml`, y sigue valiendo tal cual.
+#
+# **Cambios:** como todas: la spec y su código en el mismo PR
+# (estandar/README.md).
+#
+# Lo que es un paquete, en tres verbos:
+#   - APORTA: sus contribuciones, en doce puntos cerrados (`puntos`);
+#   - USA: otros paquetes, cada uno fijado por su huella (`uses`);
+#   - PIDE: sus permisos, con alcance (`alcances`).
+# Una PLANTILLA (`kind: template`) es un paquete solo de datos: junta otros
+# paquetes y unos ajustes en una forma de trabajar lista para usar.
+#
+# Las reglas (cada una con su mensaje en el código):
+#   1. una plantilla no trae código: ni `tools`, ni `views`, ni `memory`.
+#      Si hace falta, va en un paquete, y la plantilla lo usa con `uses`;
+#   2. `settings` es de las plantillas: un paquete no crea proyectos;
+#   3. un paquete aporta algo: o `contributes` o `uses`, no ninguno;
+#   4. NO hay hooks libres (`contributes.hooks` se rechaza): un hook corre
+#      código en cada paso sin pasar por los permisos. Lo que haría, lo hace
+#      una herramienta o una rutina;
+#   5. lo que lanzas o con quien hablas, lo pides: `tools[].mcp.url` exige un
+#      `net:fetch` que cubra su host; `tools[].mcp.command`,
+#      `engines[].binaries` y el `comando` de un agente `format: comando`
+#      exigen un `proc:spawn` que cubra el programa, que va por su nombre
+#      (`npx`), nunca por su ruta (tampoco una del paquete). Una URL no lleva
+#      usuario ni contraseña;
+#   6. cada `uses` lleva id, rango y huella (`sha256` del árbol). El rango no
+#      elige: comprueba que la huella fijada es de una versión que se quería;
+#   7. las rutas son del paquete: relativas, con `/`, sin `..`, sin `\`, sin
+#      letra de unidad y sin caracteres de control;
+#   8. un id no se repite dentro de su punto, y lo que se nombra existe:
+#      `channels[].tool` es una herramienta del paquete y `commands[].task`
+#      una tarea del paquete;
+#   9. una skill es local (`path`) o remota (`remote`, fijada a su commit y
+#      a su huella), nunca las dos ni ninguna. Una herramienta es código del
+#      paquete (`entry` con `runtime`) o un servidor MCP (`mcp`), nunca las dos;
+#  10. lo de la v1 arriba del todo en un v2 (`category`, `entry`, `runtime`,
+#      `dependencies`, `sideEffects`, `engines`) se rechaza con el sitio donde
+#      va ahora: un v2 a medio migrar no se acepta en silencio;
+#  11. `oficio` es de las plantillas (lo que monta al abrirla) y es cerrado
+#      (sección `oficio`): hasta 12 secciones, la primera «hoy»; ids en
+#      kebab-case; cada vista de una lista conocida, con una de reserva;
+#      filtros solo `estado:<estado>` o `etiqueta:<kebab-case>`, nada de
+#      expresiones; una sección del Lienzo puede traer su lienzo de partida,
+#      un `.canvas` del paquete que vale como JSON Canvas 1.0, cerrado y con
+#      topes (sección `oficio.lienzo`); y hasta 40 órdenes, cada una un
+#      comando de la plantilla o de un paquete que usa, con todos sus campos
+#      con tipo y sin huecos libres en su prompt. Lo que nombra de un paquete
+#      lo mira el resolver;
+#  12. `caracter` es de las plantillas (cómo se siente al abrirla) y es
+#      cerrado (sección `caracter`): letra, densidad y movimiento de su lista;
+#      un sonido de la lista o ninguno; solo las palabras que la app sabe
+#      cambiar; y un equipo de hasta 12, cada miembro con su id, su nombre,
+#      su rol y su carácter, los cuatro y nada más. El color no: es de la
+#      piel de quien la usa;
+#  13. `recuerdos` es de las plantillas (un paquete no escribe en tu mente
+#      al instalarse) y es cerrado (sección `recuerdos`): hasta 20, cada uno
+#      con su id, su texto de una línea y su tipo de la lista, sin repetir
+#      ni un id ni lo que dicen. La procedencia no la escribe la plantilla:
+#      la pone el kit desde el candado que la persona aceptó.
+# Lo que se AVISA sin rechazar: una clave desconocida (arriba o dentro de una
+# entrada), un punto que esta versión no conoce, `net:fetch` con `*` (es toda
+# la red: que se diga a secas) y un MCP remoto por http sin cifrar.
+
+schema_version: 1
+
+# --- El manifiesto: un ejemplo que vale, con todas sus claves ---
+# (es una plantilla; un paquete sería igual sin `settings`, y podría traer
+# código en `tools`, `views` o `memory`)
+manifiesto:
+  schema_version: 2
+  id: "esme.jin.estudiar"                 # esme.<autor>.<slug>, como en la v1
+  version: "1.0.0"                        # semver estricto
+  name: "Esme para estudiar"
+  kind: "template"                        # package | template
+  description: "Una forma de estudiar lista para usar: tutor, repaso diario y tarjetas."
+  author: "jin"
+  license: "MIT"                          # ver `licencias`
+  keywords: ["estudio", "repaso", "tarjetas"]  # para buscar (como en plugin.json o en npm)
+  homepage: "https://github.com/jin/estudiar"  # donde leer más: una URL http(s)
+  uses:                                   # id + rango + huella; los tres
+    - id: "esme.casa.piel-estudio"
+      version: "^1.0"
+      sha256: "6b1d0e4f2f8a7c3e9d5b0a1c4e7f2a8b3c6d9e0f1a4b7c2d5e8f0a3b6c9d2e5f"
+    - id: "esme.ana.tarjetas"
+      version: "^0.4"
+      sha256: "0f9e8d7c6b5a49382716f5e4d3c2b1a09f8e7d6c5b4a39281706f5e4d3c2b1a0"
+  contributes:                            # ver `puntos`
+    agents:
+      - id: "tutor"
+        recipe: "agentes/tutor.yaml"
+        format: "receta"                  # receta | claude-md | comando
+    tasks:
+      - id: "tarjetas"
+        title: "Prepara tarjetas"
+        prompt: "Prepara diez tarjetas de {{tema}}."  # cada campo, en el prompt como {{clave}}
+        tags: ["tarjetas", "repaso"]      # hasta 8, en kebab-case: las que busca el filtro etiqueta:
+        inputs:
+          - key: "tema"
+            description: "el tema de las tarjetas"
+            required: true
+            type: "text"                  # text | number | choice (con options); lo exige una orden
+    routines:
+      - id: "repaso"
+        when: "cada día 20:00"
+        agent: "tutor"
+        task: "Pregúntame diez tarjetas"
+    commands:
+      - id: "tarjetas"
+        title: "Tarjetas nuevas"
+        task: "tarjetas"                  # una tarea de ESTE paquete
+  permissions:                            # forma corta (sin límite) o larga (con su alcance)
+    - kind: "net:fetch"
+      hosts: ["ankiweb.net"]
+  settings:                               # solo en plantillas
+    rumbo: "Aprobar el examen de enero"   # texto
+    budget_usd_per_day: 0.5               # número, 0 o más
+  oficio:                                 # solo en plantillas: lo que monta al abrirla (ver `oficio`)
+    piel: "esme.casa.piel-estudio/estudio"  # un tema suyo, o <paquete de uses>/<tema>
+    secciones:                            # hasta 12; «hoy» la primera, y tal cual
+      - { id: "hoy", nombre: "Hoy" }
+      - { id: "repasos", nombre: "Repasos", vista: "esme.tareas", filtro: "etiqueta:repaso" }
+      - { id: "apuntes", nombre: "Apuntes", vista: "esme.memoria" }
+      - { id: "esquemas", nombre: "Esquemas", vista: "esme.lienzo", lienzo: "lienzos/esquemas.canvas" }  # su lienzo de partida
+    ordenes: ["tarjetas"]                 # hasta 40: comandos suyos, o <paquete de uses>/<comando>
+  caracter:                               # solo en plantillas: cómo se siente al abrirla (ver `caracter`)
+    letra: "editorial"                    # editorial | tecnica | mixta
+    densidad: "comoda"                    # compacta | comoda | amplia
+    movimiento: "vivo"                    # sobrio | vivo
+    sonido: { paleta: null }              # una de `caracter.paletas`, o null: sin sonido
+    vocabulario: { hoy: "Hoy toca", encargar: "Pedir a la tutora" }  # palabra → cómo se dice aquí
+    equipo:                               # hasta 12; los cuatro, siempre
+      - { id: "tutora", nombre: "Tutora", rol: "te pregunta y te corrige", caracter: "paciente, vuelve a lo que fallas" }
+  recuerdos:                              # solo en plantillas: lo que deja en tu mente al aceptarla (ver `recuerdos`)
+    - id: "tarjetas-cortas"
+      texto: "Prefiero repasar con tarjetas cortas, de una idea cada una."
+      tipo: "preferencia"                 # nota | decision | preferencia (si falta, nota)
+  success:                                # cómo se ve que la plantilla funciona
+    task: "Prepara diez tarjetas del tema 1"
+    check: "schemas/tarjetas.json"
+  source:                                 # de dónde viene, si se importó
+    from: "github:jin/estudiar"
+    ref: "v1.0.0"
+    commit: "4c2a9e1f7b3d8c6a0e5f2b9d4a7c1e8f3b6d0a2c"
+  works_with: ["claude-code", "opencode"] # los motores con los que trabaja (vacío: cualquiera)
+  decision_criteria:                      # como en la v1
+    - when: "user_studying"
+      weight: 0.8
+      tags: ["estudio", "repaso"]
+  benchmarks:                             # como en la v1
+    recall_delta: 0.01
+    report: "bench.json"
+  signatures:                             # como en la v1 (relleno al publicar)
+    ed25519: "MCowBQYDK2VwAyEA…base64…"
+    signed_by: "jin"
+    signed_at: "2026-10-25T12:00:00Z"
+
+# --- Paquete o plantilla ---
+tipos: ["package", "template"]
+
+# --- Las licencias: las de la v1 y las que el juez de skills ya acepta ---
+licencias: ["MIT", "Apache-2.0", "ESME-CL", "BSD-2-Clause", "BSD-3-Clause", "ISC", "Unlicense"]
+
+# --- La receta de un agente: la del kit, la de Claude Code o una línea de comandos ---
+# `comando`: la receta es un JSON con `comando` (p. ej. `opencode -p "{tarea}"`);
+# el programa que lanza tiene que estar en `proc:spawn`.
+formatos_agente: ["receta", "claude-md", "comando"]
+
+# --- Los doce puntos: de qué están hechos, dónde corren y qué claves llevan ---
+# naturaleza: datos | código | código aislado
+# corre: ventana (la UI) | sesión (cuando trabajas) | siempre (sin sesión) | mente (la memoria)
+# Notas por punto:
+#   skills.remote: { repo: dueño/nombre, commit: 40 hex, path, sha256: 64 hex }
+#   skills.scripts: true si la skill trae scripts (sube el nivel a 3)
+#   tools.mcp: { command, args?, env_keys? } (local) o { url, headers? } (remoto)
+#   engines.binaries: programas por su nombre, nunca por su ruta
+#   tasks.tags: sus etiquetas, las que busca el filtro `etiqueta:` de una
+#     sección: en kebab-case (hasta `oficio.topes.largo` caracteres), como
+#     mucho `oficio.topes.etiquetas` y ninguna dos veces
+puntos:
+  themes:   { naturaleza: "datos",          corre: "ventana", claves: ["id", "file"] }
+  skills:   { naturaleza: "datos",          corre: "sesión",  claves: ["id", "path", "remote", "scripts"] }
+  tools:    { naturaleza: "código",         corre: "sesión",  claves: ["id", "entry", "runtime", "mcp"] }
+  views:    { naturaleza: "código aislado", corre: "ventana", claves: ["id", "entry", "title"] }
+  agents:   { naturaleza: "datos",          corre: "sesión",  claves: ["id", "recipe", "format"] }
+  teams:    { naturaleza: "datos",          corre: "sesión",  claves: ["id", "file"] }
+  tasks:    { naturaleza: "datos",          corre: "sesión",  claves: ["id", "title", "prompt", "steps", "roles", "category", "icon", "inputs", "tags"] }
+  routines: { naturaleza: "datos",          corre: "siempre", claves: ["id", "when", "task", "agent"] }
+  channels: { naturaleza: "datos",          corre: "siempre", claves: ["id", "tool"] }
+  memory:   { naturaleza: "código",         corre: "mente",   claves: ["id", "entry", "runtime"] }
+  engines:  { naturaleza: "datos",          corre: "sesión",  claves: ["id", "name", "binaries", "args", "install", "repo", "login", "compliance", "verified"] }
+  commands: { naturaleza: "datos",          corre: "ventana", claves: ["id", "title", "task"] }
+
+# --- Los permisos con alcance: qué límite admite cada capacidad ---
+# Forma corta: la capacidad sola (`net:fetch`), sin límite.
+# Forma larga: `{ kind: net:fetch, hosts: [api.x.com, "*.x.com"] }`, con límite.
+# Una capacidad sin alcance posible va siempre en su forma corta, y una larga
+# sin ninguna lista se rechaza (es la corta escrita de otra manera).
+# Los alcances se comparan por piezas, nunca por texto: ver `hosts`.
+alcances:
+  "mind:read": []
+  "mind:write": []
+  "ipc:emit": []
+  "fs:project": ["paths"]                 # relativas al proyecto; `**` es todo
+  "net:fetch": ["hosts"]                  # a.com, *.a.com (sus subdominios, no a.com) o *
+  "ui:render": []
+  "proc:spawn": ["programs"]              # por su nombre lógico (npx), nunca por su ruta
+
+# --- Los hosts: qué cubre un patrón y qué no (la conformidad los prueba) ---
+# [patrón, host]. Un host se compara en minúsculas y sin su punto final; un
+# puerto, un esquema o una ruta no son un host.
+hosts:
+  cubre:
+    - ["*.figma.com", "mcp.figma.com"]
+    - ["*.figma.com", "a.b.figma.com"]
+    - ["ankiweb.net", "ankiweb.net"]
+    - ["ankiweb.net", "AnkiWeb.NET."]
+    - ["*", "cualquier.cosa.com"]
+  no_cubre:
+    - ["*.figma.com", "figma.com"]
+    - ["*.figma.com", "evil-figma.com"]
+    - ["*.figma.com", "figma.com.evil.net"]
+    - ["*.figma.com", "mcp.figma.com.evil.net"]
+    - ["ankiweb.net", "api.ankiweb.net"]
+    - ["ankiweb.net", "ankiweb.net:8080"]
+    - ["ankiweb.net", "https://ankiweb.net"]
+
+# --- Los rangos de un `uses`: lo justo ---
+# Fuera: prereleases, `||`, rangos con espacios y comparadores sueltos.
+rangos:
+  validos: ["*", "1", "1.2", "1.2.3", "=1.2.3", "^1", "^1.2", "^0.4", "~1.2.3", ">=1.2"]
+  no_validos: ["", "latest", "^", "1.x", ">1", "<2", "1 || 2", "^1.0.0-beta", " ^1.0"]
+  ejemplos:                               # [versión, rango, ¿cumple?]
+    - ["1.4.2", "^1.0", true]
+    - ["2.0.0", "^1.0", false]
+    - ["0.4.9", "^0.4", true]
+    - ["0.5.0", "^0.4", false]
+    - ["0.0.4", "^0.0.3", false]
+    - ["1.2.9", "~1.2.3", true]
+    - ["1.3.0", "~1.2.3", false]
+    - ["1.2.7", "1.2", true]
+    - ["1.2.4", "1.2.3", false]
+    - ["3.0.0", ">=1.2", true]
+
+# --- Los niveles de aislamiento: dónde tiene que correr lo que trae ---
+# El de un paquete es el más alto de sus puntos: datos 0; WASM 1;
+# JavaScript en la cápsula (y una vista, en la suya) 2; un proceso del
+# sistema (Python, un MCP local, un motor con sus binarios, un agente de
+# línea de comandos, una skill con scripts) 3. El 4 no lo pide un paquete:
+# lo elige quien ejecuta (p. ej. en la nube).
+niveles:
+  0: "datos"
+  1: "WASM"
+  2: "cápsula"
+  3: "caja del sistema"
+  4: "microVM"
+
+# --- Lo que Esme sustituye en `mcp.command`, `mcp.args` y el entorno ---
+# (como `${CLAUDE_PLUGIN_ROOT}` y `${CLAUDE_PLUGIN_DATA}` en Claude Code),
+# y también en lo que lee el modelo: el SKILL.md de una skill, la receta de
+# un agente y el prompt de una tarea. Así un plugin importado sigue
+# encontrando sus ficheros (`${CLAUDE_PLUGIN_ROOT}` pasa a `${ESME_PAQUETE}`).
+variables:
+  ESME_PAQUETE: "la carpeta donde está instalado el paquete"
+  ESME_DATOS: "la carpeta de sus datos, que sobrevive a las actualizaciones"
+
+# --- El candado: lo que se resolvió y lo que la persona consintió ---
+# Un JSON con dos espacios, los paquetes ordenados por id. Si al volver a
+# resolver hay un paquete nuevo, una huella cambiada (aunque pida los mismos
+# permisos) o un permiso nuevo, se vuelve a pedir permiso. La raíz (la
+# plantilla) es uno más: su huella y sus propios permisos también cuentan,
+# así que quitar un paquete, que no pide nada por sí mismo, se pregunta una
+# vez (la plantilla que lo quita es otra). Y si el candado de antes no tenía
+# la huella de la plantilla y el nuevo sí, también: aquel sí no la fijaba.
+# Un candado roto o que no está equivale a «nada consentido».
+lock:
+  claves: ["lock_version", "raiz", "paquetes", "permisos"]
+  claves_raiz: ["id", "version", "sha256", "permisos"]
+  claves_paquete: ["id", "version", "sha256", "permisos"]
+
+# --- El oficio de una plantilla: lo que monta al abrirla ---
+# `oficio: { piel?, secciones, ordenes? }`, solo en plantillas (regla 11), y
+# sin claves de más (dentro del oficio, una clave desconocida no se ignora:
+# se rechaza). Sus claves van en castellano, como las nombró el diseño de la
+# interfaz «Oficio».
+#   piel:      un tema de la plantilla («estudio») o de un paquete de `uses`
+#              («esme.casa.piel-estudio/estudio»);
+#   secciones: en orden, y la primera, `primera`, tal cual (sin vista, filtro
+#              ni lienzo). Cada una `{ id, nombre, vista, filtro?, lienzo? }`:
+#              el id en kebab-case, sin repetir; el nombre, sin espacios a los
+#              lados ni nada invisible; la vista, de `vistas`; el lienzo, solo
+#              con la vista `lienzo.vista` (ver `lienzo`, aquí abajo);
+#   ordenes:   comandos de la plantilla («tarjetas») o de un paquete de `uses`
+#              («esme.ana.tarjetas/repasar»), sin repetir. Su tarea se lanza
+#              con un formulario: cada campo con `type` (de `tipos_de_entrada`;
+#              `choice` con sus `options`) y `description` (su etiqueta), sin
+#              `required: false`, con la clave en kebab-case y en el prompt
+#              (o en sus pasos) como `{{clave}}`; y ningún hueco del prompt
+#              que no sea un campo.
+# Un filtro es `estado:<uno de estados>` o `etiqueta:<kebab-case>`, nada de
+# expresiones, y solo va en una vista de `vistas_con_filtro` (las que listan
+# tareas). La app que no tenga la vista que se nombra enseña la de reserva.
+# Topes: `largo` es el de un id, un nombre, una etiqueta, una option o la
+# clave de un campo; `opciones`, las de un choice; `campos`, los de una orden;
+# `etiquetas`, las de una tarea (`tasks[].tags`, las que busca un filtro).
+# Un campo con tipo vale en cualquier tarea: su default, uno de su tipo (un
+# número como `7`, `-2` o `2.5`; en un choice, una de sus options).
+oficio:
+  primera: "hoy"
+  vistas: ["esme.hoy", "esme.tareas", "esme.memoria", "esme.terminal", "esme.lienzo", "esme.proyectos"]
+  vistas_con_filtro: ["esme.hoy", "esme.tareas"]
+  vista_de_reserva: "esme.tareas"
+  estados: ["te-necesita", "en-marcha", "terminado", "quieto"]
+  tipos_de_entrada: ["text", "number", "choice"]
+  topes: { secciones: 12, ordenes: 40, largo: 32, opciones: 20, campos: 10, etiquetas: 8 }
+  filtros:                                # probados con el código
+    validos: ["estado:te-necesita", "estado:en-marcha", "estado:terminado", "estado:quieto", "etiqueta:repaso", "etiqueta:por-revisar"]
+    no_validos: ["repaso", "estado:inventado", "estado:", "etiqueta:", "etiqueta:Repaso", "etiqueta:a:b", "etiqueta:*", "estado:quieto && etiqueta:x", "prioridad:alta"]
+  # El lienzo de partida de una sección del Lienzo (`lienzo: <ruta>`, solo con
+  # la vista `vista`): un `.canvas` del paquete que la app abre tal cual la
+  # primera vez; sin él, el Lienzo empieza en blanco. Es JSON Canvas 1.0
+  # (`formato`), y más estricto que esa spec, porque lo escribe otro y lo
+  # enseña la app (abrir luego es fácil; cerrar, no):
+  #   - arriba, `nodes` y `edges`, y nada más;
+  #   - cada pieza, de una clase de `tipos`, con `id`, `type`, `x` e `y`
+  #     (enteros, hasta `topes.coordenada` a cada lado del cero), `width` y
+  #     `height` (enteros, de 1 a `topes.medida`) y `color` si quiere («1» a
+  #     «6» o #RRGGBB). Y lo de su clase: `text` (Markdown, hasta
+  #     `topes.texto`, con tabuladores y saltos de línea); `file` (de
+  #     `formatos_fichero`) y `subpath` («#…»); `url` (https a un dominio de
+  #     internet, ni una IP ni de `dominios_locales`, sin usuario ni
+  #     contraseña, hasta `topes.url`); `label`, `background` (de
+  #     `formatos_fondo`) y `backgroundStyle` (de `fondos`);
+  #   - cada conexión, con `id`, `fromNode` y `toNode` (piezas del lienzo) y,
+  #     si quiere, `fromSide` y `toSide` (de `lados`), `fromEnd` y `toEnd` (de
+  #     `extremos`), `color` y `label`;
+  #   - los ids, de 1 a 64 letras, cifras, «-» o «_», sin repetir entre piezas
+  #     y conexiones; las rutas, del paquete y desde su raíz (no desde la
+  #     carpeta del lienzo), y que estén; nada invisible que mande en ningún
+  #     texto; una etiqueta o un subpath, hasta `topes.etiqueta`;
+  #   - una clave que no es de la spec para lo que es no vale, salvo lo propio
+  #     de Esme (con `prefijo_propio`), que también es una lista cerrada
+  #     (`propias`). Una pieza puede llevar `esme:tipo`, de `tipos_esme.piezas`
+  #     para su clase (una `imagen`, en un fichero de `formatos_fondo`);
+  #     `esme:z`, su altura sobre el plano, entera y en las unidades de x e y
+  #     (hasta `topes.coordenada` a cada lado del cero); y `esme:profundidad`,
+  #     su grosor, entero de 0 (una pieza plana) a `topes.profundidad`. Una
+  #     conexión puede llevar `esme:tipo`, de `tipos_esme.conexiones` (sin
+  #     él, es un enlace), y `esme:orden`, una línea de 1 a `topes.etiqueta`
+  #     caracteres: un flujo lleva su orden, y una orden va en un flujo;
+  #   - lo de `del_taller` no va: apunta a una tarea del Taller de quien hizo
+  #     el lienzo, que quien abre la plantilla no tiene.
+  # `bytes` es lo que pesa el fichero entero. Lo que no vale se dice con su
+  # sitio dentro del lienzo (`nodes.2.file: …`).
+  lienzo:
+    vista: "esme.lienzo"
+    extension: ".canvas"
+    formato: "https://jsoncanvas.org/spec/1.0/"
+    tipos: ["text", "file", "link", "group"]
+    lados: ["top", "right", "bottom", "left"]
+    extremos: ["none", "arrow"]
+    fondos: ["cover", "ratio", "repeat"]
+    formatos_fichero: ["md", "txt", "pdf", "png", "jpg", "jpeg", "webp", "gif", "avif", "mp3", "m4a", "ogg", "wav", "mp4", "webm"]
+    formatos_fondo: ["png", "jpg", "jpeg", "webp", "gif", "avif"]
+    dominios_locales: ["localhost", "local", "internal", "home.arpa"]
+    prefijo_propio: "esme:"
+    propias:
+      pieza: ["esme:tipo", "esme:z", "esme:profundidad"]
+      conexion: ["esme:tipo", "esme:orden"]
+    del_taller: ["esme:tarea", "esme:entregada"]
+    tipos_esme:
+      piezas: { text: ["nota", "tarea"], file: ["documento", "imagen"], link: ["enlace"], group: ["grupo"] }
+      conexiones: ["flujo"]
+    topes: { bytes: 262144, piezas: 200, conexiones: 400, texto: 4000, etiqueta: 120, coordenada: 1000000, medida: 100000, profundidad: 100000, url: 2048 }
+    rutas:                                # probadas con el código
+      validas: ["mapa.canvas", "lienzos/mapa.canvas", "./lienzos/de-trabajo.canvas"]
+      no_validas: ["mapa.json", "mapa.canvas.json", ".canvas", "lienzos/.canvas", "../mapa.canvas", "/mapa.canvas", "C:/mapa.canvas", "lienzos\\mapa.canvas"]
+
+# --- El carácter de una plantilla: cómo se siente al abrirla ---
+# Es de las plantillas y es cerrado, como el oficio: lo pinta una app que no
+# escribió quien hizo la plantilla. Todo es opcional: lo que falta, lo pone
+# la app (el carácter de Esme). Lleva:
+#   - `letra`, `densidad` y `movimiento`, de sus listas;
+#   - `sonido: { paleta }`: una de `paletas`, o null (sin sonido);
+#   - `vocabulario`: cómo se dicen en ese oficio las `palabras` que la app
+#     sabe cambiar, y ninguna otra;
+#   - `equipo`: hasta `topes.miembros` miembros, cada uno con `id`
+#     (kebab-case, sin repetir), `nombre`, `rol` y `caracter`, los cuatro y
+#     nada más. Un miembro no es por fuerza un agente con receta.
+# Cada texto va en una línea, sin espacios a los lados ni nada invisible, y
+# hasta su tope (`nombre`, `rol`, `caracter` o `palabra`). El color no es del
+# carácter: es de la piel de quien la usa, que además puede cambiarlo todo en
+# su propia capa (esa capa no viaja en el manifiesto).
+caracter:
+  letras: ["editorial", "tecnica", "mixta"]
+  densidades: ["compacta", "comoda", "amplia"]
+  movimientos: ["sobrio", "vivo"]
+  paletas: ["costura"]
+  palabras: ["hoy", "tarea", "tareas", "asunto", "asuntos", "equipo", "te-necesita", "en-marcha", "terminado", "quieto", "encargar", "memoria"]
+  topes: { miembros: 12, nombre: 32, rol: 60, caracter: 120, palabra: 32 }
+
+# --- Los recuerdos de partida de una plantilla: lo que deja en tu mente ---
+# Lo que el oficio de una plantilla ya sabe (solo se audita con permiso
+# firmado; los plazos se cuentan en días hábiles). Hasta `topes.recuerdos`,
+# cada uno con `id` (kebab-case, sin repetir), `texto` (una línea de 1 a
+# `topes.texto` caracteres, sin espacios a los lados ni nada invisible; dos
+# que dicen lo mismo, salvo las mayúsculas, no valen) y `tipo` (de `tipos`;
+# si falta, nota), que en la mente es el de `en_la_mente` (`remember`).
+# Escriben en tu mente, y lo que hay en tu mente condiciona lo que hace el
+# modelo. Por eso:
+#   - son de las plantillas: un paquete no escribe en tu mente al instalarse;
+#   - la procedencia no la escribe la plantilla (`procedencia` se rechaza):
+#     la pone el kit desde el candado que la persona aceptó (la plantilla,
+#     su versión y su huella), y cada recuerdo se conoce por
+#     `<plantilla>/<id>`, para cambiarlo o quitarlo;
+#   - entran con el sí de la persona al aceptar el candado (la app los
+#     enseña antes);
+#   - sin la huella de la plantilla en el candado no se escriben: el sí
+#     tiene que fijar lo que se escribe. Con ella, cualquier cambio de la
+#     plantilla, también en sus recuerdos, vuelve a preguntar;
+#   - se van con la plantilla (al quitarla, o cuando una versión nueva ya no
+#     los trae), salvo lo que la persona hizo suyo: una versión nueva nunca
+#     pisa lo que ella cambió o quitó.
+recuerdos:
+  tipos: ["nota", "decision", "preferencia"]
+  en_la_mente: { nota: "note", decision: "decision", preferencia: "preference" }
+  topes: { recuerdos: 20, texto: 280 }

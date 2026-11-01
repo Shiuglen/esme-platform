@@ -1,0 +1,159 @@
+{
+  "fuente": {
+    "repo": "Shiuglen/esme",
+    "commit": "bdb809f8c56aced6d211fc8c2cfa71c9b974ac4c",
+    "fichero": "app/src/main/motores/acp-motores.ts"
+  },
+  "datos": [
+    {
+      "id": "copilot",
+      "nombre": "GitHub Copilot",
+      "binarios": [
+        "copilot"
+      ],
+      "args": [
+        "--acp"
+      ],
+      "cumplimiento": "permitido",
+      "verificado": "2026-10-12",
+      "nota": "`copilot --acp` (stdio por defecto) según docs.github.com; no instalado aquí.",
+      "login": "Inicia sesión con tu cuenta de GitHub en el propio copilot (/login)."
+    },
+    {
+      "id": "cursor",
+      "nombre": "Cursor",
+      "binarios": [
+        "cursor-agent",
+        "agent"
+      ],
+      "args": [
+        "acp"
+      ],
+      "cumplimiento": "permitido",
+      "verificado": "2026-10-12",
+      "nota": "`agent acp` según cursor.com/docs/cli/acp; el binario se llama `agent` (alias `cursor-agent`, sin verificar). No instalado aquí.",
+      "login": "Ejecuta `agent login` una vez con tu cuenta de Cursor."
+    },
+    {
+      "id": "opencode",
+      "nombre": "OpenCode",
+      "binarios": [
+        "opencode"
+      ],
+      "args": [
+        "acp"
+      ],
+      "cumplimiento": "permitido",
+      "verificado": "2026-10-12",
+      "nota": "`opencode acp` confirmado con `opencode acp --help` en este equipo.",
+      "login": "Ejecuta `opencode auth login` y elige tu proveedor o suscripción."
+    },
+    {
+      "id": "gemini",
+      "nombre": "Gemini CLI",
+      "binarios": [
+        "gemini"
+      ],
+      "args": [
+        "--acp"
+      ],
+      "cumplimiento": "permitido",
+      "verificado": "2026-10-24",
+      "nota": "`gemini --acp` (0.65.0) responde por ACP; ofrece entrar con oauth-personal (tu cuenta de Google, con nivel gratuito), clave de Gemini, Vertex o pasarela. Sin entrar, la sesión dice que falta la clave.",
+      "login": "Pulsa «Entrar» y elige tu cuenta de Google (o ejecuta `gemini` una vez y entra con Google)."
+    },
+    {
+      "id": "goose",
+      "nombre": "Goose",
+      "binarios": [
+        "goose"
+      ],
+      "args": [
+        "acp"
+      ],
+      "cumplimiento": "permitido",
+      "verificado": "2026-10-12",
+      "nota": "Subcomando `goose acp` sin verificar (la doc consultada no respondió y el binario no está instalado).",
+      "login": "Configura el proveedor con `goose configure`."
+    },
+    {
+      "id": "kimi",
+      "nombre": "Kimi CLI",
+      "binarios": [
+        "kimi"
+      ],
+      "args": [
+        "acp"
+      ],
+      "cumplimiento": "permitido",
+      "verificado": "2026-10-12",
+      "nota": "Subcomando `kimi acp` sin verificar (la doc consultada no respondió y el binario no está instalado).",
+      "login": "Ejecuta `kimi` y usa /login con tu cuenta de Kimi."
+    },
+    {
+      "id": "qwen",
+      "nombre": "Qwen Code",
+      "binarios": [
+        "qwen"
+      ],
+      "args": [
+        "--acp"
+      ],
+      "cumplimiento": "permitido",
+      "verificado": "2026-10-24",
+      "nota": "`qwen --acp` (0.26.1) responde por ACP; por ACP solo ofrece entrar con una clave compatible con OpenAI. La entrada gratuita (Qwen OAuth) se hace una vez en su terminal: sin ella, la sesión pide autenticarse.",
+      "login": "Ejecuta `qwen` una vez en una terminal y entra con Qwen OAuth (gratis), o pon una clave compatible con OpenAI."
+    },
+    {
+      "id": "vibe",
+      "nombre": "Mistral Vibe",
+      "binarios": [
+        "vibe-acp",
+        "vibe"
+      ],
+      "args": [],
+      "cumplimiento": "permitido",
+      "verificado": "2026-10-12",
+      "nota": "Binario `vibe-acp` sin verificar (la doc consultada no respondió y no está instalado).",
+      "login": "Ejecuta `vibe --setup` con tu clave o cuenta de Mistral."
+    },
+    {
+      "id": "cline",
+      "nombre": "Cline",
+      "binarios": [
+        "cline"
+      ],
+      "args": [
+        "--acp"
+      ],
+      "cumplimiento": "permitido",
+      "verificado": "2026-10-12",
+      "nota": "`cline --acp` confirmado con `cline --help` en este equipo.",
+      "login": "Ejecuta `cline auth` con tu cuenta o proveedor."
+    },
+    {
+      "id": "codex",
+      "nombre": "Codex (adaptador)",
+      "binarios": [
+        "codex-acp"
+      ],
+      "args": [],
+      "cumplimiento": "tolerado",
+      "verificado": "2026-10-12",
+      "nota": "Adaptador `@agentclientprotocol/codex-acp` (el repo zed-industries/codex-acp está archivado; `npx @zed-industries/codex-acp` aún funciona). Nombre del binario sin verificar; no instalado aquí.",
+      "login": "Inicia sesión con tu suscripción de ChatGPT en Codex (`codex login`)."
+    },
+    {
+      "id": "claude",
+      "nombre": "Claude (adaptador)",
+      "binarios": [
+        "claude-agent-acp"
+      ],
+      "args": [],
+      "cumplimiento": "requiere-aprobacion",
+      "verificado": "2026-10-24",
+      "nota": "Adaptador oficial `@agentclientprotocol/claude-agent-acp` (0.95.0, binario `claude-agent-acp`): responde por ACP y abre sesión con tus modelos, pero para trabajar necesita tu cuenta en el Claude Code oficial — la sesión de la app de escritorio de Claude no se comparte con otros procesos. Solo con el login del propio usuario y el binario oficial; para distribuirlo hay que pedir aprobación a Anthropic.",
+      "login": "Inicia sesión con tu cuenta de Claude en el Claude Code oficial (`claude /login`)."
+    }
+  ]
+}

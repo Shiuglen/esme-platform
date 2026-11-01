@@ -16,18 +16,18 @@
       "bench_ciclo": {
         "modulo": "esme.nucleo.hola-mundo",
         "version": "0.1.0",
-        "fecha": "2026-10-21",
+        "fecha": "2026-11-01",
         "casos": 3,
         "ciclo_ok": true,
         "tokens_ciclo": 29.666666666666668
       },
       "firma_ok": true,
       "artefacto": {
-        "tar": "00ee6987b38946bd423c6cd88356503cb27c6cbcccbecc46b248a01d6d1ecfc6",
-        "bytes": 2483
+        "tar": "001ee16bef4595f1884c1f9d646ad7cc09dae1edbe18d7687b76d793766c2955",
+        "bytes": 2467
       },
-      "publicado_por": "adaaf79999a7296f",
-      "publicado_en": "2026-10-21",
+      "publicado_por": "76b0d2152bf7c3d9",
+      "publicado_en": "2026-11-01",
       "permisos": [
         "mind:read",
         "mind:write",
@@ -49,7 +49,7 @@
       "bench": {
         "modulo": "esme.nucleo.troceo-pro",
         "version": "0.1.0",
-        "fecha": "2026-10-21",
+        "fecha": "2026-11-01",
         "casos": 12,
         "recall_base": 0.25,
         "recall_con": 1,
@@ -59,11 +59,11 @@
       },
       "firma_ok": true,
       "artefacto": {
-        "tar": "fc40c107efa7aa1a3875991dddb7fa78700adbccfe516d0477886e3b45bda681",
-        "bytes": 2488
+        "tar": "c13e12ba40306a03aa1e48ad593780532b9f788f3a87247ced91bf50a680e159",
+        "bytes": 2477
       },
-      "publicado_por": "adaaf79999a7296f",
-      "publicado_en": "2026-10-21",
+      "publicado_por": "76b0d2152bf7c3d9",
+      "publicado_en": "2026-11-01",
       "permisos": [
         "mind:write"
       ]
@@ -82,18 +82,18 @@
       "bench_ciclo": {
         "modulo": "esme.nucleo.puerta",
         "version": "0.1.0",
-        "fecha": "2026-10-21",
+        "fecha": "2026-11-01",
         "casos": 3,
         "ciclo_ok": true,
         "tokens_ciclo": 53
       },
       "firma_ok": true,
       "artefacto": {
-        "tar": "6d27878594d6ea017a4a5b52556d90f802363c2f5f942e51fbfe434ff425775c",
-        "bytes": 2390
+        "tar": "1bb53b4eab52d615dc5cd67043027f26d59cdfa07658ab0b946c70745c2df8a9",
+        "bytes": 2368
       },
-      "publicado_por": "adaaf79999a7296f",
-      "publicado_en": "2026-10-21",
+      "publicado_por": "76b0d2152bf7c3d9",
+      "publicado_en": "2026-11-01",
       "permisos": [
         "fs:project",
         "ipc:emit",
@@ -105,14 +105,15 @@
   ],
   "signature": {
     "algorithm": "ed25519-sha512",
-    "signature": "1nXafiO9eqatLezfDo4ZSByD3jWQymn1OBZjoJwp30ONPBMPm/SWTZvfTNDiD9PrCmS4eyolEmjqG5rqWqH6CA==",
-    "signed_at": "2026-10-21T19:44:20.137Z",
-    "signed_by": "adaaf79999a7296f",
-    "hash": "n/1E5G0D3V/uJrOH8jEQtt+CIgiTdpGpITVJMzt9Xu8="
+    "signature": "H6n6tAgTvW+xrP3cweKRBO0EUWcgY5W5VcHreFXgb2F6ydrJ4K8kXOgTm5Il69wpApyH49lfNjsNhXi5Ev5ICw==",
+    "signed_at": "2026-11-01T20:08:49.371Z",
+    "signed_by": "76b0d2152bf7c3d9",
+    "hash": "1ZUfUtaomRY69d7VcO1HdJDhBjJAkuepj0sjdiaqHEs="
   },
   "claves": {
     "62304bfd9e441c73": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAWMd+6VJIBCckRb2ZcjZ/oEAv/upjD5OWPxR6Gm97yEE=\n-----END PUBLIC KEY-----\n",
     "d9978d32d1e71df0": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEA/gL6os9AP7AvWiggqPO1aO2PXp9L+IsbJHDVnotAKas=\n-----END PUBLIC KEY-----\n",
-    "adaaf79999a7296f": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAkePUK6fQTkQ5Il5Wwq5W0Dtf99h8j1P8eY2z7X3p1rk=\n-----END PUBLIC KEY-----\n"
+    "adaaf79999a7296f": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAkePUK6fQTkQ5Il5Wwq5W0Dtf99h8j1P8eY2z7X3p1rk=\n-----END PUBLIC KEY-----\n",
+    "76b0d2152bf7c3d9": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAgX6/fcCxS3XNflR01isjqUqU09kUlHjkcSqK3t6Qwy0=\n-----END PUBLIC KEY-----\n"
   }
 }

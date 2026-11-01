@@ -9,6 +9,7 @@
 | Spec | Qué fija | Quién lo implementa |
 |---|---|---|
 | [`module-manifest.spec.yaml`](module-manifest.spec.yaml) | la forma de un `module.yaml` (id, categoría, permisos, entrada, examen) | `core/ipc/module-schema.ts` |
+| [`paquete.spec.yaml`](paquete.spec.yaml) | el paquete (`module.yaml` v2): doce puntos, plantillas, `uses` fijados por su huella, permisos con alcance, niveles y el candado | `core/paquetes/manifiesto.ts`, `core/paquetes/permisos.ts`, `core/paquetes/semver.ts`, `core/paquetes/lock.ts` |
 | [`module-veredicto.spec.yaml`](module-veredicto.spec.yaml) | cómo se firma el veredicto de los módulos y qué contiene | `tienda/veredictos-modulos.ts` |
 | [`motor-capability.spec.yaml`](motor-capability.spec.yaml) | lo que declara cada motor (ventana, herramientas, red, MCP, desbordamiento) | `motores/laya-adapter.ts`, `motores/acp-motores.ts` |
 | [`contexto.spec.yaml`](contexto.spec.yaml) | los tres modos de contexto y sus presupuestos | `core/talamus/modos.ts` |
