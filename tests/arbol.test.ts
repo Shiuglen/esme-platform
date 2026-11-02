@@ -17,12 +17,33 @@
 import { describe, expect, it } from "vitest";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync, chmodSync } from "node:fs";
 import { join } from "node:path";
-import { tmpdir } from "node:os";
+import { tmpdir, userInfo } from "node:os";
+import { execFileSync } from "node:child_process";
 import { arbolFicheros, renderArbolFicheros, pesoHumano, totalRama, type NodoArbol } from "../core/ficheros.ts";
 
 const raiz = join(import.meta.dirname, "..");
 /** ser root vuelve imposible «a ciegas» (chmod no lo detiene): la prueba se salta sola */
 const somoRoot = typeof process.getuid === "function" && process.getuid() === 0;
+
+/**
+ * Cierra una carpeta a quien corre la prueba (y la vuelve a abrir).
+ *
+ * En Windows, chmod solo toca el «solo lectura» y la carpeta se sigue
+ * listando: lo que la cierra es negarle a este usuario listar su contenido
+ * (icacls /deny … :(RD)), y lo que la abre, quitar esa negación.
+ */
+const quien = (): string => {
+  const dominio = process.env.USERDOMAIN;
+  return dominio ? `${dominio}\\${userInfo().username}` : userInfo().username;
+};
+function cierra(carpeta: string): void {
+  if (process.platform === "win32") execFileSync("icacls", [carpeta, "/deny", `${quien()}:(RD)`], { stdio: "ignore" });
+  else chmodSync(carpeta, 0o000);
+}
+function abre(carpeta: string): void {
+  if (process.platform === "win32") execFileSync("icacls", [carpeta, "/remove:d", quien()], { stdio: "ignore" });
+  else chmodSync(carpeta, 0o755);
+}
 
 /** Un banco en tmp, todo MEDIDO: el nombre del fichero es su peso en bytes. */
 function banco(): string {
@@ -132,7 +153,7 @@ describe("lo que no se mide", () => {
     const tmp = banco();
     const cerrada = join(tmp, "cerrada");
     mkdirSync(cerrada);
-    chmodSync(cerrada, 0o000);
+    cierra(cerrada);
     try {
       const arbol = arbolFicheros({ ruta: tmp });
       const ciega = busca(arbol, "cerrada")!;
@@ -143,7 +164,7 @@ describe("lo que no se mide", () => {
       // ...y lo dice en el dibujo
       expect(renderArbolFicheros(arbol)).toContain("a ciegas");
     } finally {
-      chmodSync(cerrada, 0o755);
+      abre(cerrada);
       rmSync(tmp, { recursive: true, force: true });
     }
   });

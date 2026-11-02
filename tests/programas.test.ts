@@ -23,6 +23,7 @@ import { ProgramasPermitidos, rutaProgramasDe } from "../core/modulos/programas.
 import { modulos } from "../core/modulos/api.ts";
 import { creaRuntimeTienda, leeModulo } from "../tienda/modulos.ts";
 import { mideCicloModulo } from "../core/bench/ciclo.ts";
+import { comoLanzarTsx } from "./setup/lanzar.ts";
 
 const raizKit = resolve(import.meta.dirname, "..");
 
@@ -308,8 +309,9 @@ describe("el módulo de ejemplo de REA (la puerta, en un módulo de verdad)", ()
 
 describe("el libro de los programas vive junto al de los permisos", () => {
   it("el ancla es el libro de permisos (el que el kit y la app ya comparten)", () => {
-    const permisos = "/casa/modulos/consentimientos.json";
-    expect(rutaProgramasDe(permisos)).toBe("/casa/modulos/programas.json");
+    const permisos = join("/casa", "modulos", "consentimientos.json");
+    // la ruta es del sistema donde corre (en Windows, con «\»)
+    expect(rutaProgramasDe(permisos)).toBe(join("/casa", "modulos", "programas.json"));
   });
 
   it("el runtime de la Tienda lee el libro de ahí (y la puerta se abre)", async () => {
@@ -355,8 +357,9 @@ describe("la herramienta de REA no esquiva la puerta", () => {  it("sin REA en e
     const libroVacio = join(dir, "programas.json");
     writeFileSync(libroVacio, JSON.stringify({ version: 1, programas: [] }), "utf8");
 
-    const tsx = join(raizKit, "node_modules", ".bin", "tsx");
-    const r = spawnSync(tsx, [join(raizKit, "scripts", "rea.ts"), "catalogo"], {
+    // tsx por su cli, con este node: `.bin/tsx` es un guion de sh (en Windows no se lanza)
+    const tsx = comoLanzarTsx();
+    const r = spawnSync(tsx.programa, [...tsx.antes, join(raizKit, "scripts", "rea.ts"), "catalogo"], {
       env: { ...process.env, ESME_PROGRAMAS: libroVacio },
       encoding: "utf8",
       timeout: 60_000,

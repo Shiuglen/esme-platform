@@ -520,3 +520,62 @@ describe("la puerta de los programas: las cuatro guardas", () => {
     expect(MAX_BYTES_POR_DEFECTO).toBe(1_048_576);
   });
 });
+
+describe("la puerta de los programas en Windows: PATHEXT, y sin cmd.exe", () => {
+  // Windows no tiene bit de ejecución: un programa se reconoce por su
+  // extensión (PATHEXT). Aquí se simula la plataforma; los ficheros son de
+  // verdad (vacíos: solo se resuelven, no se lanzan).
+  const pathCon = (ficheros: string[]): string => {
+    const dir = mkdtempSync(join(tmpdir(), "path-win-"));
+    for (const f of ficheros) writeFileSync(join(dir, f), "");
+    return dir;
+  };
+  const windows = (dir: string) => ({ plataforma: "win32" as const, path: dir, pathext: ".COM;.EXE;.BAT;.CMD" });
+  const permitido = (nombre: string) => [{ nombre, descripcion: nombre }];
+
+  it("«node» se encuentra como node.exe", () => {
+    const dir = pathCon(["node.exe"]);
+    const r = resuelveEjecutable("node", permitido("node"), windows(dir));
+    expect(r.ok ? r.ruta : r.error).toBe(join(dir, "node.exe"));
+  });
+
+  it("un .cmd no se lanza: haría falta cmd.exe, y cmd.exe reinterpreta los argumentos", () => {
+    const dir = pathCon(["npm.cmd"]);
+    const r = resuelveEjecutable("npm", permitido("npm"), windows(dir));
+    expect(r.ok).toBe(false);
+    if (r.ok) return;
+    expect(r.error).toContain("npm.cmd");
+    expect(r.error).toContain("cmd.exe");
+  });
+
+  it("con la extensión en el nombre también vale; un .cmd con su nombre, tampoco", () => {
+    const dir = pathCon(["node.exe", "npm.cmd"]);
+    expect(resuelveEjecutable("node.exe", permitido("node.exe"), windows(dir)).ok).toBe(true);
+    expect(resuelveEjecutable("npm.cmd", permitido("npm.cmd"), windows(dir)).ok).toBe(false);
+  });
+
+  it("fuera de Windows, el nombre es el nombre: node.exe no es node", () => {
+    const dir = pathCon(["node.exe"]);
+    expect(resuelveEjecutable("node", permitido("node"), { plataforma: "linux", path: dir }).ok).toBe(false);
+  });
+
+  it("en Windows el hijo recibe SystemRoot y USERPROFILE (sin SystemRoot, un programa no arranca entero)", () => {
+    const env = entornoHijo({ nombre: "node", descripcion: "node" }, undefined, {
+      plataforma: "win32",
+      env: { PATH: "C:\\bin", SystemRoot: "C:\\Windows", USERPROFILE: "C:\\Users\\ana", LLAVE: "no" },
+    });
+    expect(env.SystemRoot).toBe("C:\\Windows");
+    expect(env.USERPROFILE).toBe("C:\\Users\\ana");
+    expect(env.PATH).toBe("C:\\bin");
+    expect(env.LLAVE).toBeUndefined();
+  });
+
+  it("fuera de Windows, el hijo no recibe las variables de Windows", () => {
+    const env = entornoHijo({ nombre: "node", descripcion: "node" }, undefined, {
+      plataforma: "linux",
+      env: { PATH: "/bin", HOME: "/home/ana", SystemRoot: "C:\\Windows" },
+    });
+    expect(env.SystemRoot).toBeUndefined();
+    expect(env.HOME).toBe("/home/ana");
+  });
+});

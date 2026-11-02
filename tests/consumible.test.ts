@@ -2,7 +2,7 @@
 // lo que no debe (zod, la red, el estado global).
 import { describe, expect, it } from "vitest";
 import { readFileSync, readdirSync, statSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { join, relative, resolve, sep } from "node:path";
 
 const raiz = resolve(import.meta.dirname, "..");
 const pkg = JSON.parse(readFileSync(join(raiz, "package.json"), "utf8")) as {
@@ -140,7 +140,8 @@ describe("el kit se puede consumir", () => {
       for (const linea of importa) {
         const mod = /["']([^"']+)["']/.exec(linea)?.[1] ?? "";
         if (mod.startsWith(".") || mod.startsWith("node:")) continue;
-        ajenos.set(mod, [...(ajenos.get(mod) ?? []), f.replace(raiz + "/", "")]);
+        // la ruta con «/» en cualquier sistema (en Windows, `f` trae «\»)
+        ajenos.set(mod, [...(ajenos.get(mod) ?? []), relative(raiz, f).split(sep).join("/")]);
       }
     }
     // La regla: el núcleo no arrastra dependencias en tiempo de ejecución.

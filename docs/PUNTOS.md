@@ -77,9 +77,10 @@ Cada punto trae su **papa** (el PPID, medido del sistema: 4.° campo del
 
 ## Las reglas
 
-1. **Se mide, no se estima.** La memoria sale de `/proc` (Linux) o de `ps`
-   (macOS). Si el sistema no lo dice, el punto lo dice (`null`): no se
-   disimula.
+1. **Se mide, no se estima.** La memoria sale de `/proc` (Linux), de `ps`
+   (macOS) o de `Win32_Process` (Windows). Si el sistema no lo dice, el punto
+   lo dice (`null`): no se disimula. En Windows la CPU de ahora va a `null`,
+   porque `Win32_Process` solo da el tiempo acumulado.
 2. **Un tope por defecto** (2 GiB por punto): el que se pasa, se ve. Una app
    que se come la RAM se nota *entonces*, no a posteriori.
 3. **Es local.** Leer el consumo de tus procesos no sale de tu PC: no hay
