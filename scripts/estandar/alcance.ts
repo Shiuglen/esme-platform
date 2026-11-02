@@ -22,7 +22,7 @@
  * Referencia: scripts/estandar/conformidad.ts, tests/alcance.test.ts.
  */
 import { readFileSync, readdirSync, statSync } from "node:fs";
-import { join, resolve, dirname } from "node:path";
+import { join, resolve, dirname, relative, sep } from "node:path";
 
 /** Las carpetas que son el núcleo del kit (lo que tiene que estar probado). */
 export const CARPETAS_NUCLEO = ["core", "tienda", "motores"];
@@ -174,7 +174,9 @@ export function huerfanosDelNucleo(
   const huerfanos: string[] = [];
   for (const f of nucleoDelKit(raiz)) {
     if (alcanzables.has(f)) continue;
-    const rel = f.slice(raiz.length + 1);
+    // la ruta relativa, siempre con «/»: las excepciones se escriben así, y
+    // en Windows `f` trae «\» (core\bench\cerebro.ts no casaba con nada)
+    const rel = relative(raiz, f).split(sep).join("/");
     if (excepciones[rel]) continue;
     huerfanos.push(rel);
   }

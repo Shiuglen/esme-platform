@@ -1,0 +1,14 @@
+# Los finales de línea, iguales en cualquier máquina.
+#
+# Lo que se firma se firma byte a byte: un paquete empaquetado en Windows con
+# los ficheros convertidos a CRLF (lo que hace git allí por defecto) no daría
+# el sha que fija el índice firmado. Así que todo el texto se queda en LF, en
+# el repo y en cada copia.
+* text=auto eol=lf
+
+# los paquetes firmados y lo que no es texto, tal cual
+*.tgz binary
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff2 binary

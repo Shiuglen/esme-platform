@@ -18,7 +18,9 @@ import { execFileSync } from "node:child_process";
 import { existsSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 import { NOMBRE_PAQUETE, raizDelPaquete, raizDelPaqueteSiExiste, rutaDelPaquete } from "../core/paquete.ts";
+import { npm } from "./setup/lanzar.ts";
 
 const raizKit = resolve(import.meta.dirname, "..");
 
@@ -78,7 +80,7 @@ describe("el kit compilado (que es el que se publica) encuentra su casa", () => 
     const dist = join(raizKit, "dist");
     // si no está compilado, se compila: la prueba no puede depender del orden
     if (!existsSync(join(dist, "core", "paquete.js"))) {
-      execFileSync("npm", ["run", "build"], { cwd: raizKit, stdio: ["ignore", "pipe", "pipe"] });
+      npm(["run", "build"], { cwd: raizKit, stdio: ["ignore", "pipe", "pipe"] });
     }
     expect(existsSync(join(dist, "core", "paquete.js"))).toBe(true);
 
@@ -87,8 +89,9 @@ describe("el kit compilado (que es el que se publica) encuentra su casa", () => 
       [
         "--input-type=module",
         "-e",
-        `import { leeRaiz } from ${JSON.stringify(join(dist, "tienda", "raiz.js"))};
-         import { existeContrato } from ${JSON.stringify(join(dist, "core", "tienda", "deseos.js"))};
+        // un import absoluto es una URL file:// (en Windows, «C:\…» no es una URL)
+        `import { leeRaiz } from ${JSON.stringify(pathToFileURL(join(dist, "tienda", "raiz.js")).href)};
+         import { existeContrato } from ${JSON.stringify(pathToFileURL(join(dist, "core", "tienda", "deseos.js")).href)};
          console.log(JSON.stringify({ raiz: !!leeRaiz(), piel: existeContrato("piel") }));`,
       ],
       { cwd: raizKit, encoding: "utf8" }

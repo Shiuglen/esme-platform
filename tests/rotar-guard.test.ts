@@ -17,10 +17,12 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { comoLanzarTsx } from "./setup/lanzar.ts";
 
 const correr = promisify(execFile);
 const raiz = resolve(import.meta.dirname, "..");
-const tsx = resolve(import.meta.dirname, "..", "node_modules", ".bin", "tsx");
+// tsx por su cli, con este node: `.bin/tsx` es un guion de sh (en Windows no se lanza)
+const tsx = comoLanzarTsx();
 const guion = join(raiz, "scripts", "rotar.ts");
 const ledgerRuta = join(raiz, "tienda", "rotaciones.json");
 
@@ -29,7 +31,7 @@ const ledgerRuta = join(raiz, "tienda", "rotaciones.json");
  * (el proceso acabó en failure) pero su stdout/stderr vienen con el por qué.
  */
 export async function salidaChequeada(args: string[]): Promise<{ salida: string; codigo: number | undefined }> {
-  const e = await correr(tsx, [guion, ...args]).then(
+  const e = await correr(tsx.programa, [...tsx.antes, guion, ...args]).then(
     (r) => ({ salida: r.stdout, codigo: 0 }),
     (err: { stdout: string; stderr: string; code: number | undefined }) => ({
       salida: `${err.stdout}\n${err.stderr}`,
