@@ -41,6 +41,16 @@ transporte:
     El cerebro toma un candado (fcntl) sobre .cerebro.lock: una sola mente por
     máquina. Si ya hay otra, sale con código 3 y la app no reintenta en bucle.
   reloj: "toda llamada tiene timeout: 10 s (10 s la voz: 30 s)"
+  equipo: >-
+    Una mente de equipo (el cerebro arrancado en modo equipo) la comparten
+    varias personas. Cada una entra con su invitación (/equipo/alta) y recibe
+    su propio token: con él, la puerta sabe quién es y qué papel tiene, y lo
+    que su papel no permite responde 403. El dueño usa el token de la mente y
+    lo puede todo. Un token revocado deja de valer en el acto (401).
+  papeles:
+    lector: "GET /health, /memories, /memory/{id}, /events, /taller/encargo, /taller/tablero, /equipo/yo y /equipo/miembros; POST /recall"
+    colaborador: "lo del lector, y POST /remember, /feedback, /taller/encargo, /taller/encargo/{id} y /taller/encargo/{id}/hecho (recoger un encargo y terminarlo; rechazarlo es del dueño)"
+    dueño: "todo: el servidor es suyo (absorber ficheros, REA, olvidar, la voz, invitar, revocar y el MCP entero)"
 
 contrato:
   # Lo que el cerebro expone. Los nombres son de la spec, no de la implementación.
@@ -160,6 +170,8 @@ contrato:
     nota: >-
       La puerta de entrada del Taller: guardarlo con su hora y su origen, y
       avisar por el bus. La tarea la crea la app cuando el creador acepta.
+      En un equipo, el origen lo pone la puerta (equipo:<nombre>) y no quien
+      llama: nadie firma por otro.
   taller_pendientes:
     metodo: GET
     ruta: "/taller/encargo"
@@ -171,7 +183,67 @@ contrato:
     responde: "el encargo con su estado ('aceptado' | 'rechazado')"
     nota: >-
       La respuesta del creador. Lo aceptado lo crea la APP, no la mente: la
-      menta nunca engendra tareas del Taller por su cuenta.
+      mente nunca engendra tareas del Taller por su cuenta. En un equipo,
+      'aceptado' es RECOGER el encargo (quién, lo pone la puerta) y solo el
+      dueño lo rechaza (403 para los demás).
+  taller_tablero:
+    metodo: GET
+    ruta: "/taller/tablero"
+    responde: "{ pendientes: [...], en_marcha: [...], hechos: [...] }"
+    nota: >-
+      El tablero de un equipo: lo que hay que hacer, lo que está en marcha (y
+      quién lo recogió) y lo hecho en los últimos 7 días. Lo pendiente caduca
+      a las 24 horas, como en la puerta.
+  taller_hecho:
+    metodo: POST
+    ruta: "/taller/encargo/{id}/hecho"
+    cuerpo: "{ resumen: string }  (qué se hizo, en una frase)"
+    responde: "el encargo, ya 'hecho', con quién lo hizo y su resumen — o 400 con su error"
+    nota: >-
+      Cuenta cómo acabó un encargo quien lo recogió (o el dueño). Lo hecho
+      entra en la mente del equipo como recuerdo del Taller, y se avisa por
+      el bus.
+  # ——— la mente de un equipo: quién entra, con qué papel y cómo sale ———
+  # Solo existen si el cerebro arranca en modo equipo (ver transporte.equipo).
+  # `fuera_de_la_puerta: true`: el cerebro la sirve, pero la app no la llama
+  # todavía (el dueño invita, revoca y ve el equipo desde la línea de órdenes
+  # del cerebro). Cuando la puerta la llame, la marca se quita.
+  equipo_alta:
+    metodo: POST
+    ruta: "/equipo/alta"
+    cuerpo: "{ codigo: string }  (la invitación, ESMEQ-…)"
+    responde: "201 { miembro: { id, nombre, papel }, token: string, equipo: string } — o 400 si la invitación no vale"
+    nota: >-
+      La única ruta del equipo que no lleva token: se entra con una invitación
+      de un solo uso que caduca (72 horas). El token que devuelve es el de esa
+      persona y solo sale esta vez. Como mucho 10 intentos por minuto; después,
+      429.
+  equipo_yo:
+    metodo: GET
+    ruta: "/equipo/yo"
+    responde: "{ yo: { id, nombre, papel }, equipo: string, memories: number }"
+  equipo_miembros:
+    metodo: GET
+    ruta: "/equipo/miembros"
+    fuera_de_la_puerta: true
+    responde: "{ miembros: [{ id, nombre, papel }] }"
+    nota: >-
+      Los demás ven quién es quién, sin los revocados. El dueño lo ve todo:
+      también a los revocados y las invitaciones (nunca sus huellas).
+  equipo_invitar:
+    metodo: POST
+    ruta: "/equipo/invitar"
+    fuera_de_la_puerta: true
+    cuerpo: "{ para: string, papel?: 'colaborador' | 'lector', url?: string }"
+    responde: "201 { codigo: string, id: string, caduca: number }  (el código solo se ve esta vez)"
+    nota: "Solo el dueño. Sin url, la invitación lleva la dirección del equipo."
+  equipo_revocar:
+    metodo: POST
+    ruta: "/equipo/revocar"
+    fuera_de_la_puerta: true
+    cuerpo: "{ id: string }"
+    responde: "el miembro, ya revocado — o 404 si no hay nadie con ese id"
+    nota: "Solo el dueño. Su token deja de valer en el acto."
   atlas:
     metodo: GET
     ruta: "/atlas"
