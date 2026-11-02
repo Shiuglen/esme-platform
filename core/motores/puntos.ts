@@ -19,6 +19,7 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { platform } from "node:os";
+import { win32 } from "node:path";
 import { MOTORES_ACP } from "../../motores/acp-motores.ts";
 
 /** Las claves del punto (la forma que declara estandar/puntos.spec.yaml). */
@@ -258,11 +259,81 @@ export function lecturasDePs(crudo: string): Lectura[] {
   return salida;
 }
 
+/**
+ * Windows: ni /proc ni ps. Lo dice Win32_Process (CIM), preguntado con la
+ * PowerShell que trae el sistema.
+ *
+ * El guion va codificado (-EncodedCommand): pasado como texto, las comillas
+ * se reinterpretan por el camino. Escribe una línea por proceso, con
+ * tabuladores y en UTF-8 (los nombres pueden llevar acentos).
+ */
+const GUION_CIM = [
+  "[Console]::OutputEncoding = [Text.Encoding]::UTF8",
+  "Get-CimInstance Win32_Process | ForEach-Object {",
+  "  $desde = if ($_.CreationDate) { ([DateTimeOffset]$_.CreationDate).ToUnixTimeMilliseconds() } else { '' }",
+  '  "$($_.ProcessId)`t$($_.ParentProcessId)`t$($_.WorkingSetSize)`t$desde`t$($_.Name)"',
+  "}",
+].join("\n");
+
+function leeWindows(): Lectura[] {
+  // la del sistema, por su ruta: no la primera «powershell» que haya en el PATH
+  const powershell = win32.join(
+    process.env.SystemRoot ?? process.env.SYSTEMROOT ?? "C:\\Windows",
+    "System32",
+    "WindowsPowerShell",
+    "v1.0",
+    "powershell.exe"
+  );
+  let crudo = "";
+  try {
+    crudo = execFileSync(
+      powershell,
+      ["-NoProfile", "-NonInteractive", "-EncodedCommand", Buffer.from(GUION_CIM, "utf16le").toString("base64")],
+      { encoding: "utf8", maxBuffer: 8 * 1024 * 1024, timeout: 30_000, windowsHide: true }
+    );
+  } catch {
+    return [];
+  }
+  return lecturasDeCim(crudo);
+}
+
+/**
+ * Lo que escribe el guion de Win32_Process, proceso a proceso: pid, ppid,
+ * memoria residente (bytes), arranque (epoch ms, vacío si no se sabe) y el
+ * nombre, el último porque puede tener espacios.
+ *
+ * La CPU va a null: Win32_Process solo da el tiempo ACUMULADO, y un promedio
+ * desde el arranque no es la CPU de ahora. Lo que no se mide, no se inventa.
+ */
+export function lecturasDeCim(crudo: string): Lectura[] {
+  const salida: Lectura[] = [];
+  const entero = /^\d+$/;
+  for (const linea of crudo.split(/\r?\n/)) {
+    const campos = linea.split("\t");
+    if (campos.length < 5) continue;
+    const [pid = "", papa = "", memoria = "", desde = ""] = campos;
+    if (!entero.test(pid) || !entero.test(papa)) continue;
+    const nombre = campos.slice(4).join("\t").trim();
+    salida.push({
+      // sin «.exe»: el nombre con el que la casa reconoce a sus motores
+      proceso: nombre.replace(/\.exe$/i, ""),
+      pid: Number(pid),
+      papa: Number(papa) || null,
+      estado: "vivo",
+      memoria_mb: entero.test(memoria) ? Number(memoria) / (1024 * 1024) : null,
+      cpu_pct: null,
+      desde: entero.test(desde) ? Number(desde) : null,
+    });
+  }
+  return salida;
+}
+
 /** Los puntos: lo que la casa está corriendo ahora mismo, medido. */
 export function puntos(opts: OpcionesPuntos = {}): Punto[] {
   const tope = opts.tope_mb ?? TOPE_MB;
+  const sistema = platform();
   const lecturas =
-    platform() === "linux" ? leeLinux() : platform() === "darwin" ? leeMac() : [];
+    sistema === "linux" ? leeLinux() : sistema === "darwin" ? leeMac() : sistema === "win32" ? leeWindows() : [];
 
   const motores = opts.motores;
   const pids = opts.pids ? new Set(opts.pids) : null;

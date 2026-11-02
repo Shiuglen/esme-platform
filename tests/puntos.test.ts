@@ -12,7 +12,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { platform } from "node:os";
-import { puntos, motorDe, renderPuntos, renderArbolPuntos, lecturasDePs, TOPE_MB, type Punto } from "../core/motores/puntos.ts";
+import { puntos, motorDe, renderPuntos, renderArbolPuntos, lecturasDePs, lecturasDeCim, TOPE_MB, type Punto } from "../core/motores/puntos.ts";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -113,6 +113,32 @@ describe("la familia", () => {
     expect(lecturas[1].proceso).toBe("Electron");
     expect(lecturas[1].memoria_mb).toBe(300);
     expect(lecturas[1].cpu_pct).toBe(12.5);
+  });
+
+  it("en Windows, Win32_Process también dice quién engendró a quién (campo a campo)", () => {
+    // lo que escribe el guion de PowerShell, con tabuladores: pid, ppid,
+    // memoria residente en bytes, arranque en epoch ms (vacío si el sistema
+    // no lo dice) y el nombre, que va el último porque puede tener espacios
+    const crudo = [
+      "4\t0\t143360\t\tSystem",
+      "7712\t5012\t314572800\t1793520000000\tnode.exe",
+      "9010\t7712\t52428800\t1793520060000\tClaude Helper.EXE",
+      "",
+    ].join("\r\n");
+    const lecturas = lecturasDeCim(crudo);
+    expect(lecturas.map((l) => [l.pid, l.papa])).toEqual([
+      [4, null],
+      [7712, 5012],
+      [9010, 7712],
+    ]);
+    // sin «.exe»: el nombre con el que la casa reconoce a sus motores
+    expect(lecturas[1].proceso).toBe("node");
+    expect(lecturas[2].proceso).toBe("Claude Helper");
+    expect(lecturas[1].memoria_mb).toBe(300);
+    expect(lecturas[1].desde).toBe(1793520000000);
+    expect(lecturas[0].desde).toBeNull();
+    // Win32_Process solo sabe la CPU acumulada, no la de ahora: no se inventa
+    expect(lecturas[1].cpu_pct).toBeNull();
   });
 
   it("el árbol conecta cada punto con su papa (y lo que nació fuera, raíz)", () => {

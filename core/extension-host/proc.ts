@@ -132,14 +132,62 @@ export const MAX_BYTES_POR_DEFECTO = 1_048_576;
 export const MAX_BYTES_TECHO = 512 * 1_048_576;
 
 /**
+ * Dónde se busca un programa: la plataforma, su PATH y (en Windows) su
+ * PATHEXT. Por defecto, los de este proceso; las pruebas pasan otros.
+ */
+export interface EntornoBusqueda {
+  plataforma: NodeJS.Platform;
+  path?: string;
+  pathext?: string;
+}
+
+/**
+ * En Windows solo se lanzan binarios. Un .cmd o un .bat necesita cmd.exe, y
+ * cmd.exe vuelve a interpretar los argumentos (comillas, `&`, `%VAR%`): la
+ * guarda «sin shell» dejaría de valer. Node, además, se niega a lanzarlos
+ * sin shell desde la CVE-2024-27980.
+ */
+const EXTENSIONES_BINARIAS = new Set([".exe", ".com"]);
+
+const esFichero = (ruta: string): boolean => {
+  try {
+    return statSync(ruta).isFile();
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Los nombres con que un programa existe en Windows. «node» es node.exe: se
+ * prueban las extensiones de PATHEXT, en su orden, salvo que el nombre ya
+ * traiga una de ellas («python3.11» no la trae: es python3.11.exe).
+ */
+function candidatasWindows(nombre: string, pathext: string): string[] {
+  const extensiones = pathext
+    .split(";")
+    .map((e) => e.trim().toLowerCase())
+    .filter((e) => e.startsWith("."));
+  const punto = nombre.lastIndexOf(".");
+  const suya = punto > 0 ? nombre.slice(punto).toLowerCase() : "";
+  if (suya && extensiones.includes(suya)) return [nombre];
+  return extensiones.map((e) => `${nombre}${e}`);
+}
+
+/**
  * Resuelve el ejecutable de un programa permitido.
  *
  * Primero la ruta explícita; si no la hay, el PATH —pero sólo el PATH, y sólo
- * para un nombre que el anfitrión ya concedió.
+ * para un nombre que el anfitrión ya concedió. En Windows, el nombre se
+ * completa con PATHEXT (node → node.exe) y solo valen binarios.
  */
 export function resuelveEjecutable(
   nombre: string,
-  permitidos: readonly EntradaProc[]
+  permitidos: readonly EntradaProc[],
+  entorno: EntornoBusqueda = {
+    plataforma: process.platform,
+    path: process.env.PATH,
+    pathext: process.env.PATHEXT,
+  }
 ): { ok: true; ruta: string; entrada: EntradaProc } | { ok: false; error: string } {
   const entrada = permitidos.find((p) => p.nombre === nombre);
   if (!entrada) {
@@ -152,8 +200,31 @@ export function resuelveEjecutable(
     }
     return { ok: true, ruta: entrada.ruta, entrada };
   }
-  const path = process.env.PATH ?? "";
-  for (const dir of path.split(delimiter).filter(Boolean)) {
+  const dirs = (entorno.path ?? "").split(delimiter).filter(Boolean);
+  if (entorno.plataforma === "win32") {
+    // Windows no tiene bit de ejecución: lo que existe con una extensión
+    // binaria se puede lanzar.
+    let script: string | null = null;
+    for (const dir of dirs) {
+      for (const candidata of candidatasWindows(nombre, entorno.pathext ?? ".COM;.EXE;.BAT;.CMD")) {
+        const intento = join(dir, candidata);
+        if (!esFichero(intento)) continue;
+        const extension = candidata.slice(candidata.lastIndexOf(".")).toLowerCase();
+        if (EXTENSIONES_BINARIAS.has(extension)) return { ok: true, ruta: intento, entrada };
+        script ??= intento;
+      }
+    }
+    if (script) {
+      return {
+        ok: false,
+        error:
+          `«${nombre}» es ${script}: un script que solo corre dentro de cmd.exe, y cmd.exe ` +
+          `reinterpreta los argumentos. Pon en el libro la ruta de un .exe (o lanza el .js con node).`,
+      };
+    }
+    return { ok: false, error: `programa no encontrado en el PATH: «${nombre}»` };
+  }
+  for (const dir of dirs) {
     const intento = join(dir, nombre);
     try {
       if (!statSync(intento).isFile()) continue;
@@ -166,16 +237,33 @@ export function resuelveEjecutable(
   return { ok: false, error: `programa no encontrado en el PATH: «${nombre}»` };
 }
 
-/** El entorno del hijo: el mínimo, y sólo lo que el programa puede pedir. */
+/** El entorno del que sale el del hijo: la plataforma y sus variables. */
+export interface EntornoPadre {
+  plataforma: NodeJS.Platform;
+  env: Readonly<Record<string, string | undefined>>;
+}
+
+/**
+ * El entorno del hijo: el mínimo, y sólo lo que el programa puede pedir.
+ *
+ * En Windows, además, SystemRoot (sin él, un programa no inicia la red ni
+ * los proveedores de cifrado del sistema) y USERPROFILE (el HOME de
+ * Windows). Ninguna de las dos es un secreto.
+ */
 export function entornoHijo(
   entrada: EntradaProc,
-  pedido: Readonly<Record<string, string>> | undefined
+  pedido: Readonly<Record<string, string>> | undefined,
+  padre: EntornoPadre = { plataforma: process.platform, env: process.env }
 ): Record<string, string> {
   const base: Record<string, string> = {
-    PATH: process.env.PATH ?? "",
-    HOME: process.env.HOME ?? "",
-    LANG: process.env.LANG ?? "C",
+    PATH: padre.env.PATH ?? "",
+    HOME: padre.env.HOME ?? "",
+    LANG: padre.env.LANG ?? "C",
   };
+  if (padre.plataforma === "win32") {
+    base.SystemRoot = padre.env.SystemRoot ?? padre.env.SYSTEMROOT ?? "";
+    base.USERPROFILE = padre.env.USERPROFILE ?? "";
+  }
   const permitidas = new Set(entrada.envPermitidas ?? []);
   for (const [clave, valor] of Object.entries(pedido ?? {})) {
     if (!permitidas.has(clave)) continue;

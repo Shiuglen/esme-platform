@@ -5,7 +5,7 @@
 import { describe, expect, it } from "vitest";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { join, resolve, sep } from "node:path";
 import { build } from "esbuild";
 import { abreHost } from "../core/extension-host/host.ts";
 import type { MenteViva } from "../core/ipc/mind-schema.ts";
@@ -35,10 +35,13 @@ const menteStub: MenteViva = {
 async function moduloQuePregunta(): Promise<string> {
   const dir = mkdtempSync(join(tmpdir(), "modulo-puerta-"));
   const fuente = join(dir, "modulo.ts");
+  // el import, con «/» y entre comillas de verdad: en Windows la raíz trae «\»,
+  // y dentro de una cadena «\a» o «\e» dejan de ser una ruta
+  const sdk = JSON.stringify(join(raiz, "core", "ipc", "sdk.ts").split(sep).join("/"));
   writeFileSync(
     fuente,
     `
-import { mente } from "${raiz}/core/ipc/sdk.ts";
+import { mente } from ${sdk};
 
 export async function paraQueTrabaja(): Promise<{ pilares: string[]; activos: string[] }> {
   const r = await mente().rumbo();
