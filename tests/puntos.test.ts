@@ -88,14 +88,20 @@ describe("la medida", () => {
 });
 
 describe("la familia", () => {
-  it("cada punto trae su papa MEDIDO (el ppid del sistema, no una invención)", async () => {
-    // el propio proceso de la prueba: su papa en la medida tiene que ser el
-    // que el sistema le dio (process.ppid lo pregunta al sistema en Linux y
-    // en macOS por igual; /proc solo existe en Linux)
-    const lista = puntos({ pids: [process.pid] });
-    expect(lista.length).toBe(1);
-    expect(lista[0].papa).toBe(process.ppid);
-  });
+  it(
+    "cada punto trae su papa MEDIDO (el ppid del sistema, no una invención)",
+    async () => {
+      // el propio proceso de la prueba: su papa en la medida tiene que ser el
+      // que el sistema le dio (process.ppid lo pregunta al sistema en Linux,
+      // macOS y Windows por igual; /proc solo existe en Linux)
+      const lista = puntos({ pids: [process.pid] });
+      expect(lista.length).toBe(1);
+      expect(lista[0].papa).toBe(process.ppid);
+    },
+    // en Windows la medida arranca una PowerShell: en la CI tarda unos 3 s,
+    // y el tope por defecto de vitest (5 s) la dejaría al borde
+    60_000
+  );
 
   it("en macOS, ps también dice quién engendró a quién (el ppid, columna a columna)", () => {
     // la salida de `ps -Ao pid=,ppid=,pcpu=,rss=,lstart=,comm=`: la fecha
