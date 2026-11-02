@@ -19,6 +19,7 @@ import { execFileSync } from "node:child_process";
 import { mkdtempSync, mkdirSync, symlinkSync, existsSync, rmSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { npm } from "./setup/lanzar.ts";
 
 const raizKit = resolve(import.meta.dirname, "..");
 
@@ -29,7 +30,7 @@ function kitInstalado(): string {
   mkdirSync(destino, { recursive: true });
 
   // 1. el tarball, tal cual lo publicaría npm
-  execFileSync("npm", ["pack", "--pack-destination", trabajo], {
+  npm(["pack", "--pack-destination", trabajo], {
     cwd: raizKit,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
@@ -52,7 +53,8 @@ function kitInstalado(): string {
   for (const dep of ["zod", "js-yaml"]) {
     const origen = join(raizKit, "node_modules", dep);
     if (!existsSync(origen)) continue;
-    symlinkSync(origen, join(trabajo, "node_modules", dep));
+    // "junction": en Windows, un enlace a carpeta que no pide permisos de administrador
+    symlinkSync(origen, join(trabajo, "node_modules", dep), "junction");
   }
 
   return trabajo;

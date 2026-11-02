@@ -45,7 +45,25 @@ const rutasDeLaSpec = (): string[] => {
   return [...new Set(rutas)].sort();
 };
 
-/** La copia de aquí del cerebro (la última conocida): la CI la usa. */
+/**
+ * Las rutas que la spec deja fuera de la puerta a propósito (`fuera_de_la_puerta: true`):
+ * las sirve el cerebro, pero la app no las llama (hoy, las del dueño de un equipo, que se
+ * manejan desde la línea de órdenes del cerebro).
+ */
+const rutasFueraDeLaPuerta = (): string[] => {
+  const spec = yaml.load(
+    readFileSync(resolve(raizKit, "estandar", "cerebro-frontera.spec.yaml"), "utf8")
+  ) as { contrato?: Record<string, unknown> };
+  const fuera: string[] = [];
+  for (const entrada of Object.values(spec.contrato ?? {})) {
+    const e = entrada as Record<string, unknown> | null;
+    if (e && typeof e === "object" && e.fuera_de_la_puerta === true && typeof e.ruta === "string")
+      fuera.push(e.ruta.split("?")[0]);
+  }
+  return fuera.sort();
+};
+
+/** La copia de aquí del cerebro (la última conocida: daimon/server.py de prueba0-fase1, 1 nov 2026): la CI la usa. */
 const COPIA_CEREBRO = `
 @mcp.custom_route("/health", methods=["GET"])
 @mcp.custom_route("/recall", methods=["POST"])
@@ -56,27 +74,35 @@ const COPIA_CEREBRO = `
 @mcp.custom_route("/forget", methods=["POST"])
 @mcp.custom_route("/ingest", methods=["POST"])
 @mcp.custom_route("/ingest-x", methods=["POST"])
-@mcp.custom_route("/rumbo", methods=["GET"])
-@mcp.custom_route("/sueño", methods=["POST"])
-@mcp.custom_route("/repeticiones", methods=["GET"])
-@mcp.custom_route("/necesidad", methods=["GET"])
 @mcp.custom_route("/rea/absorber", methods=["POST"])
 @mcp.custom_route("/rea/recuerdos", methods=["POST"])
 @mcp.custom_route("/rea/comparar", methods=["POST"])
-@mcp.custom_route("/equipo", methods=["POST"])
+@mcp.custom_route("/rumbo", methods=["GET"])
+@mcp.custom_route("/rumbo", methods=["POST"])
+@mcp.custom_route("/sueño", methods=["POST"])
+@mcp.custom_route("/repeticiones", methods=["GET"])
+@mcp.custom_route("/necesidad", methods=["GET"])
 @mcp.custom_route("/taller/encargo", methods=["POST"])
 @mcp.custom_route("/taller/encargo", methods=["GET"])
 @mcp.custom_route("/taller/encargo/{id}", methods=["POST"])
+@mcp.custom_route("/taller/tablero", methods=["GET"])
+@mcp.custom_route("/taller/encargo/{id}/hecho", methods=["POST"])
+@mcp.custom_route("/equipo", methods=["POST"])
 @mcp.custom_route("/orquesta", methods=["GET"])
 @mcp.custom_route("/atlas", methods=["GET"])
 @mcp.custom_route("/voz/oir", methods=["POST"])
 @mcp.custom_route("/voz/decir", methods=["POST"])
+@mcp.custom_route("/equipo/alta", methods=["POST"])
+@mcp.custom_route("/equipo/yo", methods=["GET"])
+@mcp.custom_route("/equipo/miembros", methods=["GET"])
+@mcp.custom_route("/equipo/invitar", methods=["POST"])
+@mcp.custom_route("/equipo/revocar", methods=["POST"])
 @mcp.custom_route("/events", methods=["GET"])
 @mcp.custom_route("/.well-known/agent-card.json", methods=["GET"])
 @mcp.custom_route("/.well-known/agent.json", methods=["GET"])
 `;
 
-/** La copia de aquí de la puerta de la app (la última conocida): la CI la usa. */
+/** La copia de aquí de la puerta de la app (la última conocida: cliente.ts de prueba0-fase1, 1 nov 2026): la CI la usa. */
 const COPIA_APP = `
 salud: '/health', recuerdos: '/memories', recordar: '/recall', escribir: '/remember',
 feedback: '/feedback', olvido: '/forget', ingesta: '/ingest', sueno: '/sueño',
@@ -85,6 +111,7 @@ memoria: '/memory/{id}', vozOir: '/voz/oir', vozDecir: '/voz/decir', eventos: '/
 ingestX: '/ingest-x', equipo: '/equipo',
 rea: '/rea/absorber', reaRecuerdos: '/rea/recuerdos', reaComparar: '/rea/comparar', repeticiones: '/repeticiones', necesidad: '/necesidad',
 tallerPendientes: '/taller/encargo', tallerRespuesta: '/taller/encargo/{id}',
+equipoAlta: '/equipo/alta', equipoYo: '/equipo/yo', tallerTablero: '/taller/tablero', tallerHecho: '/taller/encargo/{id}/hecho',
 `;
 
 /** Las rutas del cerebro Python (las que declara el servidor). */
@@ -141,12 +168,21 @@ describe("la frontera: la spec, el cerebro y la app dicen lo mismo", () => {
   });
 
   it("NINGUNA ruta de la spec falta en la puerta de la app", () => {
+    const fuera = rutasFueraDeLaPuerta();
     const faltan = rutasDeLaSpec().filter(
-      (r) => !rutasDeLaApp().includes(r) && !r.startsWith("/.well-known/")
+      (r) => !rutasDeLaApp().includes(r) && !r.startsWith("/.well-known/") && !fuera.includes(r)
     );
     expect(
       faltan,
       `la spec promete rutas que la puerta no tiene: ${faltan.join(", ")}`
+    ).toEqual([]);
+  });
+
+  it("lo que la spec deja fuera de la puerta, la puerta no lo llama (si lo llama, la marca sobra)", () => {
+    const llamadas = rutasFueraDeLaPuerta().filter((r) => rutasDeLaApp().includes(r));
+    expect(
+      llamadas,
+      `la puerta ya llama a ${llamadas.join(", ")}: quita su fuera_de_la_puerta de la spec`
     ).toEqual([]);
   });
 
@@ -182,6 +218,20 @@ describe("la frontera: la spec, el cerebro y la app dicen lo mismo", () => {
       sobra,
       `la copia de la puerta tiene rutas que la app ya no tiene: ${sobra.join(", ")}`
     ).toEqual([]);
+  });
+
+  it("la copia del cerebro está al día (si no, la CI no ve las rutas nuevas del cerebro)", () => {
+    // lo mismo que con la puerta, por el otro lado: con la copia vieja, la
+    // CI aprobaría una spec a la que le faltan rutas que el cerebro ya sirve
+    const ruta = join(appRepo, "daimon", "server.py");
+    if (!existe(ruta)) return; // sin el cerebro a la vista, la copia es lo que hay
+    const deRutas = (texto: string) => [...new Set([...texto.matchAll(/custom_route\("([^"]+)"/g)].map((m) => m[1]))];
+    const copia = deRutas(COPIA_CEREBRO);
+    const reales = deRutas(readFileSync(ruta, "utf8"));
+    const faltan = reales.filter((r) => !copia.includes(r));
+    const sobra = copia.filter((r) => !reales.includes(r));
+    expect(faltan, `la copia del cerebro está vieja: le faltan ${faltan.join(", ")}`).toEqual([]);
+    expect(sobra, `la copia del cerebro tiene rutas que el cerebro ya no tiene: ${sobra.join(", ")}`).toEqual([]);
   });
 
   it("la puerta manda los campos que la spec dice (y el nombre no cambia por el camino)", () => {
